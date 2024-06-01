@@ -1,0 +1,69 @@
+name: TeensyROM CLI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        configuration: [Release]      
+
+    env:
+      Solution_Name: src/TeensyRom.Cli.sln
+      Project_Path: src/TeensyRom.Cli/
+      Project_Name: TeensyRom.Cli.csproj  
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - uses: actions/cache@v3
+      with:
+       path: ~/.nuget/packages
+       key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+       restore-keys: |
+         ${{ runner.os }}-nuget-
+
+    - name: Extract Version From .csproj
+      id: extract_version
+      run: |
+        $csprojPath = "${{ github.workspace }}/${{ env.Project_Path }}/${{ env.Project_Name }}"
+        [xml]$csproj = Get-Content $csprojPath
+        $version = $csproj.Project.PropertyGroup.Version
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        echo "FILENAME=tr-cli-$version.zip" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+
+    - name: Install .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore NuGet packages
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Build Application
+      run: dotnet build ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-restore
+
+    - name: Publish Application
+      run: dotnet publish ${{ env.Project_Path }}${{ env.Project_Name }} -c ${{ matrix.configuration }} --self-contained true -r win-x64 -o ${{ github.workspace }}\published\
+
+    - name: Archive Build Artifacts
+      run: 7z a ${{ steps.extract_version.outputs.FILENAME }} ${{ github.workspace }}\published\*
+      shell: pwsh
+
+    - name: Create and Upload Release
+      uses: softprops/action-gh-release@v1      
+      env:
+       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+       tag_name: ${{ steps.extract_version.outputs.VERSION }}
+       files: ${{ steps.extract_version.outputs.FILENAME }}

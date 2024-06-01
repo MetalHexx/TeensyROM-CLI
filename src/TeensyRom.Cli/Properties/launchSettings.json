@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RadEndpoints.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "chipsynth transform"
+    }
+  }
+}
