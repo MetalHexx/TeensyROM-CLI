@@ -13,6 +13,9 @@
   <ItemGroup>
     <PackageReference Include="Spectre.Console" Version="0.49.1" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.49.1" />
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>TeensyRom.Cli.Tests</_Parameter1>
+	</AssemblyAttribute>
   </ItemGroup>
 
   <ItemGroup>

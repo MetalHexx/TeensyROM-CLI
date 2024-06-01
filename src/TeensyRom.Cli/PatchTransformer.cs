@@ -10,14 +10,10 @@ namespace TeensyRom.Cli
 {
     internal class PatchTransformer
     {
-        public XmlDocument GetXml(string filePath)
+        public XDocument Transform(XDocument xmlDoc, string sidClock)
         {
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(filePath);
-            return xmlDoc;
-        }
-        public XDocument Transform(XDocument xmlDoc, bool isNtsc)
-        {
+            bool isNtsc = sidClock.Equals("NTSC", StringComparison.OrdinalIgnoreCase);
+
             var settings = xmlDoc.Descendants("Settings").FirstOrDefault();
 
             if (settings is null) 
