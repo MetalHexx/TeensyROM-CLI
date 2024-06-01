@@ -20,8 +20,9 @@ This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynt
   - From a command prompt 2 options: 
     - TeensyRom.Cli chipsynth transform
     - TeensyRom.Cli c t
+  - Current directory and all child directories will be scanned for .fermatax files
   - Your new patches will be placed in a relative directory called /ASID
-  - If you place this /ASID folder in your /Presets/com.Plogue.Fermata.chipsynth C64/ folder, you will see them appear in Chipsynth C64
+  - If you place this /ASID folder in your /Presets/com.Plogue..chipsynth C64/ folder, you will see them appear in Chipsynth C64
   - If you need help, seek me out on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
 
 ### ASID Patch Generator
