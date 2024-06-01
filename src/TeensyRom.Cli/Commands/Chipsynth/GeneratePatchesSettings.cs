@@ -6,7 +6,7 @@ using Spectre.Console.Rendering;
 
 namespace TeensyRom.Cli.Commands.Chipsynth
 {
-    internal class TransformPatchesSettings : CommandSettings
+    internal class GeneratePatchesSettings : CommandSettings
     {
         [JsonIgnore]
         [Description("The SID clock to generate.")]
@@ -14,7 +14,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
         public string Clock { get; set; } = string.Empty;
 
         [JsonIgnore]
-        [Description("The source path of the Chipsynth C64 patches.  This must be an absolute path.  Default: Current Directory")]
+        [Description("The source path of the Chipsynth C64 patches.  Must be an absolute path.")]
         [CommandOption("-s|--source")]
         public string SourcePath { get; set; } = string.Empty;
 

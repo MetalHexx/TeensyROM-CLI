@@ -5,9 +5,9 @@ using TeensyRom.Cli.Helpers;
 
 namespace TeensyRom.Cli.Commands.Chipsynth
 {
-    internal class TransformPatchesCommand : Command<TransformPatchesSettings>
+    internal class GeneratePatchesCommand : Command<GeneratePatchesSettings>
     {
-        public override int Execute(CommandContext context, TransformPatchesSettings s)
+        public override int Execute(CommandContext context, GeneratePatchesSettings s)
         {
             RadHelper.WriteTitle("Chipsynth C64 ASID Patch Generator");
             AnsiConsole.WriteLine();
@@ -28,7 +28,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return 0;
         }
 
-        public bool RunWizard(TransformPatchesSettings s) 
+        public bool RunWizard(GeneratePatchesSettings s) 
         {
             var reRun = false;
             do
@@ -66,7 +66,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return true;            
         }
 
-        private static bool EnsureTargetPath(TransformPatchesSettings s)
+        private static bool EnsureTargetPath(GeneratePatchesSettings s)
         {
             var targetFullPath = Path.Combine(s.SourcePath, s.TargetPath);
 
@@ -87,7 +87,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return Directory.Exists(targetFullPath);
         }
 
-        private static void OutputSettings(TransformPatchesSettings s)
+        private static void OutputSettings(GeneratePatchesSettings s)
         {
             AnsiConsole.WriteLine();
 
@@ -110,7 +110,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             AnsiConsole.WriteLine();
         }
 
-        private int TransformPatches(TransformPatchesSettings s)
+        private int TransformPatches(GeneratePatchesSettings s)
         {
             List<FileInfo> files = GetExistingPatches(s);
 
@@ -126,7 +126,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return 0;
         }
 
-        private static List<FileInfo> GetExistingPatches(TransformPatchesSettings s)
+        private static List<FileInfo> GetExistingPatches(GeneratePatchesSettings s)
         {
             List<FileInfo> files = [];
 
@@ -137,7 +137,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return files;
         }
 
-        private void WritePatch(FileInfo file, TransformPatchesSettings s) 
+        private void WritePatch(FileInfo file, GeneratePatchesSettings s) 
         {
             var transformer = new PatchTransformer();
 

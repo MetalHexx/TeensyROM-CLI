@@ -3,13 +3,13 @@ using TeensyRom.Cli.Commands.Chipsynth;
 
 namespace TeensyRom.Cli.Tests
 {
-    public class TransformPatchSettingsTests
+    public class GeneratePatchSettingsTests
     {
         [Fact]
         public void When_SourcePath_Empty_ValidationSucceeds()
         {
             //Arrrange
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 SourcePath = string.Empty
             };
@@ -27,7 +27,7 @@ namespace TeensyRom.Cli.Tests
             //Arrrange
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;
 
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 SourcePath = Path.GetDirectoryName(assemblyLocation)!
             };
@@ -43,7 +43,7 @@ namespace TeensyRom.Cli.Tests
         public void When_SourcePath_Invalid_ValidationFails()
         {
             //Arrrange
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 SourcePath = "invalid"
             };
@@ -59,7 +59,7 @@ namespace TeensyRom.Cli.Tests
         public void When_TargetPath_Empty_ValidationSucceeds()
         {
             //Arrrange
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 TargetPath = string.Empty
             };
@@ -76,7 +76,7 @@ namespace TeensyRom.Cli.Tests
             //Arrrange
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;
 
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 SourcePath = Path.GetDirectoryName(assemblyLocation)!,
                 TargetPath = Path.GetDirectoryName(assemblyLocation)!
@@ -95,7 +95,7 @@ namespace TeensyRom.Cli.Tests
             //Arrrange
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;
 
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 SourcePath = Path.GetDirectoryName(assemblyLocation)!,
                 TargetPath = "relative"
@@ -112,7 +112,7 @@ namespace TeensyRom.Cli.Tests
         public void When_Clock_Empty_ValidationSucceeds()
         {
             //Arrrange
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 Clock = string.Empty
             };
@@ -128,7 +128,7 @@ namespace TeensyRom.Cli.Tests
         public void When_Clock_PAL_ValidationSucceeds()
         {
             //Arrrange
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 Clock = "PAL"
             };
@@ -144,7 +144,7 @@ namespace TeensyRom.Cli.Tests
         public void When_Clock_NTSC_ValidationSucceeds()
         {
             //Arrrange
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 Clock = "NTSC"
             };
@@ -160,7 +160,7 @@ namespace TeensyRom.Cli.Tests
         public void When_Clock_Invalid_ValidationFails()
         {
             //Arrrange
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 Clock = "invalid"
             };
@@ -176,7 +176,7 @@ namespace TeensyRom.Cli.Tests
         public void When_Clock_LowerCase_ValidationSucceeds()
         {
             //Arrrange
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 Clock = "pal"
             };
@@ -192,7 +192,7 @@ namespace TeensyRom.Cli.Tests
         public void When_Clock_MixedCase_ValidationSucceeds()
         {
             //Arrrange
-            var settings = new TransformPatchesSettings
+            var settings = new GeneratePatchesSettings
             {
                 Clock = "Pal"
             };
