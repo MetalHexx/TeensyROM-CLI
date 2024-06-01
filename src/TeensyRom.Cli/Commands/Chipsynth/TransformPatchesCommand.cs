@@ -34,11 +34,11 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             var directory = new DirectoryInfo(directoryName);
             files.AddRange(directory.GetFiles("*.fermatax", SearchOption.AllDirectories));
 
-            if (!Directory.Exists("_TeensyROM"))
+            if (!Directory.Exists("ASID"))
             {
-                Directory.CreateDirectory("_TeensyROM_Test");
+                Directory.CreateDirectory("ASID");
             }
-            var newBasePath = Path.Combine(directory.FullName, "_TeensyROM_Test");            
+            var newBasePath = Path.Combine(directory.FullName, "ASID");
             bool isNtsc = s.Clock.Equals("NTSC", StringComparison.OrdinalIgnoreCase);
             var transformer = new PatchTransformer();
 
