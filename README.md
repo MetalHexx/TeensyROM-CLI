@@ -2,7 +2,7 @@
 CLI Tool for TeensyROM Emulator, Fast Loader, MIDI and Internet cartridge for Commodore64/128.
 
 ## Features
-#### Chipsynth C64 ASID Patch Convertor
+### Chipsynth C64 ASID Patch Convertor
 Chipsynth has terrific functionality to support ASID MIDI streaming to external hardware.  However, the feature is a bit experimental and has a few pain points when switching between patches as described in this video:
 [https://youtu.be/n4f4rqjOvIc](https://youtu.be/n4f4rqjOvIc)
 
@@ -20,5 +20,8 @@ This tool aims to solve 3 out of the 4 painpoints of switching patches:
   - Your new patches will be placed in a relative directory called /ASID
   - If you place this /ASID folder in your /Presets/com.Plogue.Fermata.chipsynth C64/ folder, you will see them appear in Chipsynth C64
 
+### Patch Generator
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/4a029bc6-06ce-456c-8ec6-a28aa5bd409c" width="60%" height="60%"/>
+
+### ASID Friendly Chipsynth Patch Defaults
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/355ec5ec-8801-4339-ae63-4a389075872f" width="60%" height="60%"/>
