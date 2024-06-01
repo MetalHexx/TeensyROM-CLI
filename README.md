@@ -25,7 +25,7 @@ This tool aims to solve 3 out of the 4 painpoints of switching patches:
   - If you need help, seek me out on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
 
 ### Patch Generator
-<img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/4a029bc6-06ce-456c-8ec6-a28aa5bd409c" width="60%" height="60%"/>
+<img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/e583a03d-e765-4c4d-b24f-09299f2ad0cf" width="60%" height="60%"/>
 
 ### ASID Friendly Chipsynth Patch Defaults
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/355ec5ec-8801-4339-ae63-4a389075872f" width="60%" height="60%"/>
