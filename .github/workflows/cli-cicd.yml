@@ -9,10 +9,18 @@ on:
 jobs:
 
   build:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        configuration: [Release]      
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        configuration: [Release]
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-x64
 
     env:
       Solution_Name: src/TeensyRom.Cli.sln
@@ -39,7 +47,7 @@ jobs:
         [xml]$csproj = Get-Content $csprojPath
         $version = $csproj.Project.PropertyGroup.Version
         echo "VERSION=$version" >> $env:GITHUB_OUTPUT
-        echo "FILENAME=tr-cli-$version.zip" >> $env:GITHUB_OUTPUT
+        echo "FILENAME=tr-cli-$version-${{ matrix.rid }}.zip" >> $env:GITHUB_OUTPUT
       shell: pwsh
 
     - name: Install .NET 8
@@ -54,16 +62,16 @@ jobs:
       run: dotnet build ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-restore
 
     - name: Publish Application
-      run: dotnet publish ${{ env.Project_Path }}${{ env.Project_Name }} -c ${{ matrix.configuration }} --self-contained true -r win-x64 -o ${{ github.workspace }}\published\
+      run: dotnet publish ${{ env.Project_Path }}${{ env.Project_Name }} -c ${{ matrix.configuration }} --self-contained true -r ${{ matrix.rid }} -o ${{ github.workspace }}/published/${{ matrix.rid }}/
 
     - name: Archive Build Artifacts
-      run: 7z a ${{ steps.extract_version.outputs.FILENAME }} ${{ github.workspace }}\published\*
+      run: 7z a ${{ steps.extract_version.outputs.FILENAME }} ${{ github.workspace }}/published/${{ matrix.rid }}/*
       shell: pwsh
 
     - name: Create and Upload Release
-      uses: softprops/action-gh-release@v1      
+      uses: softprops/action-gh-release@v1
       env:
-       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-       tag_name: ${{ steps.extract_version.outputs.VERSION }}
-       files: ${{ steps.extract_version.outputs.FILENAME }}
+        tag_name: ${{ steps.extract_version.outputs.VERSION }}
+        files: ${{ steps.extract_version.outputs.FILENAME }}
