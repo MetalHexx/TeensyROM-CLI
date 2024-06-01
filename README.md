@@ -1,4 +1,4 @@
-# TeensyROM-CLI
+# TeensyROM Command Line Interface
 CLI Tool for TeensyROM Emulator, Fast Loader, MIDI and Internet cartridge for Commodore64/128.
 
 ## Features
@@ -24,8 +24,8 @@ This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynt
   - If you place this /ASID folder in your /Presets/com.Plogue.Fermata.chipsynth C64/ folder, you will see them appear in Chipsynth C64
   - If you need help, seek me out on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
 
-### Patch Generator
+### ASID Patch Generator
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/e583a03d-e765-4c4d-b24f-09299f2ad0cf" width="60%" height="60%"/>
 
-### ASID Friendly Chipsynth Patch Defaults
+### Chipsynth Patch Defaults
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/355ec5ec-8801-4339-ae63-4a389075872f" width="60%" height="60%"/>
