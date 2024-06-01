@@ -9,13 +9,13 @@ https://youtu.be/-Xs3h59-dOU
 However, the feature is a bit experimental and has a few pain points when switching between patches as described in this video:
 https://youtu.be/n4f4rqjOvIc
 
-This tool aims to solve 3 out of the 4 painpoints of switching patches:
+This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynth patches with the following defaults:
 - Sets VOLUME to 0 (to silence the emulated SID)
 - Sets POLY to 1 (Only mono is supported from Chipsynth)
 - Sets the SID CLOCK to your preference
 
-- To Run:
-  - Backup your patches (just in case) 
+#### To Run:
+  - Backup your patches (just in case) -- You have been warned and I will not be held liable for data loss!
   - Copy the tool to your ChipSynth patch directory -- OR -- copy your patch directory to the location of this tool
   - From a command prompt 2 options: 
     - TeensyRom.Cli chipsynth transform
