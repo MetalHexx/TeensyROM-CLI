@@ -45,7 +45,7 @@ This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynt
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/355ec5ec-8801-4339-ae63-4a389075872f" width="60%" height="60%"/>
 
 #### Troubleshooting 
-When generating patches, ff the tool has problems creating the target directory or preset files, try running the console with elevated "Admin" permissions.
+Depending on where your patches are located, you may need to run the tool with elevated "Admin" rights.  You may get the error below if this is the case.
 
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/23d05f97-fe32-444c-ac60-44a0a320ffb9" width="60%" height="60%"/>
 
