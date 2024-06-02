@@ -17,8 +17,8 @@ app.Configure(config =>
 {
     config.SetApplicationName("TeensyROM.Cli");
     config.SetApplicationVersion("1.0.0");
-    config.AddExample(["generate"]);
-    config.AddExample(["g"]);
+    config.AddExample(["generate patches"]);
+    config.AddExample(["g p"]);
 
     config.AddBranch("generate", transformCommand =>
     {
