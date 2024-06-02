@@ -24,8 +24,9 @@ This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynt
   - If you need help, seek out hExx on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
 
 #### Locate your Preset Directory
-  - Locate your Chipsynth C64 preset directory.  Once located, copy the path for the preset folder.
+  - Locate your Chipsynth C64 preset directory.  
     - Ex: C:\music\chipsynth C64\Presets\com.Plogue.Fermata.chipsynth C64
+  - Copy the path for the preset folder. 
   - You will use this as the "source" directory in the tool
   - Backup your factory presets as a best practice
     
