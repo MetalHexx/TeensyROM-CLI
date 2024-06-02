@@ -19,9 +19,9 @@ namespace TeensyRom.Cli.Helpers
             var theme = RadHelper.Theme;
 
             return AnsiConsole.Prompt(
-                new TextPrompt<string>($"[{theme.Secondary}]{prompt}[/]")
+                new TextPrompt<string>($"[{theme.Primary}]{prompt}[/]")
                     .PromptStyle(theme.Primary.ToString())
-                    .DefaultValueStyle(theme.Secondary.ToString())
+                    .DefaultValueStyle(theme.Primary.ToString())
                     .Validate(input =>
                     {
                         if (input.Length < length) return ValidationResult.Error($"[{theme.Error}]Length must be greater than {length}[/]");
@@ -41,10 +41,10 @@ namespace TeensyRom.Cli.Helpers
             var theme = RadHelper.Theme;
 
             return AnsiConsole.Prompt(
-                new TextPrompt<string>($"[{theme.Secondary}]{prompt}[/]")
-                    .PromptStyle(theme.Primary.ToString())
+                new TextPrompt<string>($"[{theme.Primary}]{prompt}[/]")
+                    .PromptStyle(theme.Secondary.ToString())
                     .DefaultValue(defaultValue)
-                    .DefaultValueStyle(theme.Secondary.ToString())
+                    .DefaultValueStyle(theme.Primary.ToString())
                     .Validate(input =>
                     {
                         if (input.Length < length && string.IsNullOrWhiteSpace(defaultValue))
@@ -66,8 +66,8 @@ namespace TeensyRom.Cli.Helpers
             var theme = RadHelper.Theme;
 
             var yesNo = defaultValue
-                ? $"[{theme.Primary}](Y/n)[/]"
-                : $"[{theme.Primary}](y/N)[/]";
+                ? $"[{theme.Secondary}](Y/n)[/]"
+                : $"[{theme.Secondary}](y/N)[/]";
 
             var values = defaultValue
                 ? new[] { "Yes", "No" }
@@ -76,12 +76,12 @@ namespace TeensyRom.Cli.Helpers
             var input = AnsiConsole.Prompt
             (
                 new SelectionPrompt<string>()
-                    .Title($"[{theme.Secondary}]{message}[/] {yesNo}")
-                    .HighlightStyle(theme.Primary.ToString())
+                    .Title($"[{theme.Primary}]{message}[/] {yesNo}")
+                    .HighlightStyle(theme.Secondary.ToString())
                     .AddChoices(values)
             );
 
-            AnsiConsole.MarkupLine($"[{theme.Secondary}]{message}[/][{theme.Primary}]{input}[/]");
+            AnsiConsole.MarkupLine($"[{theme.Primary}]{message}[/][{theme.Secondary}]{input}[/]");
 
             return input.Equals("Yes") ? true : false;
         }
@@ -100,12 +100,12 @@ namespace TeensyRom.Cli.Helpers
             var selection = AnsiConsole.Prompt
             (
                 new SelectionPrompt<string>()
-                    .Title($"[{theme.Secondary}]{message}: [/]")
+                    .Title($"[{theme.Primary}]{message}: [/]")                    
                     .HighlightStyle(theme.Primary.ToString())
                     .AddChoices(choices)
             );
 
-            AnsiConsole.MarkupLine($"[{theme.Secondary}]{message}: [/][{theme.Primary}]{selection}[/]");
+            AnsiConsole.MarkupLine($"[{theme.Primary}]{message}: [/][{theme.Secondary}]{selection}[/]");
 
             return selection;
         }

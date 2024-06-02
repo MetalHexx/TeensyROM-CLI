@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace TeensyRom.Cli
 {
-    internal class PatchTransformer
+    internal class PresetTransformer
     {
         public XDocument Transform(XDocument xmlDoc, string sidClock)
         {

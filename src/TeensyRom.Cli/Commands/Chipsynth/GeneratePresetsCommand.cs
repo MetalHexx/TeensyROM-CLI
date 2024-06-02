@@ -5,30 +5,31 @@ using TeensyRom.Cli.Helpers;
 
 namespace TeensyRom.Cli.Commands.Chipsynth
 {
-    internal class GeneratePatchesCommand : Command<GeneratePatchesSettings>
+    internal class GeneratePresetsCommand : Command<GeneratePresetsSettings>
     {
-        public override int Execute(CommandContext context, GeneratePatchesSettings s)
+        public override int Execute(CommandContext context, GeneratePresetsSettings s)
         {
-            RadHelper.WriteTitle("Chipsynth C64 ASID Patch Generator");
+            RadHelper.WriteTitle("Chipsynth ASID Preset Generator");
             AnsiConsole.WriteLine();
 
             var proceed = RunWizard(s);
 
             if (!proceed)
             {
-                RadHelper.WriteTitle("Patch Generation Cancelled");
+                RadHelper.WriteTitle("Preset Generation Cancelled");
                 return 0;
             }
-            RadHelper.WriteTitle("Patch Generation Starting");
+            RadHelper.WriteTitle("Preset Generation Starting");
 
-            TransformPatches(s);
+            TransformPresets(s);
 
-            RadHelper.WriteTitle("Patch Generation Completed");
+            RadHelper.WriteTitle("Preset Generation Completed");
+            AnsiConsole.WriteLine();
 
             return 0;
         }
 
-        public bool RunWizard(GeneratePatchesSettings s) 
+        public bool RunWizard(GeneratePresetsSettings s) 
         {
             var reRun = false;
             do
@@ -47,11 +48,18 @@ namespace TeensyRom.Cli.Commands.Chipsynth
                 }
                 OutputSettings(s);
 
-                var proceed = PromptHelper.Confirm("Proceed with patch generation?", true);
+                var proceed = PromptHelper.Confirm("Proceed with preset generation?", true);
                 AnsiConsole.WriteLine();
 
                 if (!proceed) return false;
 
+                var validationResult = s.Validate();
+
+                if (validationResult.Message is not null) 
+                {
+                    RadHelper.WriteError(validationResult.Message);
+                    AnsiConsole.WriteLine();
+                }
                 reRun = !s.Validate().Successful || !EnsureTargetPath(s);
 
                 if (reRun)
@@ -66,7 +74,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return true;            
         }
 
-        private static bool EnsureTargetPath(GeneratePatchesSettings s)
+        private static bool EnsureTargetPath(GeneratePresetsSettings s)
         {
             var targetFullPath = Path.Combine(s.SourcePath, s.TargetPath);
 
@@ -87,7 +95,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return Directory.Exists(targetFullPath);
         }
 
-        private static void OutputSettings(GeneratePatchesSettings s)
+        private static void OutputSettings(GeneratePresetsSettings s)
         {
             AnsiConsole.WriteLine();
 
@@ -95,24 +103,25 @@ namespace TeensyRom.Cli.Commands.Chipsynth
                 .AddColumn("Setting")
                 .AddColumn("Value")
                 .AddRow(
-                    RadHelper.AddHighlights($"SID Clock"),
-                    RadHelper.AddHighlights(s.Clock.ToUpper()))
+                    RadHelper.AddSecondaryColor($"SID Clock"),
+                    RadHelper.AddSecondaryColor(s.Clock.ToUpper()))
                 .AddRow(
-                    RadHelper.AddHighlights($"Source Path"),
-                    RadHelper.AddHighlights(s.SourcePath))
+                    RadHelper.AddSecondaryColor($"Source Path"),
+                    RadHelper.AddSecondaryColor(s.SourcePath))
                 .AddRow(
-                    RadHelper.AddHighlights($"Target Path"),
-                    RadHelper.AddHighlights(Path.Combine(s.SourcePath, s.TargetPath)))
-                .BorderColor(RadHelper.Theme.Secondary.Color)
+                    RadHelper.AddSecondaryColor($"Target Path"),
+                    RadHelper.AddSecondaryColor(Path.Combine(s.SourcePath, s.TargetPath)))
+                .BorderColor(RadHelper.Theme.Primary.Color)
                 .Border(TableBorder.Rounded);
 
             AnsiConsole.Write(table);
             AnsiConsole.WriteLine();
         }
 
-        private int TransformPatches(GeneratePatchesSettings s)
+        private int TransformPresets(GeneratePresetsSettings s)
         {
-            List<FileInfo> files = GetExistingPatches(s);
+            AnsiConsole.WriteLine();
+            List<FileInfo> files = GetExistingPresets(s);
 
             if(files.Count == 0)
             {
@@ -121,12 +130,13 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             }
             foreach (var file in files)
             {
-                WritePatch(file, s);
-            }            
+                WritePreset(file, s);
+            }  
+            AnsiConsole.WriteLine();            
             return 0;
         }
 
-        private static List<FileInfo> GetExistingPatches(GeneratePatchesSettings s)
+        private static List<FileInfo> GetExistingPresets(GeneratePresetsSettings s)
         {
             List<FileInfo> files = [];
 
@@ -137,9 +147,9 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return files;
         }
 
-        private void WritePatch(FileInfo file, GeneratePatchesSettings s) 
+        private void WritePreset(FileInfo file, GeneratePresetsSettings s) 
         {
-            var transformer = new PatchTransformer();
+            var transformer = new PresetTransformer();
 
             if (file is null)
             {

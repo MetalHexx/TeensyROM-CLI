@@ -37,6 +37,24 @@ namespace TeensyRom.Cli.Helpers
         }
 
         /// <summary>
+        /// Formats message with primary color
+        /// </summary>
+        public static string AddPrimaryColor(this string message)
+        {
+            return $"[{Theme.Primary}]{message}[/]";
+        }
+
+
+
+        /// <summary>
+        /// Formats message with secondary color
+        /// </summary>
+        public static string AddSecondaryColor(this string message)
+        {
+            return $"[{Theme.Secondary}]{message}[/]";
+        }
+
+        /// <summary>
         /// Formats message strings for cli output
         /// </summary>
         public static string AddHighlights(this string message)
