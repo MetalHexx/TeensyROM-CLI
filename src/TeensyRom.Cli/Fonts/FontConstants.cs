@@ -3,5 +3,5 @@
 namespace TeensyRom.Cli.Fonts;
 internal static class FontConstants
 {
-    public static string FontPath => @"Fonts\ANSI Shadow.flf".GetAssemblyRootedPath();
+    public static string FontPath => @"Fonts\Chunky.flf".GetAssemblyRootedPath();
 }
