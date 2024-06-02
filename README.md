@@ -21,7 +21,6 @@ This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynt
   - The process will make a copy of your presets and put them in a new folder with ASID friendly settings.
   - The process will not overwrite the existing factory patches.
   - The new presets will show up in your preset browser the next time you start Chipsynth
-  - If you need help, seek out hExx on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
 
 ##### Locate your Preset Directory
   - Locate your Chipsynth C64 preset directory.  
@@ -44,3 +43,7 @@ This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynt
 #### New Patches in Chipsynth
 *Your patches are generated in a new sub-directory as seen below.  Enjoy!*
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/355ec5ec-8801-4339-ae63-4a389075872f" width="60%" height="60%"/>
+
+#### Additional Notes
+- The Linux and Mac releases are untested.  So if you try them and they don't work, please let me know and we can make it happen.
+- If you need help, seek out hExx on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
