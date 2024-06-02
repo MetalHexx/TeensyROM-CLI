@@ -41,5 +41,5 @@ This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynt
   <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/de7206d8-92ea-4b21-b280-e2ab7530939a" width="60%" height="60%"/>    
 
 ### New Patches in Chipsynth
-*Your patches are generated in a sub-directory in the presets directory.  Therefore, you will see them in Chipsynth in the same folder.  Enjoy!*
+*Your patches are generated in a new sub-directory as seen below.  Enjoy!*
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/355ec5ec-8801-4339-ae63-4a389075872f" width="60%" height="60%"/>
