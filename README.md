@@ -44,6 +44,11 @@ This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynt
 *Your patches are generated in a new sub-directory as seen below.  Enjoy!*
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/355ec5ec-8801-4339-ae63-4a389075872f" width="60%" height="60%"/>
 
+#### Troubleshooting 
+When generating patches, ff the tool has problems creating the target directory or preset files, try running the console with elevated "Admin" permissions.
+
+<img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/23d05f97-fe32-444c-ac60-44a0a320ffb9" width="60%" height="60%"/>
+
 #### Additional Notes
 - The Linux and Mac releases are untested.  So if you try them and they don't work, please let me know and we can make it happen.
 - If you need help, seek out hExx on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
