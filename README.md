@@ -54,4 +54,3 @@ Depending on where your patches are located, you may need to run the tool with e
 - If you need help, seek out hExx on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
 - Target Chipsynth Version: v1.006
 - Untested with other versions.
-- Untested with other versions.
