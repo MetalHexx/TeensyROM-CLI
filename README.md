@@ -2,8 +2,8 @@
 CLI Tool for TeensyROM Emulator, Fast Loader, MIDI and Internet cartridge for Commodore 64/128.
 
 ## Features
-### Remote File Launching
-Remote launch your files both with a menuing system or command line parameters.
+### Remote File Launching (experimental)
+Remote launch your files both with guided workflow or command line parameters.  This is an early preview and experimental feature.
 
 https://github.com/user-attachments/assets/181d7bb5-ce19-4560-8fd6-45b8b73cfcc4
 
