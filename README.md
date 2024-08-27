@@ -9,37 +9,48 @@ Chipsynth has terrific functionality to support ASID MIDI streaming to external 
 
 [Chipsynth Pain Points Demo](https://youtu.be/n4f4rqjOvIc)
 
-### Solution
+#### Solution
 This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynth presets with the following defaults:
 - Sets VOLUME to 0 (to silence the emulated SID)
 - Sets POLY to 1 (Only mono is supported from Chipsynth)
 - Sets the SID CLOCK to your preference
 - New presets are generated in a new folder
 
-### Generating Presets
+#### Generating Presets
   - The chipsynth preset directory and all child directories will be scanned for .fermatax files (these are preset files)
   - The process will make a copy of your presets and put them in a new folder with ASID friendly settings.
   - The process will not overwrite the existing factory patches.
   - The new presets will show up in your preset browser the next time you start Chipsynth
-  - If you need help, seek out hExx on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
 
-#### Locate your Preset Directory
-  - Locate your Chipsynth C64 preset directory.  Once located, copy the path for the preset folder.
+##### Locate your Preset Directory
+  - Locate your Chipsynth C64 preset directory.  
     - Ex: C:\music\chipsynth C64\Presets\com.Plogue.Fermata.chipsynth C64
+  - Copy the path for the preset folder. 
   - You will use this as the "source" directory in the tool
   - Backup your factory presets as a best practice
     
-#### Using the Wizard    
+##### Using the Wizard    
   - Run the command: `teensyrom.cli cs`
   - Follow the prompts
   <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/ec96037e-eedd-4b3c-a9ab-8823d2a06cab" width="60%" height="60%"/>
   
-#### Using Command Line Parameters
+##### Using Command Line Parameters
 *You can specify everything by a command prompt as well if you wish*
   - Type `teensyrom.cli cs -h` for help
   - Example command w/ options:  `teensyrom.cli cs --source c:\your\patch\directory --target ASID --clock ntsc`
   <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/de7206d8-92ea-4b21-b280-e2ab7530939a" width="60%" height="60%"/>    
 
-### New Patches in Chipsynth
-*Your patches are generated in a sub-directory in the presets directory.  Therefore, you will see them in Chipsynth in the same folder.  Enjoy!*
+#### New Patches in Chipsynth
+*Your patches are generated in a new sub-directory as seen below.  Enjoy!*
 <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/355ec5ec-8801-4339-ae63-4a389075872f" width="60%" height="60%"/>
+
+#### Troubleshooting 
+Depending on where your patches are located, you may need to run the tool with elevated "Admin" rights.  You may get the error below if this is the case.
+
+<img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/23d05f97-fe32-444c-ac60-44a0a320ffb9" width="60%" height="60%"/>
+
+#### Additional Notes
+- The Linux and Mac releases are untested.  So if you try them and they don't work, please let me know and we can make it happen.
+- If you need help, seek out hExx on the [TeensyROM Discord Server](https://discord.com/invite/ubSAb74S5U)
+- Target Chipsynth Version: v1.006
+- Untested with other versions.
