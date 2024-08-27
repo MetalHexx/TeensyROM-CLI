@@ -130,7 +130,7 @@ namespace TeensyRom.Cli.Helpers
         /// Writes a message
         /// </summary>
         /// <param name="message"></param>
-        public static void WriteLine(string message)
+        public static void WriteLine(string message = "")
         {
             AnsiConsole.MarkupLine(message.AddHighlights());
         }

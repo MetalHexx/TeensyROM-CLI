@@ -1,26 +1,96 @@
-﻿using Spectre.Console;
+﻿using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
 using Spectre.Console.Cli;
 using TeensyRom.Cli.Commands.Chipsynth;
+using TeensyRom.Cli.Commands.TeensyRom;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Core;
+using TeensyRom.Core.Logging;
+using TeensyRom.Core.Serial;
+using TeensyRom.Core.Serial.State;
 
-AnsiConsole.WriteLine();
-RadHelper.RenderLogo("TeensyROM", FontConstants.FontPath);
-
-var app = new CommandApp();
-
-app.Configure(config =>
+public class Program
 {
-    config.SetApplicationName("TeensyROM.Cli");
-    config.SetApplicationVersion("1.0.0");
-    config.AddExample(["chipsynth"]);
-    config.AddExample(["cs"]);
-    config.AddCommand<GeneratePresetsCommand>("chipsynth")
-            .WithAlias("cs")
-            .WithDescription("Generate ASID friendly Chipsynth ASID presets.")
-            .WithExample(["chipsynth"])
-            .WithExample(["cs"])
-            .WithExample(["cs", "--source c:\\your\\preset\\directory", "--target ASID --clock ntsc"]);
-});
+    private static void Main(string[] args)
+    {
+        AnsiConsole.WriteLine();
+        RadHelper.RenderLogo("TeensyROM", FontConstants.FontPath);
 
-app.Run(args);
+        var services = new ServiceCollection();
+        var loggingStrategy = new CliLogColorStrategy();
+        var logService = new LoggingService(loggingStrategy);
+        var serial = new ObservableSerialPort(logService);
+        var serialState = new SerialStateContext(serial);
+
+        services.AddSingleton<IObservableSerialPort>(serial);
+        services.AddSingleton<ISerialStateContext>(serialState);
+        services.AddSingleton<ILogColorStategy>(loggingStrategy);
+        services.AddSingleton<ILoggingService>(logService);
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CoreAssemblyMarker>());
+        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
+        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(SerialBehavior<,>));
+
+        var registrar = new TypeRegistrar(services);
+
+        var app = new CommandApp(registrar);
+
+        app.Configure(config =>
+        {
+            config.SetApplicationName("TeensyROM.Cli");
+            config.SetApplicationVersion("1.0.0");
+            config.AddExample(["chipsynth"]);
+            config.AddExample(["cs"]);
+            config.AddExample("launch");
+            config.AddExample("launch -s sd");
+            config.AddExample("launch -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid");
+            config.AddExample("launch -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid");
+
+            config.AddCommand<LaunchFileConsoleCommand>("launch")
+                    .WithAlias("l")
+                    .WithDescription("Launch a file on TeensyROM")
+                    .WithExample(["launch"]);
+
+            config.AddCommand<GeneratePresetsCommand>("chipsynth")
+                    .WithAlias("cs")
+                    .WithDescription("Generate ASID friendly Chipsynth ASID presets.")
+                    .WithExample(["chipsynth"])
+                    .WithExample(["cs"])
+                    .WithExample(["cs", "--source c:\\your\\preset\\directory", "--target ASID --clock ntsc"]);
+        });
+
+        logService.Logs.Subscribe(log => AnsiConsole.Markup($"{log}\r\n\r\n"));
+
+        if (args.Contains("-h") || args.Contains("--help") || args.Contains("-v") || args.Contains("--version"))
+        {
+            app.Run(args);
+            return;
+        }
+
+        while (true) 
+        {
+            if (args.Length > 0)
+            {
+                app.Run(args);                
+            }
+
+            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "Generate ChipSynth ASID Patches", "Leave"]);
+
+            AnsiConsole.WriteLine();
+
+            if (menuChoice == "Leave") return;
+
+            args = menuChoice switch
+            {
+                "Launch File" => ["launch"],
+                "Generate ChipSynth ASID Patches" => ["chipsynth"],
+                _ => []
+            };
+            app.Run(args);
+            args = [];
+        }
+    }
+
+}

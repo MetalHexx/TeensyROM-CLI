@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "RadEndpoints.Cli": {
+    "TeensyRom.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "chipsynth transform"
+      //"commandLineArgs": "launch"
     }
   }
 }

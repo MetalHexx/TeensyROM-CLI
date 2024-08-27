@@ -5,7 +5,9 @@ VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeensyRom.Cli", "TeensyRom.Cli\TeensyRom.Cli.csproj", "{AD4FE22C-1C45-4BAD-8ADB-6BAE2428A3B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeensyRom.Cli.Tests", "TeensyRom.Cli.Tests\TeensyRom.Cli.Tests.csproj", "{4E5CAB4E-9224-4E9F-9EA5-A54BA95BB799}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeensyRom.Cli.Tests", "TeensyRom.Cli.Tests\TeensyRom.Cli.Tests.csproj", "{4E5CAB4E-9224-4E9F-9EA5-A54BA95BB799}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeensyRom.Core", "TeensyRom.Core\TeensyRom.Core.csproj", "{A07833CF-AB63-4043-A244-4EA9D26258EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{4E5CAB4E-9224-4E9F-9EA5-A54BA95BB799}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E5CAB4E-9224-4E9F-9EA5-A54BA95BB799}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E5CAB4E-9224-4E9F-9EA5-A54BA95BB799}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A07833CF-AB63-4043-A244-4EA9D26258EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A07833CF-AB63-4043-A244-4EA9D26258EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A07833CF-AB63-4043-A244-4EA9D26258EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A07833CF-AB63-4043-A244-4EA9D26258EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
