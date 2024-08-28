@@ -2,6 +2,7 @@
 using System.Data;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using TeensyRom.Core.Common;
 
 namespace TeensyRom.Core.Storage.Services
 {
@@ -30,7 +31,7 @@ namespace TeensyRom.Core.Storage.Services
             _watcher?.Dispose();
             _watcher = new()
             {
-                Path = path,
+                Path = path.GetOsFriendlyPath(),
                 NotifyFilter = NotifyFilters.LastWrite,
                 Filter = "*.*",
                 EnableRaisingEvents = true,

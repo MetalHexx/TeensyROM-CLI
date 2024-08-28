@@ -52,7 +52,7 @@ namespace TeensyRom.Core.Music.Sid
 
             if (currentDirectory is null) return string.Empty;
 
-            var sidListPath = Path.Combine(currentDirectory, MusicConstants.SidList_Local_Path);
+            var sidListPath = Path.Combine(currentDirectory, MusicConstants.SidList_Local_Path).GetOsFriendlyPath();
 
             if (!Directory.Exists(sidListPath)) return string.Empty;
 

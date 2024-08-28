@@ -186,7 +186,9 @@ namespace TeensyRom.Core.Storage.Services
 
         private void LoadCacheFromDisk()
         {
-            using var stream = File.Open(CacheFilePath, FileMode.Open, FileAccess.Read);
+
+
+            using var stream = File.Open(CacheFilePath.GetOsFriendlyPath(), FileMode.Open, FileAccess.Read);
             using var reader = new StreamReader(stream);
             var content = reader.ReadToEnd();
 
@@ -337,7 +339,7 @@ namespace TeensyRom.Core.Storage.Services
         {
             if (h.Images.Count != 0) return h;
 
-            var hardwareFileInfo = new FileInfo(AssetConstants.TeensyRomHardwareFilePath);
+            var hardwareFileInfo = new FileInfo(AssetConstants.TeensyRomHardwareFilePath.GetOsFriendlyPath());
 
             h.Images.Add(new ViewableItemImage
             {

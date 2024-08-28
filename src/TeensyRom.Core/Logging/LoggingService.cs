@@ -18,7 +18,7 @@ namespace TeensyRom.Core.Logging
         protected Subject<string> _logs = new();
         private readonly ILogColorStategy _logColor;
 
-        private string _logPath => Path.Combine(Assembly.GetExecutingAssembly().GetPath(), LogConstants.LogPath);
+        private string _logPath => Path.Combine(Assembly.GetExecutingAssembly().GetPath(), LogConstants.LogPath).GetOsFriendlyPath();
 
         public LoggingService(ILogColorStategy logColor)
         {

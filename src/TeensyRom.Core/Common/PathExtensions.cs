@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace TeensyRom.Core.Common
 {
@@ -169,6 +170,15 @@ namespace TeensyRom.Core.Common
             string pattern = @"^\/([^\\:*?""<>|]+(\/[^\\:*?""<>|]+)*)?$";
 
             return Regex.IsMatch(path, pattern);
+        }
+
+        public static string GetOsFriendlyPath(this string path) 
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return path.ToUnixPath();
+            }
+            return path;
         }
     }
 }

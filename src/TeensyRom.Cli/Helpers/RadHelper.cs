@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using Spectre.Console;
+using TeensyRom.Core.Common;
 
 namespace TeensyRom.Cli.Helpers
 {
@@ -21,7 +23,7 @@ namespace TeensyRom.Cli.Helpers
         /// <param name="fontPath">Font to use for the logo</param>
         public static void RenderLogo(string text, string fontPath)
         {
-            var font = FigletFont.Load(fontPath);
+            var font = FigletFont.Load(fontPath.GetOsFriendlyPath());
 
             AnsiConsole.Write(new FigletText(font, text)
                 .Color(Theme.Primary.Color));

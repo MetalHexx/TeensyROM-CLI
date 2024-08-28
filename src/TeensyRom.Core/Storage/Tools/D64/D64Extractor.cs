@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using TeensyRom.Core.Assets;
+using TeensyRom.Core.Common;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Storage.Entities;
 
@@ -26,7 +27,7 @@ namespace TeensyRom.Core.Storage.Tools.D64Extraction
         {
             _log.Internal($"***Starting d64 extraction for {d64.Name}***");
 
-            var outputDir = Path.Combine(OutputPath, d64.Name);
+            var outputDir = Path.Combine(OutputPath, d64.Name).GetOsFriendlyPath();
 
             EnsureOutputDirectory(outputDir);
 
@@ -104,11 +105,12 @@ namespace TeensyRom.Core.Storage.Tools.D64Extraction
 
         private string ExecuteC1541Command(string arguments)
         {
+            //TODO: Pack and Linux or Mac version of Vice as well in the future
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = Path.Combine(AssemblyBasePath!, AssetConstants.ViceC1541Executable),
+                    FileName = Path.Combine(AssemblyBasePath!, AssetConstants.ViceC1541Executable).GetOsFriendlyPath(),
                     Arguments = arguments,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,

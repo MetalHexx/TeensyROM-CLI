@@ -27,7 +27,7 @@ namespace TeensyRom.Core.Settings
 
             if (File.Exists(_settingsFilePath))
             {
-                using var stream = File.Open(_settingsFilePath, FileMode.Open, FileAccess.Read);
+                using var stream = File.Open(_settingsFilePath.GetOsFriendlyPath(), FileMode.Open, FileAccess.Read);
                 using var reader = new StreamReader(stream);
                 var content = reader.ReadToEnd();
 
