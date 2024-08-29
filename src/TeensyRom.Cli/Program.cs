@@ -7,9 +7,13 @@ using TeensyRom.Cli.Commands.TeensyRom;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core;
+using TeensyRom.Core.Games;
 using TeensyRom.Core.Logging;
+using TeensyRom.Core.Music.Sid;
 using TeensyRom.Core.Serial;
 using TeensyRom.Core.Serial.State;
+using TeensyRom.Core.Settings;
+using TeensyRom.Core.Storage.Services;
 
 public class Program
 {
@@ -28,6 +32,12 @@ public class Program
         services.AddSingleton<ISerialStateContext>(serialState);
         services.AddSingleton<ILogColorStategy>(loggingStrategy);
         services.AddSingleton<ILoggingService>(logService);
+        services.AddSingleton<IAlertService, TeensyRom.Cli.Services.AlertService>();
+        services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<IGameMetadataService, GameMetadataService>();
+        services.AddSingleton<ISidMetadataService, SidMetadataService>();
+        services.AddSingleton<ICachedStorageService, CachedStorageService>();
+        services.AddSingleton<ITypeResolver, TypeResolver>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CoreAssemblyMarker>());
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
@@ -53,6 +63,11 @@ public class Program
                     .WithDescription("Launch a file on TeensyROM")
                     .WithExample(["launch"]);
 
+            config.AddCommand<ListFilesCommand>("list")
+                    .WithAlias("f")
+                    .WithDescription("List Files")
+                    .WithExample(["list"]);
+
             config.AddCommand<GeneratePresetsCommand>("chipsynth")
                     .WithAlias("cs")
                     .WithDescription("Generate ASID friendly Chipsynth ASID presets.")
@@ -76,7 +91,7 @@ public class Program
                 app.Run(args);                
             }
 
-            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "Generate ChipSynth ASID Patches", "Leave"]);
+            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "List Files", "Generate ChipSynth ASID Patches", "Leave"]);
 
             AnsiConsole.WriteLine();
 
@@ -85,6 +100,7 @@ public class Program
             args = menuChoice switch
             {
                 "Launch File" => ["launch"],
+                "List Files" => ["list"],
                 "Generate ChipSynth ASID Patches" => ["chipsynth"],
                 _ => []
             };
