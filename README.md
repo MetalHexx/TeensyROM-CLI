@@ -7,6 +7,11 @@ Remote launch your files both with guided workflow or command line parameters.  
 
 https://github.com/user-attachments/assets/181d7bb5-ce19-4560-8fd6-45b8b73cfcc4
 
+### Remote Directory Browsing (experimental)
+Navigate to a directory to list and launch files.
+
+https://github.com/user-attachments/assets/0fabcb2d-a1e7-401d-bf3f-13ca2cc225b5
+
 ### Chipsynth C64 ASID Preset Generator
 Chipsynth has terrific functionality to support ASID MIDI streaming to external hardware. However, the feature is a bit experimental and has a few pain points when switching between presets.  See videos below.
 
