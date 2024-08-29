@@ -29,9 +29,39 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 RadHelper.WriteLine();
             }
 
-            RadHelper.WriteHorizonalRule("List Files", Justify.Left);
+            RadHelper.WriteHorizonalRule("Search Files", Justify.Left);
 
-            if(settings.StorageDevice.Equals(string.Empty))
+
+
+            AnsiConsole.MarkupLine($"{RadHelper.AddSecondaryColor("Tips:")}");
+            AnsiConsole.MarkupLine($"{RadHelper.AddPrimaryColor("- Search terms match on: file name, file path, title, composer name (SID only) and HVSC STIL (SID Only).")}");
+            AnsiConsole.MarkupLine($"{RadHelper.AddPrimaryColor("- Only directories visited will be included in search result.  Cache all files to avoid this.")}");
+            AnsiConsole.WriteLine();
+
+            var table = new Table()
+                .BorderColor(RadHelper.Theme.Secondary.Color)
+                .Border(TableBorder.Rounded)
+                .AddColumn("Example")
+                .AddColumn("Description")
+                .AddRow(
+                    RadHelper.AddHighlights($"iron maiden aces high"),
+                    RadHelper.AddHighlights($"Searches for any term individually."))                
+                .AddRow(
+                    RadHelper.AddHighlights($"iron maiden \"aces high\""),
+                    RadHelper.AddHighlights($"Search will consider phrases between qoutes as an individual search term."))
+                .AddRow(
+                    RadHelper.AddHighlights($"+iron maiden aces high"),
+                    RadHelper.AddHighlights($"\"iron\" must have a match in every search result"))
+                .AddRow(
+                    RadHelper.AddHighlights($"\"aces high\" +\"iron maiden\""),
+                    RadHelper.AddHighlights($"\"iron maiden\" must have a match in every search result"))
+                ;
+
+            AnsiConsole.Write(table);
+
+
+
+            if (settings.StorageDevice.Equals(string.Empty))
             {
                 settings.StorageDevice = PromptHelper.ChoicePrompt("Storage Type", ["SD", "USB"]);
                 RadHelper.WriteLine();
