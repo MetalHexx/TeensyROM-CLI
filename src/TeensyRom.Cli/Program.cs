@@ -85,7 +85,7 @@ public class Program
 
             config.AddCommand<CacheCommand>("cache")
                     .WithAlias("c")
-                    .WithDescription("cache")
+                    .WithDescription("Caches all the files on your storage device to enhance search and streaming features.")
                     .WithExample(["cache -s sd -p /music/ "]);
 
             config.AddCommand<PortListCommand>("ports")
