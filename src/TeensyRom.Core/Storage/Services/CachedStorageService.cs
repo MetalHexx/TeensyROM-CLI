@@ -423,6 +423,10 @@ namespace TeensyRom.Core.Storage.Services
 
         public IEnumerable<ILaunchableItem> Search(string searchText, params TeensyFileType[] fileTypes)
         {
+            if(fileTypes.Length == 0)
+            {
+                fileTypes = TeensyFileTypeExtensions.GetLaunchFileTypes();
+            }
             var quotedMatches = Regex
                 .Matches(searchText, @"(\+?""([^""]+)"")|\+?\S+")
                 .Cast<Match>()

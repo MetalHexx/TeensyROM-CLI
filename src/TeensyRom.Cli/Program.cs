@@ -66,7 +66,12 @@ public class Program
             config.AddCommand<ListFilesCommand>("list")
                     .WithAlias("f")
                     .WithDescription("List Files")
-                    .WithExample(["list"]);
+                    .WithExample(["list -s SD -p /music/MUSICIANS/T/Tjelta_Geir/"]);
+
+            config.AddCommand<SearchFilesCommand>("search")
+                    .WithAlias("s")
+                    .WithDescription("Search Files")
+                    .WithExample(["search -s SD -t \"Iron Maiden Aces High\""]);
 
             config.AddCommand<GeneratePresetsCommand>("chipsynth")
                     .WithAlias("cs")
@@ -91,7 +96,7 @@ public class Program
                 app.Run(args);                
             }
 
-            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "List Files", "Generate ChipSynth ASID Patches", "Leave"]);
+            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "List Files", "Search Files", "Generate ChipSynth ASID Patches", "Leave"]);
 
             AnsiConsole.WriteLine();
 
@@ -101,6 +106,7 @@ public class Program
             {
                 "Launch File" => ["launch"],
                 "List Files" => ["list"],
+                "Search Files" => ["search"],
                 "Generate ChipSynth ASID Patches" => ["chipsynth"],
                 _ => []
             };
