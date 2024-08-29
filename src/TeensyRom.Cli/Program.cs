@@ -57,6 +57,7 @@ public class Program
             config.AddExample("launch -s sd");
             config.AddExample("launch -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid");
             config.AddExample("launch -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid");
+            config.AddExample("search -s sd -t \"iron maiden aces high\"");
 
             config.AddCommand<LaunchFileConsoleCommand>("launch")
                     .WithAlias("l")
