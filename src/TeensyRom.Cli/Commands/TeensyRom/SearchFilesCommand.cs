@@ -17,8 +17,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         {
             var launchFileCommand = resolver.Resolve(typeof(LaunchFileConsoleCommand)) as LaunchFileConsoleCommand;
 
-            var connectionState = await serial.CurrentState.FirstAsync();
+            if (launchFileCommand is null)
+            {
+                RadHelper.WriteError("Strange. Launch file command was not found.");
+                return -1;
+            }
 
+            var connectionState = await serial.CurrentState.FirstAsync();
             
             if (connectionState is not SerialConnectedState)
             {
@@ -54,12 +59,9 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     RadHelper.AddHighlights($"\"iron\" must have a match in every search result"))
                 .AddRow(
                     RadHelper.AddHighlights($"\"aces high\" +\"iron maiden\""),
-                    RadHelper.AddHighlights($"\"iron maiden\" must have a match in every search result"))
-                ;
+                    RadHelper.AddHighlights($"\"iron maiden\" must have a match in every search result"));
 
             AnsiConsole.Write(table);
-
-
 
             if (settings.StorageDevice.Equals(string.Empty))
             {
@@ -79,6 +81,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 RadHelper.WriteLine();
             }
             var searchResults = storage.Search(settings.Terms, []);
+
+            if (!searchResults.Any()) 
+            {
+                RadHelper.WriteError("No files found with the specified search criteria");
+                AnsiConsole.WriteLine();
+            }
 
             var fileName = PromptHelper.ChoicePrompt("Select File", searchResults.Select(f => f.Name).ToList());
             var file = searchResults.First(f => f.Name == fileName);
