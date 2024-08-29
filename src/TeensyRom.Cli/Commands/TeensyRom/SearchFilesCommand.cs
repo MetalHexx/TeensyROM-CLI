@@ -3,7 +3,6 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Storage.Entities;
@@ -11,7 +10,7 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class SearchFilesCommand(IMediator mediator, ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ITypeResolver resolver) : AsyncCommand<SearchFilesCommandSettings>
+    internal class SearchFilesCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ITypeResolver resolver) : AsyncCommand<SearchFilesCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, SearchFilesCommandSettings settings)
         {
@@ -35,8 +34,6 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             }
 
             RadHelper.WriteHorizonalRule("Search Files", Justify.Left);
-
-
 
             AnsiConsole.MarkupLine($"{RadHelper.AddSecondaryColor("Tips:")}");
             AnsiConsole.MarkupLine($"{RadHelper.AddPrimaryColor("- Search terms match on: file name, file path, title, composer name (SID only) and HVSC STIL (SID Only).")}");

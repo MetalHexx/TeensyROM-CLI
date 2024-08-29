@@ -3,7 +3,6 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Storage.Entities;
@@ -11,14 +10,19 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class ListFilesCommand(IMediator mediator, ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ITypeResolver resolver) : AsyncCommand<ListFilesCommandSettings>
+    internal class ListFilesCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ITypeResolver resolver) : AsyncCommand<ListFilesCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, ListFilesCommandSettings settings)
         {
             var launchFileCommand = resolver.Resolve(typeof(LaunchFileConsoleCommand)) as LaunchFileConsoleCommand;
 
-            var connectionState = await serial.CurrentState.FirstAsync();
+            if (launchFileCommand is null) 
+            {
+                RadHelper.WriteError("Strange. Launch file command was not found.");
+                return -1;
+            }
 
+            var connectionState = await serial.CurrentState.FirstAsync();
             
             if (connectionState is not SerialConnectedState)
             {
@@ -49,6 +53,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 RadHelper.WriteLine();
             }
             var cacheItem = await storage.GetDirectory(settings.FilePath);
+
+            if (cacheItem is null || !cacheItem.Files.Any())
+            {
+                RadHelper.WriteError("Directory or files not found.");
+                AnsiConsole.WriteLine();
+                return 0;
+            }
 
             var fileName = PromptHelper.ChoicePrompt("Select File", cacheItem.Files.Select(f => f.Name).ToList());
             var file = cacheItem.Files.First(f => f.Name == fileName);
