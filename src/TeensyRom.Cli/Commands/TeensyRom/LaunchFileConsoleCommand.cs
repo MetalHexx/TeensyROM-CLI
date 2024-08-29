@@ -14,7 +14,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, LaunchFileCommandSettings settings)
         {
-            var connectionState = serial.CurrentState.FirstAsync().Wait();
+            var connectionState = await serial.CurrentState.FirstAsync();
 
             
             if (connectionState is not SerialConnectedState)
