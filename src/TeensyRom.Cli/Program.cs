@@ -59,6 +59,7 @@ public class Program
             config.AddExample("list -s sd -p /music/MUSICIANS/T/Tjelta_Geir");
             config.AddExample("search");
             config.AddExample("search -s sd -t \"iron maiden aces high\"");
+            config.AddExample("ports");
 
             config.AddCommand<LaunchFileConsoleCommand>("launch")
                     .WithAlias("l")
@@ -67,13 +68,18 @@ public class Program
 
             config.AddCommand<ListFilesCommand>("list")
                     .WithAlias("f")
-                    .WithDescription("List Files")
+                    .WithDescription("List all files available to launch in a directory on the TeensyROM")
                     .WithExample(["list -s SD -p /music/MUSICIANS/T/Tjelta_Geir/"]);
 
             config.AddCommand<SearchFilesCommand>("search")
                     .WithAlias("s")
-                    .WithDescription("Search Files")
+                    .WithDescription("Search for launchable files on the TeensyROM.")
                     .WithExample(["search -s SD -t \"Iron Maiden Aces High\""]);
+
+            config.AddCommand<PortListCommand>("ports")
+                    .WithAlias("p")
+                    .WithDescription("Lists all COM ports for troubleshooting purposes.")
+                    .WithExample(["ports"]);
 
             config.AddCommand<GeneratePresetsCommand>("chipsynth")
                     .WithAlias("cs")
@@ -98,7 +104,7 @@ public class Program
                 app.Run(args);                
             }
 
-            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "List Files", "Search Files", "Generate ChipSynth ASID Patches", "Leave"]);
+            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "List Files", "Search Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
 
             AnsiConsole.WriteLine();
 
@@ -109,6 +115,7 @@ public class Program
                 "Launch File" => ["launch"],
                 "List Files" => ["list"],
                 "Search Files" => ["search"],
+                "List Ports" => ["ports"],
                 "Generate ChipSynth ASID Patches" => ["chipsynth"],
                 _ => []
             };
