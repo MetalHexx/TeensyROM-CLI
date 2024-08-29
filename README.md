@@ -1,18 +1,22 @@
 # TeensyROM Command Line Interface
-CLI Tool for TeensyROM Emulator, Fast Loader, MIDI and Internet cartridge for Commodore 64/128.
+A cross-platform CLI Tool for TeensyROM Emulator, Fast Loader, MIDI and Internet cartridge for Commodore 64/128.
+
+## Demo
+General demonstration of the available features.
+
+https://github.com/user-attachments/assets/afb24d12-de9b-4689-83d5-a7955bb701ef
 
 ## Features
-### Remote File Launching (experimental)
-Remote launch your files both with guided workflow or command line parameters.  This is an early preview and experimental feature.
 
-https://github.com/user-attachments/assets/181d7bb5-ce19-4560-8fd6-45b8b73cfcc4
+- Cross platform support for Windows, MacOS, and Linux
+- Guided / BBS style interface
+- Remote File Launching
+- Remote Directory Listing
+- Single Line Command Support
 
-### Remote Directory Browsing (experimental)
-Navigate to a directory to list and launch files.
+![image](https://github.com/user-attachments/assets/9ea2de1c-0ce7-4d54-a8ef-bfecfc1f75d0)
 
-https://github.com/user-attachments/assets/0fabcb2d-a1e7-401d-bf3f-13ca2cc225b5
-
-### Chipsynth C64 ASID Preset Generator
+## Chipsynth C64 ASID Preset Generator
 Chipsynth has terrific functionality to support ASID MIDI streaming to external hardware. However, the feature is a bit experimental and has a few pain points when switching between presets.  See videos below.
 
 [TeensyROM / Chipsynth ASID Demo](https://youtu.be/-Xs3h59-dOU)
