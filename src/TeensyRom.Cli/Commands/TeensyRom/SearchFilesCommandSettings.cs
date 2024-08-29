@@ -9,7 +9,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 {
     internal class SearchFilesCommandSettings : CommandSettings 
     {
-        [Description("Storage device of file to launch. (sd or usb)")]
+        [Description("Storage device to search. (sd or usb)")]
         [CommandOption("-s|--storage")]
         public string StorageDevice { get; set; } = string.Empty;
 
