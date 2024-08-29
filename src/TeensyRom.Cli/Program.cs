@@ -7,8 +7,11 @@ using TeensyRom.Cli.Commands.TeensyRom;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core;
+using TeensyRom.Core.Assets;
+using TeensyRom.Core.Common;
 using TeensyRom.Core.Games;
 using TeensyRom.Core.Logging;
+using TeensyRom.Core.Music;
 using TeensyRom.Core.Music.Sid;
 using TeensyRom.Core.Serial;
 using TeensyRom.Core.Serial.State;
@@ -27,6 +30,8 @@ public class Program
         var logService = new LoggingService(loggingStrategy);
         var serial = new ObservableSerialPort(logService);
         var serialState = new SerialStateContext(serial);
+
+        UnpackAssets();
 
         services.AddSingleton<IObservableSerialPort>(serial);
         services.AddSingleton<ISerialStateContext>(serialState);
@@ -59,6 +64,8 @@ public class Program
             config.AddExample("list -s sd -p /music/MUSICIANS/T/Tjelta_Geir");
             config.AddExample("search");
             config.AddExample("search -s sd -t \"iron maiden aces high\"");
+            config.AddExample("cache");
+            config.AddExample("cache -s sd -p /music");
             config.AddExample("ports");
 
             config.AddCommand<LaunchFileConsoleCommand>("launch")
@@ -75,6 +82,11 @@ public class Program
                     .WithAlias("s")
                     .WithDescription("Search for launchable files on the TeensyROM.")
                     .WithExample(["search -s SD -t \"Iron Maiden Aces High\""]);
+
+            config.AddCommand<CacheCommand>("cache")
+                    .WithAlias("c")
+                    .WithDescription("cache")
+                    .WithExample(["cache -s sd -p /music/ "]);
 
             config.AddCommand<PortListCommand>("ports")
                     .WithAlias("p")
@@ -104,7 +116,7 @@ public class Program
                 app.Run(args);                
             }
 
-            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "List Files", "Search Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
+            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "List Files", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
 
             AnsiConsole.WriteLine();
 
@@ -115,6 +127,7 @@ public class Program
                 "Launch File" => ["launch"],
                 "List Files" => ["list"],
                 "Search Files" => ["search"],
+                "Cache Files" => ["cache"],
                 "List Ports" => ["ports"],
                 "Generate ChipSynth ASID Patches" => ["chipsynth"],
                 _ => []
@@ -122,6 +135,14 @@ public class Program
             app.Run(args);
             args = [];
         }
+    }
+
+    private static void UnpackAssets()
+    {
+        
+        AssetHelper.UnpackAssets(GameConstants.Game_Image_Local_Path, "OneLoad64.zip");
+        AssetHelper.UnpackAssets(MusicConstants.Musician_Image_Local_Path, "Composers.zip");
+        AssetHelper.UnpackAssets(AssetConstants.VicePath, "vice-bins.zip");
     }
 
 }

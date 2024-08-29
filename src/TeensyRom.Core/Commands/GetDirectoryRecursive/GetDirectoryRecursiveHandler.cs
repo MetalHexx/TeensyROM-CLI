@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Reactive.Linq;
 using System.Text;
 using TeensyRom.Core.Common;
+using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Storage.Entities;
@@ -12,10 +13,12 @@ namespace TeensyRom.Core.Commands
     public class GetDirectoryRecursiveHandler : IRequestHandler<GetDirectoryRecursiveCommand, GetDirectoryRecursiveResult>
     {
         private readonly ISerialStateContext _serialState;
+        private readonly ILoggingService _log;
 
-        public GetDirectoryRecursiveHandler(ISerialStateContext serialState)
+        public GetDirectoryRecursiveHandler(ISerialStateContext serialState, ILoggingService log)
         {
-            _serialState = serialState;            
+            _serialState = serialState;
+            _log = log;
         }
 
         public Task<GetDirectoryRecursiveResult> Handle(GetDirectoryRecursiveCommand r, CancellationToken x)
@@ -31,7 +34,7 @@ namespace TeensyRom.Core.Commands
 
         private void GetDirectoryContent(string path, TeensyStorageType storageType, GetDirectoryRecursiveResult result, StringBuilder directoryLogs)
         {            
-            //_log.Internal($"=> Indexing: {path}");
+            _log.Internal($"=> Indexing: {path}");
 
             DirectoryContent? directoryContent;
 
