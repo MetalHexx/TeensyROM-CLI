@@ -33,15 +33,10 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             RadHelper.WriteHorizonalRule("Search Files", Justify.Left);
 
-            AnsiConsole.MarkupLine($"{RadHelper.AddSecondaryColor("Tips:")}");
-            AnsiConsole.MarkupLine($"{RadHelper.AddPrimaryColor("- Search terms match on: file name, file path, title, composer name (SID only) and HVSC STIL (SID Only).")}");
-            AnsiConsole.MarkupLine($"{RadHelper.AddPrimaryColor("- Only directories visited will be included in search result.  Cache all files to avoid this.")}");
-            AnsiConsole.WriteLine();
-
             var table = new Table()
                 .BorderColor(RadHelper.Theme.Secondary.Color)
                 .Border(TableBorder.Rounded)
-                .AddColumn("Example")
+                .AddColumn("Search Example")
                 .AddColumn("Description")
                 .AddRow(
                     RadHelper.AddHighlights($"iron maiden aces high"),
@@ -75,6 +70,15 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 settings.Terms = PromptHelper.DefaultValueTextPrompt("Search Terms:", 2, "iron maiden aces high");
                 RadHelper.WriteLine();
             }
+
+            var validation = settings.Validate();
+
+            if (!validation.Successful)
+            {
+                RadHelper.WriteError(validation?.Message ?? "Validation error");
+                return 0;
+            }
+
             var searchResults = storage.Search(settings.Terms, []);
 
             if (!searchResults.Any()) 

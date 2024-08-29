@@ -52,6 +52,15 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 settings.FilePath = PromptHelper.DefaultValueTextPrompt("File Path:", 2, "/music/MUSICIANS/T/Tjelta_Geir/");
                 RadHelper.WriteLine();
             }
+
+            var validation = settings.Validate();
+
+            if (!validation.Successful)
+            {
+                RadHelper.WriteError(validation?.Message ?? "Validation error");
+                return 0;
+            }
+
             var cacheItem = await storage.GetDirectory(settings.FilePath);
 
             if (cacheItem is null || !cacheItem.Files.Any())
