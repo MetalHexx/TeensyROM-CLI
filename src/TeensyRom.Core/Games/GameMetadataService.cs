@@ -40,6 +40,9 @@ namespace TeensyRom.Core.Games
                     return fileMetadata;
                 }
             }
+            if (!Directory.Exists(_localLoadingScreenPath)) return [];
+            if (!Directory.Exists(_localScreenshotPath)) return [];
+
             var loadingScreens = Directory.GetFiles(_localLoadingScreenPath);
             var screenshots = Directory.GetFiles(_localScreenshotPath);
 
