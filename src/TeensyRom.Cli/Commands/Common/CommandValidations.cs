@@ -12,7 +12,7 @@ namespace TeensyRom.Cli.Commands.Common
         //make a validation from this:
         //!StorageDevice.Equals(string.Empty) && !StorageDevice.IsValueValid(["sd", "usb"])
 
-        public static bool IsValueValid(this string value, string[] validValues) => validValues.Contains(value);
+        public static bool IsValueValid(this string value, string[] validValues) => validValues.Contains(value.ToLower());
         public static bool IsValidStorageDevice(this string value) => value.IsValueValid(new[] { "sd", "usb" });
         public static bool IsValidUnixPath(this string value) => value.StartsWith("/") && value.EndsWith("/");
         public static bool IsValidFilter(this string value) => value.IsValueValid(new[] { "all", "music", "games", "images" });

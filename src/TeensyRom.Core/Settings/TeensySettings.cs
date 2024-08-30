@@ -232,5 +232,18 @@ namespace TeensyRom.Core.Settings
             string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             WatchDirectoryLocation = Path.Combine(userProfile, "Downloads");
         }
+
+        public TeensyFileType[] GetFileTypes(TeensyFilterType filterType)
+        {
+            if (filterType == TeensyFilterType.All)
+            {
+                return FileTargets
+                    .Where(ft => ft.Type != TeensyFileType.Hex)
+                    .Select(t => t.Type).ToArray();
+            }
+            return FileTargets
+                .Where(ft => ft.FilterType == filterType)
+                .Select(t => t.Type).ToArray();
+        }
     }
 }

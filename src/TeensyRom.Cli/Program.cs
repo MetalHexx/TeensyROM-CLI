@@ -56,8 +56,8 @@ public class Program
         {
             config.SetApplicationName("TeensyROM.Cli");
             config.SetApplicationVersion("1.0.0");
-            config.AddExample(["chipsynth"]);
-            config.AddExample(["cs"]);
+            config.AddExample("random");
+            config.AddExample("random -s -f=all");
             config.AddExample("launch");
             config.AddExample("launch -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid");
             config.AddExample("list");           
@@ -67,6 +67,15 @@ public class Program
             config.AddExample("cache");
             config.AddExample("cache -s sd -p /music");
             config.AddExample("ports");
+            config.AddExample(["chipsynth"]);
+            config.AddExample(["cs"]);
+
+
+            config.AddCommand<RandomAllCommand>("random")
+                    .WithAlias("r")
+                    .WithDescription("Launch a random file on TeensyROM")
+                    .WithExample("random")
+                    .WithExample("random -s -f=all");
 
             config.AddCommand<LaunchFileConsoleCommand>("launch")
                     .WithAlias("l")
@@ -116,7 +125,7 @@ public class Program
                 app.Run(args);                
             }
 
-            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "List Files", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
+            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch Random","Launch File", "List Files", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
 
             AnsiConsole.WriteLine();
 
@@ -124,6 +133,7 @@ public class Program
 
             args = menuChoice switch
             {
+                "Launch Random" => ["random"],
                 "Launch File" => ["launch"],
                 "List Files" => ["list"],
                 "Search Files" => ["search"],
