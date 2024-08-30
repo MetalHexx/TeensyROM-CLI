@@ -12,6 +12,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, SearchFilesCommandSettings settings)
         {
+            AnsiConsole.WriteLine("DEBUG: Entered - SearchFilesCommand!");
+            AnsiConsole.WriteLine("DEBUG: Dynamically resolving LaunchFileConsoleCommand.");
             var launchFileCommand = resolver.Resolve(typeof(LaunchFileConsoleCommand)) as LaunchFileConsoleCommand;
 
             if (launchFileCommand is null)

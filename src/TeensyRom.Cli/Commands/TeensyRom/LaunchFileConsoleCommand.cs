@@ -14,6 +14,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, LaunchFileCommandSettings settings)
         {
+            AnsiConsole.WriteLine("DEBUG: Entered - LaunchFileConsoleCommand!");
             var connectionState = await serial.CurrentState.FirstAsync();
 
             

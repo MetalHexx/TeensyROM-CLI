@@ -1,4 +1,5 @@
-﻿using Spectre.Console.Cli;
+﻿using Spectre.Console;
+using Spectre.Console.Cli;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Serial.State;
@@ -9,6 +10,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, PortListCommandSettings settings)
         {
+            AnsiConsole.WriteLine("DEBUG: Entered - PortList!");
+
             var ports = await serial.Ports.FirstAsync();
 
             foreach (var port in ports) 

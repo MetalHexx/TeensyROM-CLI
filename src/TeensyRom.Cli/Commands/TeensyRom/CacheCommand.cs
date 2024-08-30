@@ -12,6 +12,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, CacheCommandSettings settings)
         {
+            AnsiConsole.WriteLine("DEBUG: Entered - CacheCommand!");            
             var connectionState = await serial.CurrentState.FirstAsync();
             
             if (connectionState is not SerialConnectedState)

@@ -14,6 +14,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, ListFilesCommandSettings settings)
         {
+            AnsiConsole.WriteLine("DEBUG: Entered - ListFilesCommand!");
+            AnsiConsole.WriteLine("DEBUG: Dynamically resolving LaunchFileConsoleCommand.");
             var launchFileCommand = resolver.Resolve(typeof(LaunchFileConsoleCommand)) as LaunchFileConsoleCommand;
 
             if (launchFileCommand is null) 
@@ -21,6 +23,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 RadHelper.WriteError("Strange. Launch file command was not found.");
                 return -1;
             }
+            AnsiConsole.WriteLine("DEBUG: Successfully resolved Launch File Command");
 
             var connectionState = await serial.CurrentState.FirstAsync();
             

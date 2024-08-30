@@ -21,7 +21,7 @@ using TeensyRom.Core.Storage.Services;
 public class Program
 {
     private static void Main(string[] args)
-    {
+    {   
         AnsiConsole.WriteLine();
         RadHelper.RenderLogo("TeensyROM", FontConstants.FontPath);
 
@@ -31,7 +31,7 @@ public class Program
         var serial = new ObservableSerialPort(logService);
         var serialState = new SerialStateContext(serial);
 
-        UnpackAssets();
+        AnsiConsole.WriteLine("DEBUG: Registering Services.");
 
         services.AddSingleton<IObservableSerialPort>(serial);
         services.AddSingleton<ISerialStateContext>(serialState);
@@ -48,9 +48,14 @@ public class Program
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(SerialBehavior<,>));
 
+        AnsiConsole.WriteLine("DEBUG: Creating Registrar.");
+
         var registrar = new TypeRegistrar(services);
 
+        AnsiConsole.WriteLine("DEBUG: Creating Command App.");
         var app = new CommandApp(registrar);
+
+        AnsiConsole.WriteLine("DEBUG: Configuring Command App.");
 
         app.Configure(config =>
         {
@@ -68,31 +73,40 @@ public class Program
             config.AddExample("cache -s sd -p /music");
             config.AddExample("ports");
 
+            AnsiConsole.WriteLine("DEBUG: Adding Launch File Command");
+
             config.AddCommand<LaunchFileConsoleCommand>("launch")
                     .WithAlias("l")
                     .WithDescription("Launch a file on TeensyROM")
                     .WithExample(["launch"]);
+
+            AnsiConsole.WriteLine("DEBUG: Adding List Files Command");
 
             config.AddCommand<ListFilesCommand>("list")
                     .WithAlias("f")
                     .WithDescription("List all files available to launch in a directory on the TeensyROM")
                     .WithExample(["list -s SD -p /music/MUSICIANS/T/Tjelta_Geir/"]);
 
+            AnsiConsole.WriteLine("DEBUG: Adding Search Files Command");
+
             config.AddCommand<SearchFilesCommand>("search")
                     .WithAlias("s")
                     .WithDescription("Search for launchable files on the TeensyROM.")
                     .WithExample(["search -s SD -t \"Iron Maiden Aces High\""]);
 
+            AnsiConsole.WriteLine("DEBUG: Adding Cache Command");
             config.AddCommand<CacheCommand>("cache")
                     .WithAlias("c")
                     .WithDescription("Caches all the files on your storage device to enhance search and streaming features.")
                     .WithExample(["cache -s sd -p /music/ "]);
 
+            AnsiConsole.WriteLine("DEBUG: Adding Port List Command");
             config.AddCommand<PortListCommand>("ports")
                     .WithAlias("p")
                     .WithDescription("Lists all COM ports for troubleshooting purposes.")
                     .WithExample(["ports"]);
 
+            AnsiConsole.WriteLine("DEBUG: Adding Generate Presets Command");
             config.AddCommand<GeneratePresetsCommand>("chipsynth")
                     .WithAlias("cs")
                     .WithDescription("Generate ASID friendly Chipsynth ASID presets.")
@@ -101,19 +115,23 @@ public class Program
                     .WithExample(["cs", "--source c:\\your\\preset\\directory", "--target ASID --clock ntsc"]);
         });
 
+        AnsiConsole.WriteLine("DEBUG: Subscribing to Logs.");
         logService.Logs.Subscribe(log => AnsiConsole.Markup($"{log}\r\n\r\n"));
 
         if (args.Contains("-h") || args.Contains("--help") || args.Contains("-v") || args.Contains("--version"))
         {
+            AnsiConsole.WriteLine("DEBUG: Running App with -v or -h Args.");
             app.Run(args);
             return;
         }
 
         while (true) 
         {
+            AnsiConsole.WriteLine("DEBUG: Running App with Menu.");
             if (args.Length > 0)
             {
-                app.Run(args);                
+                AnsiConsole.WriteLine("DEBUG: Running App with Args.");
+                app.Run(args); 
             }
 
             var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch File", "List Files", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
@@ -132,6 +150,7 @@ public class Program
                 "Generate ChipSynth ASID Patches" => ["chipsynth"],
                 _ => []
             };
+            AnsiConsole.WriteLine("DEBUG: Running App with Menu Args.");
             app.Run(args);
             args = [];
         }

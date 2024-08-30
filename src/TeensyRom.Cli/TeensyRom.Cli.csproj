@@ -8,6 +8,7 @@
 	<AssemblyVersion>1.0.0.0</AssemblyVersion>
 	<FileVersion>1.0.0.0</FileVersion>
 	<Version>1.0.0-alpha.9</Version>
+	<UserSecretsId>da4d0add-0ffe-471c-9e82-38196c10f976</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
