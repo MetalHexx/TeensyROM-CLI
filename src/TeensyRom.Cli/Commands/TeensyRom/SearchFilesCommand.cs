@@ -43,7 +43,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     RadHelper.AddHighlights($"Searches for any term individually."))                
                 .AddRow(
                     RadHelper.AddHighlights($"iron maiden \"aces high\""),
-                    RadHelper.AddHighlights($"Search will consider phrases between qoutes as an individual search term."))
+                    RadHelper.AddHighlights($"Search will consider phrases between quotes as an individual search term."))
                 .AddRow(
                     RadHelper.AddHighlights($"+iron maiden aces high"),
                     RadHelper.AddHighlights($"\"iron\" must have a match in every search result"))
