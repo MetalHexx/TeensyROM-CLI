@@ -3,6 +3,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Commands.Common;
+using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Logging;
@@ -13,13 +14,19 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class RandomAllCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ISettingsService settingsService, IMediator mediator) : AsyncCommand<RandomAllCommandSettings>
+    internal class RandomAllCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService musicService) : AsyncCommand<RandomAllCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, RandomAllCommandSettings settings)
         {            
             await serial.Connect();
 
-            CommandHelper.DisplayCommandTitle("Play Random");
+            RadHelper.WriteMenu("Launch Random", "Launch random files from storage and discover something new.",
+            [
+               "Filter will limit the file types selected.",
+               "SIDs will play continuously.",
+               "Games will stop continuous play.",
+               "For best result, cache your storage."
+            ]);
 
             var trSettings = await settingsService.Settings.FirstAsync();
 
@@ -32,7 +39,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             if(launchItem is null) return 0;
 
-            await CommandHelper.LaunchItem(mediator, storageType, launchItem);
+            await musicService.LaunchItem(storageType, launchItem);
 
             return 0;
         }

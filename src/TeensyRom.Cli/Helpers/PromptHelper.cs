@@ -101,7 +101,7 @@ namespace TeensyRom.Cli.Helpers
             (
                 new SelectionPrompt<string>()
                     .Title($"[{theme.Primary}]{message}: [/]")                    
-                    .HighlightStyle(theme.Primary.ToString())
+                    .HighlightStyle(theme.Secondary.ToString())
                     .AddChoices(choices)
             );
 

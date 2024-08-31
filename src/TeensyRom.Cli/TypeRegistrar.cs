@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 public sealed class TypeResolver : ITypeResolver, IDisposable
@@ -16,22 +17,23 @@ public sealed class TypeResolver : ITypeResolver, IDisposable
         {
             return null;
         }
+        var service = _provider.GetService(type);
 
-        return _provider.GetService(type);
-    }
-
-    public void Dispose()
-    {
-        if (_provider is IDisposable disposable)
+        if (service is null)
         {
-            disposable.Dispose();
+            throw new InvalidOperationException($"TypeResolver.cs: Could not resolve type '{type.FullName}'.");
         }
+
+        return service;
     }
+
+    public void Dispose() { }
 }
 
 public sealed class TypeRegistrar : ITypeRegistrar
 {
     private readonly IServiceCollection _builder;
+    private ServiceProvider? _provider = null;
 
     public TypeRegistrar(IServiceCollection builder)
     {
@@ -40,21 +42,32 @@ public sealed class TypeRegistrar : ITypeRegistrar
 
     public ITypeResolver Build()
     {
-        return new TypeResolver(_builder.BuildServiceProvider());
+
+        if (_provider is null)
+        {
+            _provider = _builder.BuildServiceProvider();
+        }
+        return new TypeResolver(_provider);
     }
 
     public void Register(Type service, Type implementation)
     {
+        if (_provider is not null) return;
+
         _builder.AddSingleton(service, implementation);
     }
 
     public void RegisterInstance(Type service, object implementation)
     {
+        if (_provider is not null) return;
+
         _builder.AddSingleton(service, implementation);
     }
 
     public void RegisterLazy(Type service, Func<object> func)
     {
+        if (_provider is not null) return;
+
         if (func is null)
         {
             throw new ArgumentNullException(nameof(func));

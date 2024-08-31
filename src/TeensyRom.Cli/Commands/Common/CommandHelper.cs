@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using TeensyRom.Cli.Helpers;
@@ -16,8 +17,12 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Common
 {
-    internal static class CommandHelper
+    internal static class SpecialChars 
     {
+        public const string BulletPoint = "\u2022";
+    }
+    internal static class CommandHelper
+    {   
         public static TCommand? ResolveCommand<TCommand>(this ITypeResolver resolver) where TCommand : class
         {
             var command = resolver.Resolve(typeof(TCommand)) as TCommand;
@@ -117,21 +122,6 @@ namespace TeensyRom.Cli.Commands.Common
                 return null;
             }
             return launchItem;
-        }
-
-        public static async Task LaunchItem(IMediator mediator, TeensyStorageType storageType, ILaunchableItem item) 
-        {
-            var result = await mediator.Send(new LaunchFileCommand(storageType, item));
-
-            if (result.IsSuccess)
-            {
-                RadHelper.WriteTitle($"Now Playing: {item.Path}");
-            }
-            else
-            {
-                RadHelper.WriteError($"Error Launching: {item.Path}");
-            }
-            AnsiConsole.WriteLine();
         }
     }
 }

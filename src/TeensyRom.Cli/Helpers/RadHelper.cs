@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Bson;
 using Spectre.Console;
 using TeensyRom.Core.Common;
 
@@ -177,6 +178,24 @@ namespace TeensyRom.Cli.Helpers
                 new SpinnerColumn(Spinner.Known.Balloon2)
                     .Style(new Style(foreground: theme.Secondary.Color)),
             ]);
+        }
+
+        public static void WriteMenu(string title, string description, params string[] bullets) 
+        {
+            var table = new Table()
+               .BorderColor(Theme.Secondary.Color)
+               .Border(TableBorder.Rounded)
+               .AddColumn(title.AddHighlights());
+
+            table.AddRow(description);
+            table.AddRow("");
+
+            foreach (var bullet in bullets)
+            {
+                table.AddRow($"* {AddHighlights(bullet)}");
+            }
+            AnsiConsole.Write(table);
+            AnsiConsole.WriteLine();
         }
     }
 }
