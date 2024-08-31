@@ -5,7 +5,7 @@ using TeensyRom.Cli.Commands.Common;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class RandomAllCommandSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
+    internal class RandomLaunchCommandSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
     {
         [Description("Storage device of file to launch. (sd or usb)")]
         [CommandOption("-s|--storage")]

@@ -89,7 +89,7 @@ public class Program
             config.AddExample(["cs"]);
 
 
-            config.AddCommand<RandomAllCommand>("random")
+            config.AddCommand<RandomLaunchCommand>("random")
                     .WithAlias("r")
                     .WithDescription("Launch a random file on TeensyROM")
                     .WithExample("random")
