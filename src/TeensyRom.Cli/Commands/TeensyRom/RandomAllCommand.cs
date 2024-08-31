@@ -25,12 +25,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                "Games will stop continuous play.",
                "For best result, cache your storage."
             ]);
-
-            
-
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
             settings.Directory = CommandHelper.PromptForDirectoryPath(settings.Directory, "/test-cache");
-            var filterType = CommandHelper.PromptForFilterType(settings.Filter);            
+            var filterType = CommandHelper.PromptForFilterType(settings.Filter);
+
+            if(!settings.ValidateSettings()) return -1;
 
             await player.PlayRandom(storageType, settings.Directory, filterType);
 
