@@ -194,15 +194,17 @@ namespace TeensyRom.Cli.Helpers
             var table = new Table()
                .BorderColor(Theme.Secondary.Color)
                .Border(TableBorder.Rounded)
-               .AddColumn(title.AddHighlights());
-
-            table.AddRow(description);
-            table.AddRow("");
+               .AddColumn(title.AddHighlights())
+               .AddEmptyRow()
+               .AddRow(description)
+               .AddEmptyRow();
 
             foreach (var bullet in bullets)
             {
                 table.AddRow($"* {AddHighlights(bullet)}");
             }
+            table.AddEmptyRow();
+
             AnsiConsole.Write(table);
             AnsiConsole.WriteLine();
         }

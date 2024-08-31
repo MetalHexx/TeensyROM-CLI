@@ -17,41 +17,20 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         {
             player.StopContinuousPlay();
 
-            RadHelper.WriteHorizonalRule("Cache Files", Justify.Left);
+            RadHelper.WriteMenu("Cache Files", "Launch random files from storage and discover something new.",
+            [
+               "Caching enables search and randomization features.",
+               "Caching will increase overall performance and stability.",
+               "Cache your files when you make changes to storage outside of this app.",
+            ]);
 
-            AnsiConsole.MarkupLine($"{RadHelper.AddSecondaryColor("Tips:")}");
-            AnsiConsole.MarkupLine($"{RadHelper.AddPrimaryColor("- Caching enables search and randomization features.  Do it! :)")}");
-            AnsiConsole.MarkupLine($"{RadHelper.AddPrimaryColor("- Caching will increase overall performance and stability.")}");
-            AnsiConsole.MarkupLine($"{RadHelper.AddPrimaryColor("- Cache your files when you make changes to storage outside of this app.")}");
+            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
+            settings.Path = CommandHelper.PromptForDirectoryPath(settings.Path, "/test-cache");
 
-            if (settings.StorageDevice.Equals(string.Empty))
-            {
-                settings.StorageDevice = PromptHelper.ChoicePrompt("Storage Type", ["SD", "USB"]);
-                RadHelper.WriteLine();
-            }
-            var storageType = settings.StorageDevice.ToUpper() switch
-            {
-                "SD" => TeensyStorageType.SD,
-                "USB" => TeensyStorageType.USB,
-                _ => TeensyStorageType.SD, 
-            };
-            if(settings.StorageDevice.Equals(string.Empty))
-            {
-                RadHelper.WriteError("Storage device must be 'sd' or 'usb'.");
-                return -1;
-            }            
-
-            settings.Path = PromptHelper.DefaultValueTextPrompt("Path to Cache:", 2, "/test-cache");
-
-            var validation = settings.Validate();
-
-            if (!validation.Successful) 
-            {
-                RadHelper.WriteError(validation?.Message ?? "Validation error");
-                return 0;
-            }
+            if (!settings.ValidateSettings()) return -1;
 
             RadHelper.WriteLine($"Caching files for {storageType}...");
+            AnsiConsole.WriteLine();
 
             await storage.CacheAll(settings.Path);
 

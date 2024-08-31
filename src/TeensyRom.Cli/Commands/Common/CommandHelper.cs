@@ -109,5 +109,18 @@ namespace TeensyRom.Cli.Commands.Common
             }
             return launchItem;
         }
+
+        public static bool ValidateSettings(this CommandSettings settings) 
+        {
+            var validation = settings.Validate();
+
+            if (!validation.Successful)
+            {
+                RadHelper.WriteError(validation?.Message ?? "Validation error");
+                RadHelper.WriteLine();
+                return false;
+            }            
+            return true;
+        }
     }
 }
