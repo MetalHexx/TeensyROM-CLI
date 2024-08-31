@@ -60,7 +60,7 @@ public class Program
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(SerialBehavior<,>));
 
         var registrar = new TypeRegistrar(services);
-
+        
         var app = new CommandApp(registrar);
 
         var firstRun = true;

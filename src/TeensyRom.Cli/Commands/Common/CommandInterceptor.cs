@@ -9,7 +9,6 @@ namespace TeensyRom.Cli.Commands.Common
 {
     internal class CommandInterceptor(ISerialStateContext serial) : ICommandInterceptor
     {
-
         public void Intercept(CommandContext context, CommandSettings settings) 
         {
             if (settings is IRequiresConnection)

@@ -44,7 +44,8 @@ public sealed class TypeRegistrar : ITypeRegistrar
         {
             return new TypeResolver(_provider);
         }
-        return new TypeResolver(_builder.BuildServiceProvider());
+        _provider = _builder.BuildServiceProvider();
+        return new TypeResolver(_provider);
     }
 
     public void Register(Type service, Type implementation)

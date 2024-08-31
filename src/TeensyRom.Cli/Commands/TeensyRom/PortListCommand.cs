@@ -1,14 +1,17 @@
 ﻿using Spectre.Console.Cli;
 using System.Reactive.Linq;
+using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Serial.State;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class PortListCommand(ISerialStateContext serial) : AsyncCommand<PortListCommandSettings>
+    internal class PortListCommand(ISerialStateContext serial, IPlayerService player) : AsyncCommand<PortListCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, PortListCommandSettings settings)
         {
+            player.StopContinuousPlay();
+
             var ports = await serial.Ports.FirstAsync();
 
             foreach (var port in ports) 

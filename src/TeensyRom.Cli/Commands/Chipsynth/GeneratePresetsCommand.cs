@@ -1,14 +1,17 @@
 ﻿using System.Xml.Linq;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 
 namespace TeensyRom.Cli.Commands.Chipsynth
 {
-    internal class GeneratePresetsCommand : Command<GeneratePresetsSettings>
+    internal class GeneratePresetsCommand(IPlayerService player) : Command<GeneratePresetsSettings>
     {
         public override int Execute(CommandContext context, GeneratePresetsSettings s)
         {
+            player.StopContinuousPlay();
+
             RadHelper.WriteTitle("Chipsynth ASID Preset Generator");
             AnsiConsole.WriteLine();
 

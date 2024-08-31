@@ -2,6 +2,7 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
+using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
@@ -10,10 +11,12 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class ListFilesCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ITypeResolver resolver) : AsyncCommand<ListFilesCommandSettings>
+    internal class ListFilesCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ITypeResolver resolver, IPlayerService player) : AsyncCommand<ListFilesCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, ListFilesCommandSettings settings)
         {
+            player.StopContinuousPlay();
+
             var launchFileCommand = resolver.Resolve(typeof(LaunchFileConsoleCommand)) as LaunchFileConsoleCommand;
 
             if (launchFileCommand is null) 
@@ -70,7 +73,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 return 0;
             }
 
-            var fileName = PromptHelper.ChoicePrompt("Select File", cacheItem.Files.Select(f => f.Name).ToList());
+            var fileName = PromptHelper.FilePrompt("Select File", cacheItem.Files.Select(f => f.Name).ToList());
             var file = cacheItem.Files.First(f => f.Name == fileName);
 
             var launchFileCommandSettings = new LaunchFileCommandSettings

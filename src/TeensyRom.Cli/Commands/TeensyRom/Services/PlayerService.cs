@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Spectre.Console;
 using System.Reactive.Linq;
+using System.Runtime;
+using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Player;
@@ -15,10 +17,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
     internal interface IPlayerService 
     {
         Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
+        Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType);
+        void StopContinuousPlay();
     }
 
 
-    internal class PlayerService(IMediator mediator, ICachedStorageService storage, IProgressTimer progressTimer, ISerialStateContext serial) : IPlayerService
+    internal class PlayerService(IMediator mediator, ICachedStorageService storage, IProgressTimer progressTimer, ISerialStateContext serial, ISettingsService settingsService) : IPlayerService
     {
         private TeensyStorageType _selectedStorage = TeensyStorageType.SD;
         private StorageScope _selectedScope = StorageScope.DirDeep;
@@ -42,38 +46,63 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             _playState = PlayState.Playing;
 
             _progressSubscription?.Dispose();
+            _progressSubscription = null;
+
+            if (item is not SongItem) 
+            {
+                RadHelper.WriteTitle("Stopping Continuous File Launching (SID Only)");
+            }
 
             if (item is SongItem songItem)
             {
-                progressTimer.StartNewTimer(TimeSpan.FromSeconds(5));
+                progressTimer.StartNewTimer(songItem.PlayLength);//TimeSpan.FromSeconds(2)
 
                 _progressSubscription = progressTimer.TimerComplete.Subscribe(async _ => 
                 {                    
-                    await PlayRandom(storageType, "/");
+                    await PlayRandom(storageType, _scopePath, _filterType);
                 });
-            }            
-
+            }
             var result = await mediator.Send(new LaunchFileCommand(storageType, item));
 
             if (result.IsSuccess)
             {
-                RadHelper.WriteTitle($"Now Playing: {item.Path}");
+                RadHelper.WriteFileInfo(item);
             }
             else
             {
-                RadHelper.WriteError($"Error Launching: {item.Path}");
-                await PlayRandom(_selectedStorage, _scopePath);
+                RadHelper.WriteError($"Error Launching: {item.Path.Replace("[", "(").Replace("]", ")")}");
+                await PlayRandom(_selectedStorage, _scopePath, _filterType);
             }
             AnsiConsole.WriteLine("                                                                                                             ");
         }
 
-        public async Task PlayRandom(TeensyStorageType storageType, string scopePath)
+        public async Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType)
         {
-            var item = storage.GetRandomFile(_selectedScope, _scopePath);
+            var trSettings = await settingsService.Settings.FirstAsync();
+            _filterType = filterType;
+            _scopePath = scopePath;
+
+            var fileTypes = trSettings.GetFileTypes(_filterType);
+
+            var launchItem = storage.GetRandomFilePath(StorageScope.DirDeep, _scopePath, fileTypes);
+
+            var item = storage.GetRandomFile(_selectedScope, _scopePath, fileTypes);
 
             if (item is null) return;
 
             await LaunchItem(storageType, item);
+        }
+
+        public void StopContinuousPlay()
+        {
+            if (_progressSubscription is not null) 
+            {
+                RadHelper.WriteTitle("Stopping Continuous File Launching");
+                AnsiConsole.WriteLine("                                                                                                       ");
+            }            
+            _playState = PlayState.Stopped;
+            _progressSubscription?.Dispose();
+            _progressSubscription = null;
         }
 
         private async Task<bool> IsTrAvailable()

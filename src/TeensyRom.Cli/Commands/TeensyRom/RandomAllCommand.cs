@@ -1,4 +1,5 @@
 ﻿using Spectre.Console.Cli;
+using System.Numerics;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
@@ -11,10 +12,12 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class RandomAllCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService playerService) : AsyncCommand<RandomAllCommandSettings>
+    internal class RandomAllCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService player) : AsyncCommand<RandomAllCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, RandomAllCommandSettings settings)
-        {            
+        {
+            player.StopContinuousPlay();
+
             RadHelper.WriteMenu("Launch Random", "Launch random files from storage and discover something new.",
             [
                "Filter will limit the file types selected.",
@@ -23,18 +26,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                "For best result, cache your storage."
             ]);
 
-            var trSettings = await settingsService.Settings.FirstAsync();
+            
 
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
             settings.Directory = CommandHelper.PromptForDirectoryPath(settings.Directory, "/test-cache");
-            var filterType = CommandHelper.PromptForFilterType(settings.Filter);
-            var fileTypes = trSettings.GetFileTypes(filterType);
+            var filterType = CommandHelper.PromptForFilterType(settings.Filter);            
 
-            var launchItem = storage.GetRandomFilePath(StorageScope.DirDeep, settings.Directory, fileTypes);
-
-            if(launchItem is null) return 0;
-
-            await playerService.LaunchItem(storageType, launchItem);
+            await player.PlayRandom(storageType, settings.Directory, filterType);
 
             return 0;
         }

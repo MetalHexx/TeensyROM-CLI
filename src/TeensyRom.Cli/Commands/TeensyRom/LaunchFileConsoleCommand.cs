@@ -2,6 +2,7 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
+using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Logging;
@@ -10,10 +11,12 @@ using TeensyRom.Core.Storage.Entities;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class LaunchFileConsoleCommand(IMediator mediator, ISerialStateContext serial, ILoggingService logService) : AsyncCommand<LaunchFileCommandSettings>
+    internal class LaunchFileConsoleCommand(IMediator mediator, ISerialStateContext serial, ILoggingService logService, IPlayerService player) : AsyncCommand<LaunchFileCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, LaunchFileCommandSettings settings)
         {
+            player.StopContinuousPlay();
+
             RadHelper.WriteHorizonalRule("File Launcher", Justify.Left);
 
             if(settings.StorageDevice.Equals(string.Empty))
