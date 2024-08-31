@@ -1,9 +1,8 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json.Bson;
 using Spectre.Console;
 using TeensyRom.Core.Common;
+using TeensyRom.Core.Storage.Entities;
 
 namespace TeensyRom.Cli.Helpers
 {
@@ -44,7 +43,7 @@ namespace TeensyRom.Cli.Helpers
         /// </summary>
         public static string AddPrimaryColor(this string message)
         {
-            return $"[{Theme.Primary}]{message}[/]";
+            return $"[{Theme.Primary}]{message.EscapeBrackets()}[/]";
         }
 
 
@@ -54,7 +53,7 @@ namespace TeensyRom.Cli.Helpers
         /// </summary>
         public static string AddSecondaryColor(this string message)
         {
-            return $"[{Theme.Secondary}]{message}[/]";
+            return $"[{Theme.Secondary}]{message.EscapeBrackets()}[/]";
         }
 
         /// <summary>
@@ -77,6 +76,8 @@ namespace TeensyRom.Cli.Helpers
                     "/" => $"[{theme.Secondary}]{charString}[/]",
                     "\\" => $"[{theme.Secondary}]{charString}[/]",
                     "_" => $"[{theme.Secondary}]{charString}[/]",
+                    "[" => $"{charString}",
+                    "]" => $"{charString}",
                     _ when Regex.IsMatch(charString, @"\W") => $"[{theme.Highlight}]{charString}[/]",
                     _ when Regex.IsMatch(charString, @"\d") => $"[{theme.Secondary}]{charString}[/]",
                     _ => $"[{theme.Primary}]{charString}[/]",
@@ -99,6 +100,8 @@ namespace TeensyRom.Cli.Helpers
                 var charString = character.ToString();
                 string markupString = charString switch
                 {
+                    "[" => $"{charString}",
+                    "]" => $"{charString}",
                     _ when Regex.IsMatch(charString, @"\\") => $"[{theme.Secondary}]{charString}[/]",
                     _ => $"[{theme.Highlight}]{charString}[/]",
                 };
@@ -114,7 +117,7 @@ namespace TeensyRom.Cli.Helpers
         /// <param name="message"></param>
         public static void WriteHorizonalRule(string message, Justify justify)
         {
-            var rule = new Rule($"-={message}=-".AddHighlights());
+            var rule = new Rule($"-={message.EscapeBrackets()}=-".AddHighlights());
             rule.Justification = justify;
             AnsiConsole.Write(rule);
             AnsiConsole.WriteLine();
@@ -126,8 +129,14 @@ namespace TeensyRom.Cli.Helpers
         /// <param name="message"></param>
         public static void WriteTitle(string message)
         {
-            AnsiConsole.MarkupLine($"-={message}=-".AddHighlights());
+            AnsiConsole.MarkupLine($"-={message.EscapeBrackets()}=-".AddHighlights());
         }
+
+        /// <summary>
+        /// Writes a message
+        /// </summary>
+        /// <param name="message"></param>
+
 
         /// <summary>
         /// Writes a message
@@ -144,7 +153,7 @@ namespace TeensyRom.Cli.Helpers
         /// <param name="message"></param>
         public static void WriteError(string message)
         {
-            AnsiConsole.MarkupLine($"[red]{message}[/]");
+            AnsiConsole.MarkupLine($"[red]{message.EscapeBrackets()}[/]");
         }
 
         /// <summary>
@@ -161,7 +170,7 @@ namespace TeensyRom.Cli.Helpers
             }
 
             message = $"{indentString}- {message}";
-            AnsiConsole.MarkupLine(message.AddHighlights());
+            AnsiConsole.MarkupLine(message.AddHighlights().EscapeBrackets());
         }
 
         public static Progress AddTheme(this Progress progress)
@@ -197,5 +206,38 @@ namespace TeensyRom.Cli.Helpers
             AnsiConsole.Write(table);
             AnsiConsole.WriteLine();
         }
+
+        public static void WriteFileInfo(ILaunchableItem item)
+        {
+            var release = string.IsNullOrWhiteSpace(item.ReleaseInfo) ? "Unknown" : item.ReleaseInfo.EscapeBrackets();
+
+            var body = string.Empty;
+
+            if (item is SongItem song) 
+            { 
+                body = $"\r\n  Name: {item.Title}\r\n  Creator: {item.Creator}\r\n  Release: {release}\r\n  Clock: {item.Meta1}\r\n  SID: {item.Meta2}";
+            }
+
+            else if (item is GameItem game) 
+            {
+                body = $"\r\n  Name: {item.Title}";
+            }
+            body = $"{body}\r\n  FileName: {item.Name}\r\n  Path: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\n";
+                
+                
+          var panel = new Panel(body.EscapeBrackets())
+                .PadTop(2)
+                .BorderColor(Theme.Secondary.Color)
+                .Border(BoxBorder.Rounded)
+                .Expand();                
+
+            panel.Header($" Now Playing: {item.Name.EscapeBrackets()} ".AddHighlights());
+
+            AnsiConsole.Write(panel);
+            AnsiConsole.WriteLine("                                                                         ");
+        }
+
+        public static string EscapeBrackets(this string message) => message.Replace("[", "[[").Replace("]", "]]");
+        public static string UnescapeBrackets(this string message) => message.Replace("[[", "[").Replace("]]", "]");
     }
 }

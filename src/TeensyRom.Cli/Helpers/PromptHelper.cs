@@ -109,5 +109,31 @@ namespace TeensyRom.Cli.Helpers
 
             return selection;
         }
+
+        /// <summary>
+        /// Renders a choice prompt with string choices and response
+        /// </summary>
+        /// <param name="message">The message to display</param>
+        /// <param name="choices">The choices to show the user</param>
+        /// <param name="theme">Allows an override of the default theme for special cases</param>
+        /// <returns>Selected choice</returns>
+        public static string FilePrompt(string message, List<string> choices)
+        {
+            var theme = RadHelper.Theme;
+
+            var sanitizedChoices = choices.Select(f => f.EscapeBrackets()).ToList();
+
+            var selection = AnsiConsole.Prompt
+            (
+                new SelectionPrompt<string>()
+                    .Title($"[{theme.Primary}]{message}: [/]")
+                    .HighlightStyle(theme.Secondary.ToString())
+                    .AddChoices(sanitizedChoices)
+            );
+
+            AnsiConsole.MarkupLine($"[{theme.Primary}]{message}: [/][{theme.Secondary}]{selection}[/]");
+
+            return selection.UnescapeBrackets();
+        }
     }
 }

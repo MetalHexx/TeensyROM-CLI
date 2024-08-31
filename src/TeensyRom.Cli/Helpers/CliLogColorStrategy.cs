@@ -11,8 +11,7 @@ namespace TeensyRom.Cli.Helpers
     {
         public string WithColor(string message, string hexColor)
         {
-            message = message.Replace('[', '(');
-            message = message.Replace(']', ')');
+            message = message.EscapeBrackets();
             message = $"[{hexColor}]{message}[/]\r\n";
             return message;
         }
