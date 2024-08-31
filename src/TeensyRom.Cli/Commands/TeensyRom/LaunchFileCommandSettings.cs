@@ -1,13 +1,13 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
-
+using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Common;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class LaunchFileCommandSettings : CommandSettings 
+    internal class LaunchFileCommandSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
     {
         [Description("Storage device of file to launch. (sd or usb)")]
         [CommandOption("-s|--storage")]
@@ -16,6 +16,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         [Description("The full path of the file to launch.")]
         [CommandOption("-p|--path")]
         public string FilePath { get; set; } = string.Empty;
+
+        public void ClearSettings()
+        {
+            StorageDevice = string.Empty;
+            FilePath = string.Empty;
+        }
 
         public override ValidationResult Validate()
         {

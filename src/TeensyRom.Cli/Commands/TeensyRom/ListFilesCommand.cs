@@ -49,7 +49,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             if (string.IsNullOrWhiteSpace(settings.FilePath))
             {
-                settings.FilePath = PromptHelper.DefaultValueTextPrompt("File Path:", 2, "/music/MUSICIANS/T/Tjelta_Geir/");
+                settings.FilePath = PromptHelper.DefaultValueTextPrompt("File Path:", 2, "/test-cache");
                 RadHelper.WriteLine();
             }
 

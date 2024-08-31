@@ -5,7 +5,7 @@ using TeensyRom.Cli.Commands.Common;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class RandomAllCommandSettings : CommandSettings 
+    internal class RandomAllCommandSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
     {
         [Description("Storage device of file to launch. (sd or usb)")]
         [CommandOption("-s|--storage")]
@@ -18,6 +18,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         [Description("The directory to use.")]
         [CommandOption("-d|--directory")]
         public string Directory { get; set; } = string.Empty;
+
+        public void ClearSettings()
+        {
+            StorageDevice = string.Empty;
+            Filter = string.Empty;
+            Directory = string.Empty;
+        }
 
         public override ValidationResult Validate()
         {

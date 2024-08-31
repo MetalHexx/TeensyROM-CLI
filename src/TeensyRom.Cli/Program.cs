@@ -2,7 +2,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using System.Diagnostics;
+using System.Reflection;
 using TeensyRom.Cli.Commands.Chipsynth;
+using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Fonts;
@@ -22,7 +25,7 @@ using TeensyRom.Core.Storage.Services;
 
 public class Program
 {
-    private static void Main(string[] args)
+    private static int Main(string[] args)
     {
         AnsiConsole.WriteLine();
         RadHelper.RenderLogo("TeensyROM", FontConstants.FontPath);
@@ -32,6 +35,10 @@ public class Program
         var logService = new LoggingService(loggingStrategy);
         var serial = new ObservableSerialPort(logService);
         var serialState = new SerialStateContext(serial);
+        var settings = new SettingsService();
+        var alertService = new AlertService();
+        var gameService = new GameMetadataService(logService);
+        var sidService = new SidMetadataService(settings);
 
         UnpackAssets();
 
@@ -39,10 +46,10 @@ public class Program
         services.AddSingleton<ISerialStateContext>(serialState);
         services.AddSingleton<ILogColorStategy>(loggingStrategy);
         services.AddSingleton<ILoggingService>(logService);
-        services.AddSingleton<IAlertService, TeensyRom.Cli.Services.AlertService>();
-        services.AddSingleton<ISettingsService, SettingsService>();
-        services.AddSingleton<IGameMetadataService, GameMetadataService>();
-        services.AddSingleton<ISidMetadataService, SidMetadataService>();
+        services.AddSingleton<IAlertService>(alertService);
+        services.AddSingleton<ISettingsService>(settings);
+        services.AddSingleton<IGameMetadataService>(gameService);
+        services.AddSingleton<ISidMetadataService>(sidService);
         services.AddSingleton<ICachedStorageService, CachedStorageService>();
         services.AddSingleton<IPlayerService, PlayerService>();
         services.AddSingleton<ITypeResolver, TypeResolver>();
@@ -56,8 +63,15 @@ public class Program
 
         var app = new CommandApp(registrar);
 
+        var firstRun = true;
+
         app.Configure(config =>
         {
+            config.PropagateExceptions();
+            config.SetInterceptor(new CommandInterceptor(serialState));
+
+            config.PropagateExceptions();
+
             config.SetApplicationName("TeensyROM.Cli");
             config.SetApplicationVersion("1.0.0");
             config.AddExample("random");
@@ -119,35 +133,58 @@ public class Program
         if (args.Contains("-h") || args.Contains("--help") || args.Contains("-v") || args.Contains("--version"))
         {
             app.Run(args);
-            return;
+            return -99;
         }
 
-        while (true) 
+        var resultCode = 0;
+
+        while (true)
         {
-            if (args.Length > 0)
+            try
             {
-                app.Run(args);                
+                if (args.Length > 0)
+                {
+                    resultCode = app.Run(args);
+                }
+
+                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch Random", "Launch File", "List Files", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
+
+                AnsiConsole.WriteLine();
+
+                if (menuChoice == "Leave") ;
+
+                args = menuChoice switch
+                {
+                    "Launch Random" => ["random"],
+                    "Launch File" => ["launch"],
+                    "List Files" => ["list"],
+                    "Search Files" => ["search"],
+                    "Cache Files" => ["cache"],
+                    "List Ports" => ["ports"],
+                    "Generate ChipSynth ASID Patches" => ["chipsynth"],
+                    _ => []
+                };
+                app.Run(args);
+
+                args = [];
             }
-
-            var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch Random","Launch File", "List Files", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
-
-            AnsiConsole.WriteLine();
-
-            if (menuChoice == "Leave") return;
-
-            args = menuChoice switch
+            catch (TeensyStateException ex)
             {
-                "Launch Random" => ["random"],
-                "Launch File" => ["launch"],
-                "List Files" => ["list"],
-                "Search Files" => ["search"],
-                "Cache Files" => ["cache"],
-                "List Ports" => ["ports"],
-                "Generate ChipSynth ASID Patches" => ["chipsynth"],
-                _ => []
-            };
-            app.Run(args);
-            args = [];
+                RadHelper.WriteError(ex.Message);
+                continue;
+            }
+            catch (TeensyBusyException ex)
+            {
+                RadHelper.WriteError(ex.Message);
+                continue;
+            }
+            catch (Exception ex) 
+            {
+                AnsiConsole.WriteException(ex, ExceptionFormats.Default);
+                LogExceptionToFile(ex);
+                continue;
+            }
+            if (resultCode == -1) return resultCode;
         }
     }
 
@@ -157,6 +194,30 @@ public class Program
         AssetHelper.UnpackAssets(GameConstants.Game_Image_Local_Path, "OneLoad64.zip");
         AssetHelper.UnpackAssets(MusicConstants.Musician_Image_Local_Path, "Composers.zip");
         AssetHelper.UnpackAssets(AssetConstants.VicePath, "vice-bins.zip");
+    }
+
+    private static readonly object _logFileLock = new object();
+
+    private static void LogExceptionToFile(Exception ex)
+    {
+        string filePath = Path.Combine(Assembly.GetExecutingAssembly().GetPath(), @"Assets\System\Logs\UnhandledErrorLogs.txt");
+
+        if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        }
+
+        try
+        {
+            lock (_logFileLock)
+            {
+                File.AppendAllText(filePath, $"{DateTime.Now}{Environment.NewLine}Exception: {ex}{Environment.NewLine}{Environment.NewLine}");
+            }
+        }
+        catch (Exception logEx)
+        {
+            Debug.WriteLine("Failed to log exception: " + logEx.Message);
+        }
     }
 
 }

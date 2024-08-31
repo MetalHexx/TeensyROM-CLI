@@ -4,17 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TeensyRom.Core.Common;
 
 namespace TeensyRom.Cli.Commands.Common
 {
     internal static class CommandValidations
     {
-        //make a validation from this:
-        //!StorageDevice.Equals(string.Empty) && !StorageDevice.IsValueValid(["sd", "usb"])
-
         public static bool IsValueValid(this string value, string[] validValues) => validValues.Contains(value.ToLower());
         public static bool IsValidStorageDevice(this string value) => value.IsValueValid(new[] { "sd", "usb" });
-        public static bool IsValidUnixPath(this string value) => value.StartsWith("/") && value.EndsWith("/");
         public static bool IsValidFilter(this string value) => value.IsValueValid(new[] { "all", "music", "games", "images" });
 
         public static ValidationResult ValidateStorageDevice(this string value)

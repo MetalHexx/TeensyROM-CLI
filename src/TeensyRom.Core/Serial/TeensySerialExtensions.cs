@@ -23,7 +23,7 @@ namespace TeensyRom.Core.Serial
 
             if (rawResponse.Contains("Busy!"))
             {
-                throw new TeensyBusyException($"TeensyROM is currently busy.  If you have a program runnning, stop it first. Try caching your files.");
+                throw new TeensyBusyException($"TeensyROM is currently busy.  If you have a program runnning, stop it first.");
             }
             var responseString = response switch
             {

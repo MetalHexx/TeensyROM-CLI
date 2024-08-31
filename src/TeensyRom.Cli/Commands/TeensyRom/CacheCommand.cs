@@ -1,6 +1,7 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
+using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Storage.Entities;
@@ -12,18 +13,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, CacheCommandSettings settings)
         {
-            var connectionState = await serial.CurrentState.FirstAsync();
-            
-            if (connectionState is not SerialConnectedState)
-            {
-                RadHelper.WriteLine("Connecting to TeensyROM...");
-                AnsiConsole.WriteLine();
-                serial.OpenPort();
-                RadHelper.WriteLine("Connection Successful!");
-                RadHelper.WriteLine();
-            }
-
-            RadHelper.WriteHorizonalRule("Search Files", Justify.Left);
+            RadHelper.WriteHorizonalRule("Cache Files", Justify.Left);
 
             AnsiConsole.MarkupLine($"{RadHelper.AddSecondaryColor("Tips:")}");
             AnsiConsole.MarkupLine($"{RadHelper.AddPrimaryColor("- Caching enables search and randomization features.  Do it! :)")}");
@@ -45,10 +35,9 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             {
                 RadHelper.WriteError("Storage device must be 'sd' or 'usb'.");
                 return -1;
-            }
-            RadHelper.WriteLine($"Caching files for {storageType}...");
+            }            
 
-            settings.Path = PromptHelper.DefaultValueTextPrompt("Path to Cache:", 2, "/");
+            settings.Path = PromptHelper.DefaultValueTextPrompt("Path to Cache:", 2, "/test-cache");
 
             var validation = settings.Validate();
 
@@ -57,6 +46,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 RadHelper.WriteError(validation?.Message ?? "Validation error");
                 return 0;
             }
+
+            RadHelper.WriteLine($"Caching files for {storageType}...");
 
             await storage.CacheAll(settings.Path);
 

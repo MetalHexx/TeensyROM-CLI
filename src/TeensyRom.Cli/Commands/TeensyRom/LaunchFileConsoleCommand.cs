@@ -14,18 +14,6 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, LaunchFileCommandSettings settings)
         {
-            var connectionState = await serial.CurrentState.FirstAsync();
-
-            
-            if (connectionState is not SerialConnectedState)
-            {
-                RadHelper.WriteLine("Connecting to TeensyROM...");
-                AnsiConsole.WriteLine();
-                serial.OpenPort();
-                RadHelper.WriteLine("Connection Successful!");
-                RadHelper.WriteLine();
-            }
-
             RadHelper.WriteHorizonalRule("File Launcher", Justify.Left);
 
             if(settings.StorageDevice.Equals(string.Empty))
@@ -42,7 +30,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             if (string.IsNullOrWhiteSpace(settings.FilePath))
             {
-                settings.FilePath = PromptHelper.DefaultValueTextPrompt("File Path:", 2, "/music/MUSICIANS/T/Tjelta_Geir/Artillery.sid");
+                settings.FilePath = PromptHelper.DefaultValueTextPrompt("File Path:", 2, "/test-cache/12_Bars.sid");
                 RadHelper.WriteLine();
             }
 

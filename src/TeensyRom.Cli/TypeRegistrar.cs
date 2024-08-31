@@ -2,7 +2,7 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-public sealed class TypeResolver : ITypeResolver, IDisposable
+public sealed class TypeResolver : ITypeResolver
 {
     private readonly IServiceProvider _provider;
 
@@ -26,14 +26,12 @@ public sealed class TypeResolver : ITypeResolver, IDisposable
 
         return service;
     }
-
-    public void Dispose() { }
 }
 
 public sealed class TypeRegistrar : ITypeRegistrar
 {
     private readonly IServiceCollection _builder;
-    private ServiceProvider? _provider = null;
+    private ServiceProvider? _provider;
 
     public TypeRegistrar(IServiceCollection builder)
     {
@@ -42,12 +40,11 @@ public sealed class TypeRegistrar : ITypeRegistrar
 
     public ITypeResolver Build()
     {
-
-        if (_provider is null)
+        if (_provider is not null) 
         {
-            _provider = _builder.BuildServiceProvider();
+            return new TypeResolver(_provider);
         }
-        return new TypeResolver(_provider);
+        return new TypeResolver(_builder.BuildServiceProvider());
     }
 
     public void Register(Type service, Type implementation)
@@ -72,7 +69,6 @@ public sealed class TypeRegistrar : ITypeRegistrar
         {
             throw new ArgumentNullException(nameof(func));
         }
-
         _builder.AddSingleton(service, (provider) => func());
     }
 }

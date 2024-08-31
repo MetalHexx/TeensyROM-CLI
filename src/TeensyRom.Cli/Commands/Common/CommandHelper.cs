@@ -36,20 +36,6 @@ namespace TeensyRom.Cli.Commands.Common
             return command;
         }
 
-        public static async Task Connect(this ISerialStateContext serial) 
-        {
-            var connectionState = await serial.CurrentState.FirstAsync();
-
-            if (connectionState is not SerialConnectedState)
-            {
-                RadHelper.WriteLine("Connecting to TeensyROM...");
-                AnsiConsole.WriteLine();
-                serial.OpenPort();
-                RadHelper.WriteLine("Connection Successful!");
-                RadHelper.WriteLine();
-            }
-        }
-
         public static void DisplayCommandTitle(string message) 
         {
             RadHelper.WriteHorizonalRule(message, Justify.Left);
