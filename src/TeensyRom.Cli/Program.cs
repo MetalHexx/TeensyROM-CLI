@@ -78,8 +78,8 @@ public class Program
             config.AddExample("random -s -f=all");
             config.AddExample("launch");
             config.AddExample("launch -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid");
-            config.AddExample("list");           
-            config.AddExample("list -s sd -p /music/MUSICIANS/T/Tjelta_Geir");
+            config.AddExample("navigate");           
+            config.AddExample("navigate -s sd -p /music/MUSICIANS/T/Tjelta_Geir");
             config.AddExample("search");
             config.AddExample("search -s sd -t \"iron maiden aces high\"");
             config.AddExample("cache");
@@ -100,10 +100,10 @@ public class Program
                     .WithDescription("Launch a file on TeensyROM")
                     .WithExample(["launch"]);
 
-            config.AddCommand<ListFilesCommand>("list")
-                    .WithAlias("f")
-                    .WithDescription("List all files available to launch in a directory on the TeensyROM")
-                    .WithExample(["list -s SD -p /music/MUSICIANS/T/Tjelta_Geir/"]);
+            config.AddCommand<NavigateStorageCommand>("navigate")
+                    .WithAlias("n")
+                    .WithDescription("Navigate through the storage directories and pick a file to launch.")
+                    .WithExample(["nav -s SD -p /music/MUSICIANS/T/Tjelta_Geir/"]);
 
             config.AddCommand<SearchFilesCommand>("search")
                     .WithAlias("s")
@@ -147,17 +147,17 @@ public class Program
                     resultCode = app.Run(args);
                 }
 
-                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Random Stream", "Launch File", "List Files", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
+                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Random Stream", "Navigate Storage", "Launch File", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
 
                 AnsiConsole.WriteLine();
 
-                if (menuChoice == "Leave") ;
+                if (menuChoice == "Leave") return 0;
 
                 args = menuChoice switch
                 {
                     "Random Stream" => ["random"],
                     "Launch File" => ["launch"],
-                    "List Files" => ["list"],
+                    "Navigate Storage" => ["navigate"],
                     "Search Files" => ["search"],
                     "Cache Files" => ["cache"],
                     "List Ports" => ["ports"],
