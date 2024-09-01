@@ -1,6 +1,7 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
+using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Serial.State;
@@ -56,17 +57,9 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             AnsiConsole.Write(table);
 
-            if (settings.StorageDevice.Equals(string.Empty))
-            {
-                settings.StorageDevice = PromptHelper.ChoicePrompt("Storage Type", ["SD", "USB"]);
-                RadHelper.WriteLine();
-            }
-            var storageType = settings.StorageDevice.ToUpper() switch
-            {
-                "SD" => TeensyStorageType.SD,
-                "USB" => TeensyStorageType.USB,
-                _ => TeensyStorageType.SD, 
-            };
+            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
+
+            storage.SwitchStorage(storageType);
 
             if (string.IsNullOrWhiteSpace(settings.Terms))
             {

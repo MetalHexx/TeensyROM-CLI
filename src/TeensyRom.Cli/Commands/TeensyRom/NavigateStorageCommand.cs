@@ -29,7 +29,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
             settings.StartingPath = CommandHelper.PromptForDirectoryPath(settings.StartingPath);
 
-            //if (!settings.ValidateSettings()) return -1;
+            storage.SwitchStorage(storageType);
 
             var cacheItem = await storage.GetDirectory(settings.StartingPath);
 

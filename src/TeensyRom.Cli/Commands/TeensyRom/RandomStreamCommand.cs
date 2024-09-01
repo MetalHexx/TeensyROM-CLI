@@ -26,6 +26,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             settings.Directory = CommandHelper.PromptForDirectoryPath(settings.Directory, "/");
             var filterType = CommandHelper.PromptForFilterType(settings.Filter);
 
+            storage.SwitchStorage(storageType);
+
             if (filterType is TeensyFilterType.All or TeensyFilterType.Games or TeensyFilterType.Images)
             {   
                 player.SetStreamTime(CommandHelper.PromptGameTimer());

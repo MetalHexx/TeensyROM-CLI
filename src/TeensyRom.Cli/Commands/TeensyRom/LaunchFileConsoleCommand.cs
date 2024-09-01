@@ -6,10 +6,11 @@ using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
+using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class LaunchFileConsoleCommand(IMediator mediator, ISerialStateContext serial, ILoggingService logService, IPlayerService player) : AsyncCommand<LaunchFileCommandSettings>
+    internal class LaunchFileConsoleCommand(IMediator mediator, ISerialStateContext serial, ILoggingService logService, IPlayerService player, ICachedStorageService storage) : AsyncCommand<LaunchFileCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, LaunchFileCommandSettings settings)
         {
@@ -23,6 +24,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
             settings.FilePath = CommandHelper.PromptForFilePath(settings.FilePath);
+
+            storage.SwitchStorage(storageType);
 
             if (!settings.ValidateSettings()) return -1;
 

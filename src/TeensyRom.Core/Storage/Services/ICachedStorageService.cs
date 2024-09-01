@@ -19,5 +19,6 @@ namespace TeensyRom.Core.Storage.Services
         void MarkIncompatible(ILaunchableItem launchItem);
         IEnumerable<ILaunchableItem> Search(string searchText, params TeensyFileType[] fileTypes);
         Task RemoveFavorite(ILaunchableItem file);
+        void SwitchStorage(TeensyStorageType storageType);
     }
 }

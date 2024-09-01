@@ -29,6 +29,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
             settings.Path = CommandHelper.PromptForDirectoryPath(settings.Path, "/");
 
+            storage.SwitchStorage(storageType);
+
             if (!settings.ValidateSettings()) return -1;
 
             RadHelper.WriteTitle("Resetting TR before caching.  Don't mess with your C64 until caching completed.");

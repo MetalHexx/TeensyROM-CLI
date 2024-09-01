@@ -545,5 +545,11 @@ namespace TeensyRom.Core.Storage.Services
                 Files = filteredFiles.ToList()
             };
         }
+
+        public void SwitchStorage(TeensyStorageType storageType)
+        {
+            var newSettings = _settings with { StorageType = storageType };
+            _settingsService.SaveSettings(newSettings);
+        }
     }
 }
