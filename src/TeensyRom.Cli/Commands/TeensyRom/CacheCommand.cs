@@ -15,7 +15,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, CacheCommandSettings settings)
         {
-            player.StopContinuousPlay();
+            player.StopStream();
 
             RadHelper.WriteMenu("Cache Files", "Launch random files from storage and discover something new.",
             [

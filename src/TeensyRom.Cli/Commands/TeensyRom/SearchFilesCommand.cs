@@ -13,7 +13,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, SearchFilesCommandSettings settings)
         {
-            player.StopContinuousPlay();
+            player.StopStream();
 
             var launchFileCommand = resolver.Resolve(typeof(LaunchFileConsoleCommand)) as LaunchFileConsoleCommand;
 

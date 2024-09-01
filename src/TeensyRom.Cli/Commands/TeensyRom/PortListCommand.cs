@@ -10,7 +10,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, PortListCommandSettings settings)
         {
-            player.StopContinuousPlay();
+            player.StopStream();
 
             var ports = await serial.Ports.FirstAsync();
 

@@ -10,7 +10,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
     {
         public override int Execute(CommandContext context, GeneratePresetsSettings s)
         {
-            player.StopContinuousPlay();
+            player.StopStream();
 
             RadHelper.WriteTitle("Chipsynth ASID Preset Generator");
             AnsiConsole.WriteLine();

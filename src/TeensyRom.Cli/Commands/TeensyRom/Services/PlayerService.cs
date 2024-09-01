@@ -21,7 +21,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
         Task LaunchItem(TeensyStorageType storageType, string path);
         Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType);
-        void StopContinuousPlay();
+        void StopStream();
     }
 
 
@@ -55,7 +55,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             if (fileItem is ILaunchableItem launchItem) 
             {
                 await LaunchItem(storageType, launchItem);
-                StartContinuousPlay();
+
+                if (launchItem is SongItem songItem) 
+                {
+                    StartStream(songItem.PlayLength);
+                }                
                 return;
             }
             RadHelper.WriteError("File is not launchable.");
@@ -64,20 +68,10 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         public async Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item)
         {
-            var trAvailable = await IsTrAvailable();
-
-            if(!trAvailable) return;
-
             _selectedStorage = storageType;
             _path = item.Path;
             _playState = PlayState.Playing;
 
-            
-
-            if (item is not SongItem) 
-            {
-                RadHelper.WriteTitle("Stopping Continuous File Launching (SID Only)");
-            }
             var result = await mediator.Send(new LaunchFileCommand(storageType, item));
 
             if (result.IsSuccess)
@@ -86,10 +80,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             }
             else
             {
-                RadHelper.WriteError($"Error Launching: {item.Path.Replace("[", "(").Replace("]", ")")}");
+                RadHelper.WriteError($"Error Launching: { item.Path.EscapeBrackets() }");
+                AnsiConsole.WriteLine();
                 await PlayRandom(_selectedStorage, _scopePath, _filterType);
             }
-            AnsiConsole.WriteLine("                                                                                                             ");
+            AnsiConsole.WriteLine(RadHelper.ClearHack);
         }
 
         public async Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType)
@@ -110,15 +105,18 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
             await LaunchItem(storageType, item);
 
-            StartContinuousPlay();
+            if (item is SongItem songItem) 
+            {
+                StartStream(songItem.PlayLength);
+            }
         }
 
-        private void StartContinuousPlay()
+        private void StartStream(TimeSpan length)
         {
             _playState = PlayState.Playing;
             _progressSubscription?.Dispose();
 
-            progressTimer.StartNewTimer(TimeSpan.FromSeconds(3));
+            progressTimer.StartNewTimer(length);
 
             _progressSubscription = progressTimer.TimerComplete.Subscribe(async _ =>
             {
@@ -126,39 +124,16 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             });
         }
 
-        public void StopContinuousPlay()
+        public void StopStream()
         {
             if (_progressSubscription is not null) 
             {
-                RadHelper.WriteTitle("Stopping Continuous File Launching");
-                AnsiConsole.WriteLine("                                                                                                       ");
+                RadHelper.WriteTitle("Stopping Stream");
+                AnsiConsole.WriteLine(RadHelper.ClearHack);
             }            
             _playState = PlayState.Stopped;
             _progressSubscription?.Dispose();
             _progressSubscription = null;
-        }
-
-        private async Task<bool> IsTrAvailable()
-        {
-            var serialState = await serial.CurrentState.FirstAsync();
-
-            if (serialState is SerialConnectedState) 
-            {
-                return true;
-            }
-            if (serialState is SerialBusyState) 
-            {
-                RadHelper.WriteError("Cannot launch files while serial is busy!");
-                return false;
-            }
-
-            if (serialState is SerialConnectableState or SerialConnectionLostState or SerialStartState)
-            {
-                RadHelper.WriteError("Cannot launch files while disconnected from TeensyROM!");
-                return false;
-            }
-            RadHelper.WriteError("Cannot launch files while in current state");
-            return false;
         }
     }
 }

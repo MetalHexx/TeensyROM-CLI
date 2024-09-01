@@ -2,6 +2,7 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
+using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Logging;
@@ -15,54 +16,19 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, ListFilesCommandSettings settings)
         {
-            player.StopContinuousPlay();
+            player.StopStream();
 
-            var launchFileCommand = resolver.Resolve(typeof(LaunchFileConsoleCommand)) as LaunchFileConsoleCommand;
+            RadHelper.WriteMenu("List Directory", "Navigate to a directory and pick a file to launch.",
+            [
+               "When a SID ends, a random SID stream will begin.",
+               "Games will not start a stream (for now)",
+               "Directory will be cached after first visit.",
+            ]);
 
-            if (launchFileCommand is null) 
-            {
-                RadHelper.WriteError("Strange. Launch file command was not found.");
-                return -1;
-            }
+            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
+            settings.FilePath = CommandHelper.PromptForDirectoryPath(settings.FilePath);
 
-            var connectionState = await serial.CurrentState.FirstAsync();
-            
-            if (connectionState is not SerialConnectedState)
-            {
-                RadHelper.WriteLine("Connecting to TeensyROM...");
-                AnsiConsole.WriteLine();
-                serial.OpenPort();
-                RadHelper.WriteLine("Connection Successful!");
-                RadHelper.WriteLine();
-            }
-
-            RadHelper.WriteHorizonalRule("List Files", Justify.Left);
-
-            if(settings.StorageDevice.Equals(string.Empty))
-            {
-                settings.StorageDevice = PromptHelper.ChoicePrompt("Storage Type", ["SD", "USB"]);
-                RadHelper.WriteLine();
-            }
-            var storageType = settings.StorageDevice.ToUpper() switch
-            {
-                "SD" => TeensyStorageType.SD,
-                "USB" => TeensyStorageType.USB,
-                _ => TeensyStorageType.SD, 
-            };
-
-            if (string.IsNullOrWhiteSpace(settings.FilePath))
-            {
-                settings.FilePath = PromptHelper.DefaultValueTextPrompt("File Path:", 2, "/test-cache");
-                RadHelper.WriteLine();
-            }
-
-            var validation = settings.Validate();
-
-            if (!validation.Successful)
-            {
-                RadHelper.WriteError(validation?.Message ?? "Validation error");
-                return 0;
-            }
+            if (!settings.ValidateSettings()) return -1;
 
             var cacheItem = await storage.GetDirectory(settings.FilePath);
 
@@ -76,13 +42,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             var fileName = PromptHelper.FilePrompt("Select File", cacheItem.Files.Select(f => f.Name).ToList());
             var file = cacheItem.Files.First(f => f.Name == fileName);
 
-            var launchFileCommandSettings = new LaunchFileCommandSettings
-            {
-                StorageDevice = settings.StorageDevice,
-                FilePath = file.Path
-            };
-
-            await launchFileCommand.ExecuteAsync(context, launchFileCommandSettings);
+            await player.LaunchItem(storageType, file.Path);
 
             return 0;
         }

@@ -89,11 +89,11 @@ public class Program
             config.AddExample(["cs"]);
 
 
-            config.AddCommand<RandomLaunchCommand>("random")
+            config.AddCommand<RandomStreamCommand>("random")
                     .WithAlias("r")
-                    .WithDescription("Launch a random file on TeensyROM")
+                    .WithDescription("Stream random files by file type and directory.")
                     .WithExample("random")
-                    .WithExample("random -s -f=all");
+                    .WithExample("random -s -f=all -s=/games");
 
             config.AddCommand<LaunchFileConsoleCommand>("launch")
                     .WithAlias("l")
@@ -147,7 +147,7 @@ public class Program
                     resultCode = app.Run(args);
                 }
 
-                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch Random", "Launch File", "List Files", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
+                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Random Stream", "Launch File", "List Files", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
 
                 AnsiConsole.WriteLine();
 
@@ -155,7 +155,7 @@ public class Program
 
                 args = menuChoice switch
                 {
-                    "Launch Random" => ["random"],
+                    "Random Stream" => ["random"],
                     "Launch File" => ["launch"],
                     "List Files" => ["list"],
                     "Search Files" => ["search"],

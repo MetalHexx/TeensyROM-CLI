@@ -9,21 +9,20 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class RandomLaunchCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService player) : AsyncCommand<RandomLaunchCommandSettings>
+    internal class RandomStreamCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService player) : AsyncCommand<RandomStreamCommandSettings>
     {
-        public override async Task<int> ExecuteAsync(CommandContext context, RandomLaunchCommandSettings settings)
+        public override async Task<int> ExecuteAsync(CommandContext context, RandomStreamCommandSettings settings)
         {
-            player.StopContinuousPlay();
+            player.StopStream();
 
-            RadHelper.WriteMenu("Launch Random", "Launch random files from storage and discover something new.",
+            RadHelper.WriteMenu("Random Stream", "Randomly streams files from the specified directory. Includes subdirectories.",
             [
-               "Filter will limit the file types selected.",
                "SIDs will play continuously.",
-               "Games will stop continuous play.",
-               "For best result, cache your storage."
+               "Games will stop continuous play (for now).",
+               "Cache your storage to increase randomization variety"
             ]);
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
-            settings.Directory = CommandHelper.PromptForDirectoryPath(settings.Directory, "/test-cache");
+            settings.Directory = CommandHelper.PromptForDirectoryPath(settings.Directory, "/");
             var filterType = CommandHelper.PromptForFilterType(settings.Filter);
 
             if(!settings.ValidateSettings()) return -1;

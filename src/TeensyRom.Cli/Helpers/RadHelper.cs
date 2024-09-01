@@ -236,10 +236,10 @@ namespace TeensyRom.Cli.Helpers
             panel.Header($" Now Playing: {item.Name.EscapeBrackets()} ".AddHighlights());
 
             AnsiConsole.Write(panel);
-            AnsiConsole.WriteLine("                                                                         ");
         }
 
         public static string EscapeBrackets(this string message) => message.Replace("[", "[[").Replace("]", "]]");
         public static string UnescapeBrackets(this string message) => message.Replace("[[", "[").Replace("]]", "]");
+        public const string ClearHack = "                                                                          ";
     }
 }
