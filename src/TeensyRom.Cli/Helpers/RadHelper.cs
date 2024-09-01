@@ -217,14 +217,9 @@ namespace TeensyRom.Cli.Helpers
 
             if (item is SongItem song) 
             { 
-                body = $"\r\n  Name: {item.Title}\r\n  Creator: {item.Creator}\r\n  Release: {release}\r\n  Clock: {item.Meta1}\r\n  SID: {item.Meta2}";
+                body = $"\r\n  Title: {item.Title}\r\n  Creator: {item.Creator}\r\n  Release: {release}\r\n  Clock: {item.Meta1}\r\n  SID: {item.Meta2}";
             }
-
-            else if (item is GameItem game) 
-            {
-                body = $"\r\n  Name: {item.Title}";
-            }
-            body = $"{body}\r\n  FileName: {item.Name}\r\n  Path: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\n";
+            body = $"{body}\r\n  File Name: {item.Name}\r\n  Path: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\n";
                 
                 
           var panel = new Panel(body.EscapeBrackets())
@@ -233,7 +228,7 @@ namespace TeensyRom.Cli.Helpers
                 .Border(BoxBorder.Rounded)
                 .Expand();                
 
-            panel.Header($" Now Playing: {item.Name.EscapeBrackets()} ".AddHighlights());
+            panel.Header($" Now Playing: {item.Title.EscapeBrackets()} ".AddHighlights());
 
             AnsiConsole.Write(panel);
         }
