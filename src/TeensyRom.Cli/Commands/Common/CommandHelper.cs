@@ -41,6 +41,22 @@ namespace TeensyRom.Cli.Commands.Common
             RadHelper.WriteHorizonalRule(message, Justify.Left);
         }
 
+        public static TimeSpan? PromptGameTimer() 
+        {
+            string time = PromptHelper.ChoicePrompt("Game/Image Timer", ["No", "3m", "5m", "15m", "30m", "1h", "Turbo Mode"]);
+
+            return time switch
+            {
+                "3m" => TimeSpan.FromMinutes(3),
+                "5m" => TimeSpan.FromMinutes(5),
+                "15m" => TimeSpan.FromMinutes(15),
+                "30m" => TimeSpan.FromMinutes(30),
+                "1h" => TimeSpan.FromHours(1),
+                "Turbo Mode" => TimeSpan.FromSeconds(3),
+                _ => null
+            };
+        }
+
         public static TeensyStorageType PromptForStorageType(string value)
         {
             if (value.Equals(string.Empty))

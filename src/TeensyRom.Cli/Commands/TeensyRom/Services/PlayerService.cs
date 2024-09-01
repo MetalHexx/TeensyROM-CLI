@@ -20,7 +20,9 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
     {
         Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
         Task LaunchItem(TeensyStorageType storageType, string path);
+        void OverrideSidTIme(bool value);
         Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType);
+        void SetStreamTime(TimeSpan? timespan);
         void StopStream();
     }
 
@@ -35,8 +37,24 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         private PlayState _playState = PlayState.Stopped;
         private PlayMode _playMode = PlayMode.Shuffle;
         private TeensyFilterType _filterType = TeensyFilterType.All;
+        private TimeSpan? _timeSpan = null;
+        private bool _overrideSidTimer = false;
 
         private IDisposable? _progressSubscription;
+
+        public void SetStreamTime(TimeSpan? timespan) 
+        {
+            _timeSpan = timespan;
+
+            StopStream();
+
+            if (_timeSpan is not null) 
+            {
+                StartStream(_timeSpan.Value);
+            }
+        }
+
+        public void OverrideSidTIme(bool value) => _overrideSidTimer = value;
 
         public async Task LaunchItem(TeensyStorageType storageType, string path) 
         {
@@ -52,18 +70,15 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             }
             var fileItem = directory.Files.FirstOrDefault(f => f.Path.Contains(path));
 
-            if (fileItem is ILaunchableItem launchItem) 
+            if (fileItem is ILaunchableItem launchItem)
             {
                 await LaunchItem(storageType, launchItem);
-
-                if (launchItem is SongItem songItem) 
-                {
-                    StartStream(songItem.PlayLength);
-                }                
+                MaybeStartStream(launchItem);
                 return;
             }
             RadHelper.WriteError("File is not launchable.");
             AnsiConsole.WriteLine();
+            return;
         }
 
         public async Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item)
@@ -105,9 +120,19 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
             await LaunchItem(storageType, item);
 
-            if (item is SongItem songItem) 
-            {
+            MaybeStartStream(item);
+        }
+
+        private void MaybeStartStream(ILaunchableItem fileItem)
+        {
+            if (fileItem is SongItem songItem && _overrideSidTimer is false)
+            {   
                 StartStream(songItem.PlayLength);
+                return;
+            }
+            if (_timeSpan is not null)
+            {
+                StartStream(_timeSpan.Value);
             }
         }
 
