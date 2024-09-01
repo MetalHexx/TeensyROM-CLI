@@ -217,7 +217,7 @@ namespace TeensyRom.Cli.Helpers
 
             if (item is SongItem song) 
             { 
-                body = $"\r\n  Title: {item.Title}\r\n  Creator: {item.Creator}\r\n  Release: {release}\r\n  Clock: {item.Meta1}\r\n  SID: {item.Meta2}";
+                body = $"\r\n  Title: {song.Title}\r\n  Creator: {song.Creator}\r\n  Release: {release}\r\n  Length: {song.PlayLength}\r\n  Clock: {song.Meta1}\r\n  SID: {song.Meta2}";
             }
             body = $"{body}\r\n  File Name: {item.Name}\r\n  Path: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\n";
                 
