@@ -2,6 +2,7 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
+using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
@@ -17,52 +18,19 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         {
             player.StopContinuousPlay();
 
-            RadHelper.WriteHorizonalRule("File Launcher", Justify.Left);
+            RadHelper.WriteMenu("Launch File", "Launch a specific file.",
+            [
+               "If the file is a SID, on completion, a random SID will be played next.",
+               "Parent directories will be cached on first play.",               
+            ]);
 
-            if(settings.StorageDevice.Equals(string.Empty))
-            {
-                settings.StorageDevice = PromptHelper.ChoicePrompt("Storage Type", ["SD", "USB"]);
-                RadHelper.WriteLine();
-            }
-            var storageType = settings.StorageDevice.ToUpper() switch
-            {
-                "SD" => TeensyStorageType.SD,
-                "USB" => TeensyStorageType.USB,
-                _ => TeensyStorageType.SD, 
-            };
+            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
+            settings.FilePath = CommandHelper.PromptForFilePath(settings.FilePath);
 
-            if (string.IsNullOrWhiteSpace(settings.FilePath))
-            {
-                settings.FilePath = PromptHelper.DefaultValueTextPrompt("File Path:", 2, "/test-cache/12_Bars.sid");
-                RadHelper.WriteLine();
-            }
+            if (!settings.ValidateSettings()) return -1;
 
-            var validation = settings.Validate();
+            await player.LaunchItem(storageType, settings.FilePath);
 
-            if (!validation.Successful)
-            {
-                RadHelper.WriteError(validation?.Message ?? "Validation error");
-                return 0;
-            }
-
-            var fileItem = FileItem.Create(settings.FilePath);
-
-            if (fileItem is ILaunchableItem launchItem)
-            {
-                var result = await mediator.Send(new LaunchFileCommand(storageType, launchItem));
-
-                if (result.IsSuccess)
-                {
-                    RadHelper.WriteTitle($"Now Playing: {settings.FilePath}");
-                }
-                else 
-                {
-                    RadHelper.WriteError($"Error Launching: {settings.FilePath}");
-                }
-                AnsiConsole.WriteLine();
-                return 0;
-            }
-            RadHelper.WriteError("File is not launchable.");
             AnsiConsole.WriteLine();
             return 0;
         }

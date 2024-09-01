@@ -1,10 +1,12 @@
 ﻿using MediatR;
+using Microsoft.VisualBasic;
 using Spectre.Console;
 using System.Reactive.Linq;
 using System.Runtime;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
+using TeensyRom.Core.Common;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Progress;
 using TeensyRom.Core.Serial.State;
@@ -17,6 +19,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
     internal interface IPlayerService 
     {
         Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
+        Task LaunchItem(TeensyStorageType storageType, string path);
         Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType);
         void StopContinuousPlay();
     }
@@ -35,6 +38,30 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         private IDisposable? _progressSubscription;
 
+        public async Task LaunchItem(TeensyStorageType storageType, string path) 
+        {
+            _playMode = PlayMode.Normal;
+
+            var directory = await storage.GetDirectory(path.GetUnixParentPath());
+
+            if (directory is null) 
+            {
+                RadHelper.WriteError("File not found.");
+                AnsiConsole.WriteLine();
+                return;
+            }
+            var fileItem = directory.Files.FirstOrDefault(f => f.Path.Contains(path));
+
+            if (fileItem is ILaunchableItem launchItem) 
+            {
+                await LaunchItem(storageType, launchItem);
+                StartContinuousPlay();
+                return;
+            }
+            RadHelper.WriteError("File is not launchable.");
+            AnsiConsole.WriteLine();
+        }
+
         public async Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item)
         {
             var trAvailable = await IsTrAvailable();
@@ -45,22 +72,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             _path = item.Path;
             _playState = PlayState.Playing;
 
-            _progressSubscription?.Dispose();
-            _progressSubscription = null;
+            
 
             if (item is not SongItem) 
             {
                 RadHelper.WriteTitle("Stopping Continuous File Launching (SID Only)");
-            }
-
-            if (item is SongItem songItem)
-            {
-                progressTimer.StartNewTimer(songItem.PlayLength);//TimeSpan.FromSeconds(2)
-
-                _progressSubscription = progressTimer.TimerComplete.Subscribe(async _ => 
-                {                    
-                    await PlayRandom(storageType, _scopePath, _filterType);
-                });
             }
             var result = await mediator.Send(new LaunchFileCommand(storageType, item));
 
@@ -78,6 +94,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         public async Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType)
         {
+            _playMode = PlayMode.Shuffle;
+
             var trSettings = await settingsService.Settings.FirstAsync();
             _filterType = filterType;
             _scopePath = scopePath;
@@ -88,9 +106,24 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
             var item = storage.GetRandomFile(_selectedScope, _scopePath, fileTypes);
 
-            if (item is null) return;
+            if (item is null) return;            
 
             await LaunchItem(storageType, item);
+
+            StartContinuousPlay();
+        }
+
+        private void StartContinuousPlay()
+        {
+            _playState = PlayState.Playing;
+            _progressSubscription?.Dispose();
+
+            progressTimer.StartNewTimer(TimeSpan.FromSeconds(3));
+
+            _progressSubscription = progressTimer.TimerComplete.Subscribe(async _ =>
+            {
+                await PlayRandom(_selectedStorage, _scopePath, _filterType);
+            });
         }
 
         public void StopContinuousPlay()

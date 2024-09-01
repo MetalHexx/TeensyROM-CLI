@@ -75,24 +75,22 @@ namespace TeensyRom.Cli.Commands.Common
             };
         }
 
-        public static string PromptForFilePath(string value) 
+        public static string PromptForFilePath(string value, string defaultValue = "/music/MUSICIANS/T/Tjelta_Geir/Artillery.sid") 
         {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                var newValue = PromptHelper.DefaultValueTextPrompt("File Path:", 2, "/music/MUSICIANS/T/Tjelta_Geir/Artillery.sid");
-                RadHelper.WriteLine();
-                return newValue;
-            }
-            return value;
+            return PromptForPath(value, "File Path:", defaultValue);
         }
 
         public static string PromptForDirectoryPath(string value, string defaultValue = "/music/MUSICIANS/T/Tjelta_Geir/")
         {
+            return PromptForPath(value, "Directory Path:", defaultValue);
+        }
+
+        private static string PromptForPath(string value, string title, string defaultValue) 
+        {
             if (string.IsNullOrWhiteSpace(value))
             {
-                var newValue = PromptHelper.DefaultValueTextPrompt("Directiory Path:", 2, defaultValue);
+                value = PromptHelper.DefaultValueTextPrompt(title, 2, defaultValue);
                 RadHelper.WriteLine();
-                return newValue;
             }
             return value;
         }
