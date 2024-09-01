@@ -7,7 +7,7 @@ using TeensyRom.Core.Common;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class ListFilesCommandSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
+    internal class NavigateStorageCommandSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
     {
         [Description("Storage device of file to launch. (sd or usb)")]
         [CommandOption("-s|--storage")]
@@ -15,12 +15,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
         [Description("The path of the files to list.")]
         [CommandOption("-p|--path")]
-        public string FilePath { get; set; } = string.Empty;
+        public string StartingPath { get; set; } = string.Empty;
 
         public void ClearSettings()
         {
             StorageDevice = string.Empty;
-            FilePath = string.Empty;
+            StartingPath = string.Empty;
         }
 
         public override ValidationResult Validate()
@@ -29,7 +29,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             {
                 return ValidationResult.Error($"Storage device must be 'sd' or 'usb'.");
             }
-            if (!FilePath.Equals(string.Empty) && !FilePath.IsValidUnixPath()) 
+            if (!StartingPath.Equals(string.Empty) && !StartingPath.IsValidUnixPath()) 
             {
                 return ValidationResult.Error($"Must be a valid unix path.");
             }

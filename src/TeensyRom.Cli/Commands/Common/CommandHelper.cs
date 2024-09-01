@@ -1,16 +1,6 @@
-﻿using MediatR;
-using Spectre.Console;
+﻿using Spectre.Console;
 using Spectre.Console.Cli;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Core.Commands.File.LaunchFile;
-using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
@@ -77,7 +67,7 @@ namespace TeensyRom.Cli.Commands.Common
         {
             if (value.Equals(string.Empty))
             {
-                value = PromptHelper.ChoicePrompt("Filter Type", new List<string> { "All", "Music", "Games", "Images" });
+                value = PromptHelper.ChoicePrompt("Stream Type", new List<string> { "All", "Music", "Games", "Images" });
                 RadHelper.WriteLine();
             }
 
@@ -96,9 +86,9 @@ namespace TeensyRom.Cli.Commands.Common
             return PromptForPath(value, "File Path:", defaultValue);
         }
 
-        public static string PromptForDirectoryPath(string value, string defaultValue = "/music/MUSICIANS/T/Tjelta_Geir/")
+        public static string PromptForDirectoryPath(string value, string defaultValue = "/")
         {
-            return PromptForPath(value, "Directory Path:", defaultValue);
+            return PromptForPath(value, "Within Directory:", defaultValue);
         }
 
         private static string PromptForPath(string value, string title, string defaultValue) 

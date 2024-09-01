@@ -59,5 +59,15 @@ namespace TeensyRom.Core.Storage.Entities
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public StorageItem Clone() => new StorageItem
+        {
+            IsCompatible = IsCompatible,
+            IsFavorite = IsFavorite,
+            IsSelected = IsSelected,
+            Name = Name,
+            Path = Path,
+            Size = Size
+        };
     }
 }
