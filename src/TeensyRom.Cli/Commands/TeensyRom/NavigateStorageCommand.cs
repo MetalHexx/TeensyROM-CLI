@@ -8,12 +8,13 @@ using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
+using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class NavigateStorageCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ITypeResolver resolver, IPlayerService player) : AsyncCommand<NavigateStorageCommandSettings>
+    internal class NavigateStorageCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ITypeResolver resolver, IPlayerService player, ISettingsService settingsService) : AsyncCommand<NavigateStorageCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, NavigateStorageCommandSettings settings)
         {
@@ -26,16 +27,25 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                "Directory will be cached after first visit.",
             ]);
 
-            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
-            settings.StartingPath = CommandHelper.PromptForDirectoryPath(settings.StartingPath);
+            var globalSettings = settingsService.GetSettings();
 
-            storage.SwitchStorage(storageType);
+            settings.StorageDevice = string.IsNullOrWhiteSpace(settings.StorageDevice)
+                ? globalSettings.StorageType.ToString()
+                : settings.StorageDevice;
+
+            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice, promptAlways: globalSettings.AlwaysPromptStorage);
+
+            if (globalSettings.AlwaysPromptStorage)
+            {
+                storage.SwitchStorage(storageType);
+            }
+            settings.StartingPath = CommandHelper.PromptForDirectoryPath(settings.StartingPath);
 
             var cacheItem = await storage.GetDirectory(settings.StartingPath);
 
-            if (cacheItem is null)
+            if (cacheItem is null || (!cacheItem.Files.Any() && !cacheItem.Directories.Any()))
             {
-                RadHelper.WriteError("Directory or files not found.");
+                RadHelper.WriteError($"No directories or files found in {storageType.ToString()} at path {settings.StartingPath}");
                 AnsiConsole.WriteLine();
                 return 0;
             }

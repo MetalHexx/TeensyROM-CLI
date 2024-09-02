@@ -5,12 +5,13 @@ using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Serial.State;
+using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class SearchFilesCommand(ISerialStateContext serial, ICachedStorageService storage, ITypeResolver resolver, IPlayerService player) : AsyncCommand<SearchFilesCommandSettings>
+    internal class SearchFilesCommand(ISerialStateContext serial, ICachedStorageService storage, ITypeResolver resolver, IPlayerService player, ISettingsService settingsService) : AsyncCommand<SearchFilesCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, SearchFilesCommandSettings settings)
         {
@@ -25,9 +26,18 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 ("\"aces high\" +\"iron maiden\"", "\"iron maiden\" must have a match in every search result"),
             ]);
 
-            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
+            var globalSettings = settingsService.GetSettings();
 
-            storage.SwitchStorage(storageType);
+            settings.StorageDevice = string.IsNullOrWhiteSpace(settings.StorageDevice)
+                ? globalSettings.StorageType.ToString()
+                : settings.StorageDevice;
+
+            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice, promptAlways: globalSettings.AlwaysPromptStorage);
+
+            if (globalSettings.AlwaysPromptStorage) 
+            {
+                storage.SwitchStorage(storageType);
+            }
 
             if (string.IsNullOrWhiteSpace(settings.Terms))
             {

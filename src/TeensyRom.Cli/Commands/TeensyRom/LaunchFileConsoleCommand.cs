@@ -6,11 +6,12 @@ using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
+using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class LaunchFileConsoleCommand(IMediator mediator, ISerialStateContext serial, ILoggingService logService, IPlayerService player, ICachedStorageService storage) : AsyncCommand<LaunchFileCommandSettings>
+    internal class LaunchFileConsoleCommand(IMediator mediator, ISerialStateContext serial, ILoggingService logService, IPlayerService player, ICachedStorageService storage, ISettingsService settingsService) : AsyncCommand<LaunchFileCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, LaunchFileCommandSettings settings)
         {
@@ -22,10 +23,20 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                "Parent directory will be cached on first visit.",
             ]);
 
-            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
-            settings.FilePath = CommandHelper.PromptForFilePath(settings.FilePath);
+            var globalSettings = settingsService.GetSettings();
 
-            storage.SwitchStorage(storageType);
+            settings.StorageDevice = string.IsNullOrWhiteSpace(settings.StorageDevice)
+                ? globalSettings.StorageType.ToString()
+                : settings.StorageDevice;
+
+            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice, promptAlways: globalSettings.AlwaysPromptStorage);
+
+            if (globalSettings.AlwaysPromptStorage)
+            {
+                storage.SwitchStorage(storageType);
+            }
+
+            settings.FilePath = CommandHelper.PromptForFilePath(settings.FilePath);
 
             if (!settings.ValidateSettings()) return -1;
 

@@ -26,6 +26,7 @@ namespace TeensyRom.Core.Settings
     public record TeensySettings
     {
         public TeensyStorageType StorageType { get; set; } = TeensyStorageType.SD;
+        public bool AlwaysPromptStorage { get; set; } = true;
         public string WatchDirectoryLocation { get; set; } = string.Empty;
         public string TargetRootPath { get; set; } = @"/";
         public List<TeensyTarget> FileTargets { get; set; } = [];

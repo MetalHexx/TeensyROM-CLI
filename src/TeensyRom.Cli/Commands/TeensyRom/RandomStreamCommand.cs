@@ -23,11 +23,20 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                "Options selected for timers will persist across commands (will move to settings)",
                "Cache files to fatten your stream. ;)"
             ]);
-            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
+            var globalSettings = settingsService.GetSettings();
+
+            settings.StorageDevice = string.IsNullOrWhiteSpace(settings.StorageDevice)
+                ? globalSettings.StorageType.ToString()
+                : settings.StorageDevice;
+
+            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice, promptAlways: globalSettings.AlwaysPromptStorage);
+
+            if (globalSettings.AlwaysPromptStorage)
+            {
+                storage.SwitchStorage(storageType);
+            }
             settings.Directory = CommandHelper.PromptForDirectoryPath(settings.Directory, "/");
             var filterType = CommandHelper.PromptForFilterType(settings.Filter);
-
-            storage.SwitchStorage(storageType);
 
             if (filterType is TeensyFilterType.All or TeensyFilterType.Games or TeensyFilterType.Images)
             {   

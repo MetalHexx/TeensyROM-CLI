@@ -21,26 +21,25 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             {
                 RadHelper.WriteMenu("Settings", "Change your global settings.", []);
 
-                //RadHelper.WriteHelpTable(("Setting", "Description"),
-                //[
-                //    ("Storage Device", "Default value to use for your selected storage device"),
-
-                //]);
-
                 var settings = settingsService.GetSettings();
 
                 RadHelper.WriteDynamicTable(["Setting", "Value", "Description"],
                 [
                     ["Storage Device", settings.StorageType.ToString(), "Default value to use for your selected storage device"],
+                    ["Always Prompt Storage", settings.AlwaysPromptStorage.ToString(), "Determines if you're always prompted to select the storage device."],
                     ["Filter", settings.StartupFilter.ToString(), "Default filter to use for streams."],
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Default Filter",  "Quit" });
+                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Default Filter",  "Quit" });
 
                 switch (choice)
                 {
                     case "Storage Device":
                         settings.StorageType = CommandHelper.PromptForStorageType(settings.StorageType.ToString(), true);
+                        break;
+
+                    case "Always Prompt Storage":
+                        settings.AlwaysPromptStorage = PromptHelper.Confirm("Always Prompt Storage", settings.AlwaysPromptStorage);
                         break;
 
                     case "Default Filter":
