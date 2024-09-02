@@ -8,12 +8,13 @@ using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands;
 using TeensyRom.Core.Serial.State;
+using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class CacheCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator) : AsyncCommand<CacheCommandSettings>
+    internal class CacheCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator, ISettingsService settingsService) : AsyncCommand<CacheCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, CacheCommandSettings settings)
         {
@@ -26,7 +27,14 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                "Cache your files when you make changes to storage outside of this app.",
             ]);
 
-            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
+            var globalSettings = settingsService.GetSettings();
+
+            settings.StorageDevice = string.IsNullOrWhiteSpace(settings.StorageDevice) 
+                ? globalSettings.StorageType.ToString() 
+                : settings.StorageDevice;
+
+            var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice, promptAlways: true);
+
             settings.Path = CommandHelper.PromptForDirectoryPath(settings.Path, "/");
 
             storage.SwitchStorage(storageType);
