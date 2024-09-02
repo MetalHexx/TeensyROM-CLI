@@ -111,7 +111,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             else
             {
                 RadHelper.WriteError($"Error Launching: { item.Path.EscapeBrackets() }");
-                AnsiConsole.WriteLine();
+                AnsiConsole.WriteLine(RadHelper.ClearHack);
+
                 await PlayRandom(_selectedStorage, _scopePath, _filterType);
             }
             AnsiConsole.WriteLine(RadHelper.ClearHack);

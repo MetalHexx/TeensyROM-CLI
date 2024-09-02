@@ -10,6 +10,7 @@ using TeensyRom.Cli.Commands.TeensyRom;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Cli.Services;
 using TeensyRom.Core;
 using TeensyRom.Core.Assets;
 using TeensyRom.Core.Common;
@@ -32,11 +33,11 @@ public class Program
 
         var services = new ServiceCollection();
         var logService = new CliLoggingService();
+        var alertService = new CliAlertService();
         logService.Enabled = false;
-        var serial = new ObservableSerialPort(logService);
+        var serial = new ObservableSerialPort(logService, alertService);
         var serialState = new SerialStateContext(serial);
-        var settings = new SettingsService();
-        var alertService = new AlertService();
+        var settings = new SettingsService();        
         var gameService = new GameMetadataService(logService);
         var sidService = new SidMetadataService(settings);        
 

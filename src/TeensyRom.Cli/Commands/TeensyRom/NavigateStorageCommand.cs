@@ -62,6 +62,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 AnsiConsole.WriteLine();
                 return 0;
             }
+            AnsiConsole.WriteLine();
 
             await player.LaunchItem(storageType, selectedFile.Path);
 

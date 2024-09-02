@@ -34,11 +34,7 @@ namespace TeensyRom.Cli.Commands.Common
                 }
                 if (serialState is SerialConnectableState)
                 {
-                    RadHelper.WriteLine("Connecting to TeensyROM...");
-                    AnsiConsole.WriteLine();
                     serial.OpenPort();
-                    RadHelper.WriteLine("Connection Successful!");
-                    RadHelper.WriteLine();
                     return;
                 }
                 throw new TeensyStateException("Command unavailable while serial is in an unknown state.");
