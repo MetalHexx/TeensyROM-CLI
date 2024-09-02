@@ -16,26 +16,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         {
             player.StopStream();
 
-            var launchFileCommand = resolver.Resolve(typeof(LaunchFileConsoleCommand)) as LaunchFileConsoleCommand;
-
-            if (launchFileCommand is null)
-            {
-                RadHelper.WriteError("Strange. Launch file command was not found.");
-                return -1;
-            }
-
-            var connectionState = await serial.CurrentState.FirstAsync();
-            
-            if (connectionState is not SerialConnectedState)
-            {
-                RadHelper.WriteLine("Connecting to TeensyROM...");
-                AnsiConsole.WriteLine();
-                serial.OpenPort();
-                RadHelper.WriteLine("Connection Successful!");
-                RadHelper.WriteLine();
-            }
-
-            RadHelper.WriteHorizonalRule("Search Files", Justify.Left);
+            RadHelper.WriteMenu("Search Files", "Searches your storage devices.  Search will only include files that have been cached.", []);
 
             var table = new Table()
                 .BorderColor(RadHelper.Theme.Secondary.Color)
@@ -56,6 +37,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     RadHelper.AddHighlights($"\"iron maiden\" must have a match in every search result"));
 
             AnsiConsole.Write(table);
+            AnsiConsole.WriteLine();
 
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
 
@@ -84,15 +66,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             }
 
             var fileName = PromptHelper.FilePrompt("Select File", searchResults.Select(f => f.Name).ToList());
+            AnsiConsole.WriteLine();
+
             var file = searchResults.First(f => f.Name == fileName);
 
-            var launchFileCommandSettings = new LaunchFileCommandSettings
-            {
-                StorageDevice = settings.StorageDevice,
-                FilePath = file.Path
-            };
-
-            await launchFileCommand.ExecuteAsync(context, launchFileCommandSettings);
+            await player.LaunchItem(storageType, file.Path);
 
             return 0;
         }
