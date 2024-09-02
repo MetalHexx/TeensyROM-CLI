@@ -10,7 +10,6 @@ using TeensyRom.Cli.Commands.TeensyRom;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Cli.Services;
 using TeensyRom.Core;
 using TeensyRom.Core.Assets;
 using TeensyRom.Core.Common;

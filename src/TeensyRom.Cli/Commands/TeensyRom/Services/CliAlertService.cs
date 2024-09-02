@@ -2,7 +2,7 @@
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Logging;
 
-namespace TeensyRom.Cli.Services
+namespace TeensyRom.Cli.Commands.TeensyRom.Services
 {
     internal class CliAlertService : IAlertService
     {
