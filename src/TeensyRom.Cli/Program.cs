@@ -161,8 +161,8 @@ public class Program
                     "Navigate Storage" => ["navigate"],
                     "Search Files" => ["search"],
                     "Cache Files" => ["cache"],
-                    "List Ports" => ["ports"],
                     "Settings" => ["settings"],
+                    "List Ports" => ["ports"],                    
                     "Generate ChipSynth ASID Patches" => ["chipsynth"],
                     _ => []
                 };
