@@ -1,8 +1,6 @@
 ﻿using MediatR;
-using Microsoft.VisualBasic;
 using Spectre.Console;
 using System.Reactive.Linq;
-using System.Runtime;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
@@ -26,8 +24,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         void StopStream();
     }
 
-
-    internal class PlayerService(IMediator mediator, ICachedStorageService storage, IProgressTimer progressTimer, ISerialStateContext serial, ISettingsService settingsService) : IPlayerService
+    internal class PlayerService : IPlayerService
     {
         private TeensyStorageType _selectedStorage = TeensyStorageType.SD;
         private StorageScope _selectedScope = StorageScope.DirDeep;
@@ -37,20 +34,38 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         private PlayState _playState = PlayState.Stopped;
         private PlayMode _playMode = PlayMode.Shuffle;
         private TeensyFilterType _filterType = TeensyFilterType.All;
-        private TimeSpan? _timeSpan = null;
+        private TimeSpan? _streamTimeSpan = null;
         private bool _overrideSidTimer = false;
 
         private IDisposable? _progressSubscription;
+        private readonly IMediator mediator;
+        private readonly ICachedStorageService storage;
+        private readonly IProgressTimer progressTimer;
+        private readonly ISettingsService settingsService;
+        private readonly ISerialStateContext serial;
+
+        public PlayerService(IMediator mediator, ICachedStorageService storage, IProgressTimer progressTimer, ISettingsService settingsService, ISerialStateContext serial)
+        {
+            this.mediator = mediator;
+            this.storage = storage;
+            this.progressTimer = progressTimer;
+            this.settingsService = settingsService;
+            this.serial = serial;
+
+            serial.CurrentState
+                .Where(state => state is SerialConnectionLostState && _playState is PlayState.Playing)
+                .Subscribe(_ => StopStream());
+        }
 
         public void SetStreamTime(TimeSpan? timespan) 
         {
-            _timeSpan = timespan;
+            _streamTimeSpan = timespan;
 
             StopStream();
 
-            if (_timeSpan is not null) 
+            if (_streamTimeSpan is not null) 
             {
-                StartStream(_timeSpan.Value);
+                StartStream(_streamTimeSpan.Value);
             }
         }
 
@@ -130,9 +145,9 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 StartStream(songItem.PlayLength);
                 return;
             }
-            if (_timeSpan is not null)
+            if (_streamTimeSpan is not null)
             {
-                StartStream(_timeSpan.Value);
+                StartStream(_streamTimeSpan.Value);
             }
         }
 
@@ -144,7 +159,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             progressTimer.StartNewTimer(length);
 
             _progressSubscription = progressTimer.TimerComplete.Subscribe(async _ =>
-            {
+            {  
                 await PlayRandom(_selectedStorage, _scopePath, _filterType);
             });
         }
