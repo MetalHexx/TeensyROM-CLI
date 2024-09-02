@@ -23,7 +23,7 @@ namespace TeensyRom.Core.Settings
         {
             var settings = _settings?.Value;
 
-            if (settings is not null) return settings;
+            //if (settings is not null) return settings;
 
             if (File.Exists(_settingsFilePath))
             {
