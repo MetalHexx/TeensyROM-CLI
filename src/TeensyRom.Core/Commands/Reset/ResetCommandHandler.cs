@@ -1,11 +1,12 @@
 ﻿using MediatR;
 using TeensyRom.Core.Common;
+using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial;
 using TeensyRom.Core.Serial.State;
 
 namespace TeensyRom.Core.Commands
 {
-    public class ResetCommandHandler(ISerialStateContext serialState) : IRequestHandler<ResetCommand, ResetResult>
+    public class ResetCommandHandler(ISerialStateContext serialState, IAlertService alert) : IRequestHandler<ResetCommand, ResetResult>
     {
         public async Task<ResetResult> Handle(ResetCommand request, CancellationToken cancellationToken)
         {
@@ -42,7 +43,7 @@ namespace TeensyRom.Core.Commands
             {
                 if(ex.Message.Contains("port is closed"))
                 {
-                    //alert.Publish("Disconnected from TeensyROM minimal mode.  Reconnecting.");
+                    alert.Publish("Disconnected from TeensyROM minimal mode.  Reconnecting.");
                     await HandleReconnection(1000);
                     return true;
                 }

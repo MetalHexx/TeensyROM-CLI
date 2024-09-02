@@ -8,7 +8,7 @@ using TeensyRom.Core.Storage.Entities;
 
 namespace TeensyRom.Core.Commands.File.LaunchFile
 {
-    public class LaunchFileHandler(ISerialStateContext serialState, ILoggingService log) : IRequestHandler<LaunchFileCommand, LaunchFileResult>
+    public class LaunchFileHandler(ISerialStateContext serialState, ILoggingService log, IAlertService alert) : IRequestHandler<LaunchFileCommand, LaunchFileResult>
     {
         private const int _reconnectDelayMs = 1000;
         public async Task<LaunchFileResult> Handle(LaunchFileCommand request, CancellationToken cancellationToken)
@@ -43,7 +43,7 @@ namespace TeensyRom.Core.Commands.File.LaunchFile
             LogAck(ack);
 
             if (ack == TeensyToken.RetryLaunch)
-            {
+            {                
                 return TeensyToken.RetryLaunch;
             }
 
@@ -72,17 +72,13 @@ namespace TeensyRom.Core.Commands.File.LaunchFile
             {
                 return GetFinalResult(response);
             }
-            if (request.LaunchItem.Size >= 575000)
-            {
-                //alert.Publish("Detected a large file launch. A reconnection will occur.");
-            }
             await HandleReconnection(_reconnectDelayMs);
             return GetFinalResult(PollResponse());
         }
 
         private async Task<LaunchFileResult> HandleRetryResponse(LaunchFileCommand request) 
         {
-            //alert.Publish("Detected launch retry request from TeensyROM. A reconnection will occur.");
+            alert.Publish("Detected launch retry request from TeensyROM.");
             log.Internal($"LaunchFileHandler: Initiating Launch Retry of {request.LaunchItem.Name}");
 
             log.Internal("LaunchFileHandler: Waiting for re-connection to TeensyROM");
@@ -91,11 +87,13 @@ namespace TeensyRom.Core.Commands.File.LaunchFile
 
             await HandleReconnection(_reconnectDelayMs);
 
+            alert.Publish($"Attempting to re-launch {request.LaunchItem.Name}");
+
             AttemptLaunch(request);
 
             if (request.LaunchItem.Size >= 575000)
             {
-                //log.Internal($"LaunchFileHandler: Reconnecting again to new COM port due to large file launch retry.");
+                log.Internal($"LaunchFileHandler: Reconnecting again to new COM port due to large file launch retry.");
                 await HandleReconnection(_reconnectDelayMs);
             }
             return GetFinalResult(PollResponse());
@@ -164,6 +162,7 @@ namespace TeensyRom.Core.Commands.File.LaunchFile
 
         private async Task HandleReconnection(int waitMs)
         {
+            alert.Publish("TeensyROM is rebooting to switch modes.");
             await Task.Delay(waitMs);
 
             for (int i = 0; i < 3; i++)

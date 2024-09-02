@@ -16,7 +16,7 @@ namespace TeensyRom.Core.Serial
     /// Provides observables that can be used to monitor serial activity. 
     /// Resiliency routines are employed to recover from a disconnection.
     /// </summary>
-    public class ObservableSerialPort(ILoggingService _log) : IObservableSerialPort
+    public class ObservableSerialPort(ILoggingService _log, IAlertService _alert) : IObservableSerialPort
     {
         public IObservable<Type> State => _state.AsObservable();
         public IObservable<string[]> Ports => _ports.AsObservable();       
@@ -48,6 +48,9 @@ namespace TeensyRom.Core.Serial
             if (_serialPort.IsOpen) return;
 
             Lock();
+
+            _alert.Publish("Scanning COM ports to find TeensyROM...");
+
 
             var ports = SerialPort.GetPortNames().Distinct();
 
@@ -104,11 +107,11 @@ namespace TeensyRom.Core.Serial
                 }
                 if(response.Contains("minimal", StringComparison.OrdinalIgnoreCase))
                 {
-                    //_alert.Publish($"Detected TeensyROM minimal mode. You've been reconnected to {_serialPort.PortName}");
+                    _alert.Publish($"Detected TeensyROM minimal mode. You've been reconnected to {_serialPort.PortName}. :)");
                 }
                 else
                 {
-                    //_alert.Publish($"Connected to TeensyROM on {_serialPort.PortName}");
+                    _alert.Publish($"Connected to TeensyROM on {_serialPort.PortName}! :)");
                 }
                 _log.Internal($"ObservableSerialPort.EnsureConnection: PING succeeded");
                 
@@ -119,7 +122,7 @@ namespace TeensyRom.Core.Serial
             if (_serialPort.IsOpen) _serialPort.Close();
 
             Unlock();
-
+            _alert.Publish("Unable to connect to TeensyROM! :(");
             throw new TeensyException($"ObservableSerialPort.EnsureConnection: Failed to ensure the connection to {_serialPort.PortName}. Retrying in {SerialPortConstants.Health_Check_Milliseconds} ms.");
         }
 
@@ -370,7 +373,7 @@ namespace TeensyRom.Core.Serial
         /// </summary>
         private void ReadAndLogStaleBuffer()
         {
-            //_log.Internal("ObservableSerialPort.ReadAndLogStaleBuffer: Reading and logging any remaining bytes in the buffer.");
+            _log.Internal("ObservableSerialPort.ReadAndLogStaleBuffer: Reading and logging any remaining bytes in the buffer.");
             var bytes = ReadSerialBytes();
             var log = ToLogString(bytes);
 
