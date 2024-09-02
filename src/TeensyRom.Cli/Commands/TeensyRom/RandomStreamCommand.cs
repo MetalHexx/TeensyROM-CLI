@@ -1,4 +1,5 @@
-﻿using Spectre.Console.Cli;
+﻿using Spectre.Console;
+using Spectre.Console.Cli;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
@@ -45,6 +46,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             }
 
             if (!settings.ValidateSettings()) return -1;
+
+            AnsiConsole.WriteLine();
 
             await player.PlayRandom(storageType, settings.Directory, filterType);
 
