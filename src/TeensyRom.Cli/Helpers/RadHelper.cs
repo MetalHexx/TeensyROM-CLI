@@ -196,12 +196,16 @@ namespace TeensyRom.Cli.Helpers
                .Border(TableBorder.Rounded)
                .AddColumn(title.AddHighlights())
                .AddEmptyRow()
-               .AddRow(description)
-               .AddEmptyRow();
+               .AddRow(description);
 
-            foreach (var bullet in bullets)
+            if (bullets.Any()) 
             {
-                table.AddRow($"* {AddHighlights(bullet)}");
+                table.AddEmptyRow();
+
+                foreach (var bullet in bullets)
+                {
+                    table.AddRow($"* {AddHighlights(bullet)}");
+                }                
             }
             table.AddEmptyRow();
 

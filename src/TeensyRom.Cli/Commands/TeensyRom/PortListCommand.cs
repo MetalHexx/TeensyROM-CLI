@@ -1,4 +1,5 @@
-﻿using Spectre.Console.Cli;
+﻿using Spectre.Console;
+using Spectre.Console.Cli;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
@@ -12,7 +13,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         {
             player.StopStream();
 
+            RadHelper.WriteMenu("Port List", "Troubleshooting tool for listing all the available serial ports on the machine.", []);
+
             var ports = await serial.Ports.FirstAsync();
+
+            RadHelper.WriteLine("Ports Found: ");
+            AnsiConsole.WriteLine();
 
             foreach (var port in ports) 
             {
