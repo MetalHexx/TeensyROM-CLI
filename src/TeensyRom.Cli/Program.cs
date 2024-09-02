@@ -32,6 +32,7 @@ public class Program
 
         var services = new ServiceCollection();
         var logService = new CliLoggingService();
+        logService.Enabled = false;
         var serial = new ObservableSerialPort(logService);
         var serialState = new SerialStateContext(serial);
         var settings = new SettingsService();
