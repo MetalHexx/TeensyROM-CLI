@@ -31,20 +31,18 @@ public class Program
         RadHelper.RenderLogo("TeensyROM", FontConstants.FontPath);
 
         var services = new ServiceCollection();
-        var loggingStrategy = new CliLogColorStrategy();
-        var logService = new LoggingService(loggingStrategy);
+        var logService = new CliLoggingService();
         var serial = new ObservableSerialPort(logService);
         var serialState = new SerialStateContext(serial);
         var settings = new SettingsService();
         var alertService = new AlertService();
         var gameService = new GameMetadataService(logService);
-        var sidService = new SidMetadataService(settings);
+        var sidService = new SidMetadataService(settings);        
 
         UnpackAssets();
 
         services.AddSingleton<IObservableSerialPort>(serial);
         services.AddSingleton<ISerialStateContext>(serialState);
-        services.AddSingleton<ILogColorStategy>(loggingStrategy);
         services.AddSingleton<ILoggingService>(logService);
         services.AddSingleton<IAlertService>(alertService);
         services.AddSingleton<ISettingsService>(settings);
@@ -54,6 +52,7 @@ public class Program
         services.AddSingleton<IPlayerService, PlayerService>();
         services.AddSingleton<ITypeResolver, TypeResolver>();
         services.AddSingleton<IProgressTimer, ProgressTimer>();
+        services.AddSingleton<IPlayer, Player>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CoreAssemblyMarker>());
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
@@ -62,8 +61,6 @@ public class Program
         var registrar = new TypeRegistrar(services);
         
         var app = new CommandApp(registrar);
-
-        var firstRun = true;
 
         app.Configure(config =>
         {
@@ -128,7 +125,7 @@ public class Program
                     .WithExample(["cs", "--source c:\\your\\preset\\directory", "--target ASID --clock ntsc"]);
         });
 
-        logService.Logs.Subscribe(log => AnsiConsole.Markup($"{log}\r\n\r\n"));
+        //logService.Logs.Subscribe(log => AnsiConsole.Markup($"{log}\r\n\r\n"));
 
         if (args.Contains("-h") || args.Contains("--help") || args.Contains("-v") || args.Contains("--version"))
         {

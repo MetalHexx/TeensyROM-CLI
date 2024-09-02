@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace TeensyRom.Core.Logging
+﻿namespace TeensyRom.Core.Logging
 {
     public interface ILoggingService
     {
@@ -12,5 +10,6 @@ namespace TeensyRom.Core.Logging
         void Internal(string message);
         void InternalError(string message);
         void InternalSuccess(string message);
+        void Log(string message, string hExColor);
     }
 }
