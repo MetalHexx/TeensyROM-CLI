@@ -17,27 +17,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             player.StopStream();
 
             RadHelper.WriteMenu("Search Files", "Searches your storage devices.  Search will only include files that have been cached.", []);
-
-            var table = new Table()
-                .BorderColor(RadHelper.Theme.Secondary.Color)
-                .Border(TableBorder.Rounded)
-                .AddColumn("Search Example")
-                .AddColumn("Description")
-                .AddRow(
-                    RadHelper.AddHighlights($"iron maiden aces high"),
-                    RadHelper.AddHighlights($"Searches for any term individually."))                
-                .AddRow(
-                    RadHelper.AddHighlights($"iron maiden \"aces high\""),
-                    RadHelper.AddHighlights($"Search will consider phrases between quotes as an individual search term."))
-                .AddRow(
-                    RadHelper.AddHighlights($"+iron maiden aces high"),
-                    RadHelper.AddHighlights($"\"iron\" must have a match in every search result"))
-                .AddRow(
-                    RadHelper.AddHighlights($"\"aces high\" +\"iron maiden\""),
-                    RadHelper.AddHighlights($"\"iron maiden\" must have a match in every search result"));
-
-            AnsiConsole.Write(table);
-            AnsiConsole.WriteLine();
+            RadHelper.WriteHelpTable(("SearchExample", "Description"), 
+            [
+                ("iron maiden aces high", "Searches for any term individually."),
+                ("iron maiden \"aces high\"", "Search will consider phrases between quotes as an individual search term."),
+                ("+iron maiden aces high", "\"iron\" must have a match in every search result"),
+                ("\"aces high\" +\"iron maiden\"", "\"iron maiden\" must have a match in every search result"),
+            ]);
 
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice);
 

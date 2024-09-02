@@ -213,6 +213,25 @@ namespace TeensyRom.Cli.Helpers
             AnsiConsole.WriteLine();
         }
 
+        public static Table WriteHelpTable((string Header1, string Header2) headers, List<(string Key, string Value)> rows) 
+        {
+            var table = new Table()
+                .BorderColor(RadHelper.Theme.Secondary.Color)
+                .Border(TableBorder.Rounded)
+                .AddColumn(headers.Header1)
+                .AddColumn(headers.Header2);
+
+            foreach (var row in rows) 
+            {
+                table.AddRow(row.Key.EscapeBrackets().AddHighlights(), row.Value.EscapeBrackets().AddHighlights());
+            }
+
+            AnsiConsole.Write(table);
+            AnsiConsole.WriteLine();
+
+            return table;
+        }
+
         public static void WriteFileInfo(ILaunchableItem item)
         {
             var release = string.IsNullOrWhiteSpace(item.ReleaseInfo) ? "Unknown" : item.ReleaseInfo.EscapeBrackets();
