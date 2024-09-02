@@ -25,12 +25,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
                 RadHelper.WriteDynamicTable(["Setting", "Value", "Description"],
                 [
-                    ["Storage Device", settings.StorageType.ToString(), "Default value to use for your selected storage device"],
+                    ["Storage Device", settings.StorageType.ToString(), "Default value to use for your selected storage device."],
                     ["Always Prompt Storage", settings.AlwaysPromptStorage.ToString(), "Determines if you're always prompted to select the storage device."],
                     ["Filter", settings.StartupFilter.ToString(), "Default filter to use for streams."],
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Default Filter",  "Quit" });
+                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Default Filter",  "Leave Settings" });
 
                 switch (choice)
                 {
@@ -46,9 +46,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                         settings.StartupFilter = CommandHelper.PromptForFilterType("");
                         break;
                 }
-                settingsService.SaveSettings(settings);
-
-            } while (choice != "Quit");
+                if (choice != "Leave Settings") 
+                {
+                    settingsService.SaveSettings(settings);
+                }
+            } while (choice != "Leave Settings");
 
             RadHelper.WriteLine();
             return 0;
