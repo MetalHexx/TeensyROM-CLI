@@ -195,7 +195,6 @@ namespace TeensyRom.Cli.Helpers
                .BorderColor(Theme.Secondary.Color)
                .Border(TableBorder.Rounded)
                .AddColumn(title.AddHighlights())
-               .AddEmptyRow()
                .AddRow(description);
 
             if (bullets.Any()) 
@@ -207,8 +206,6 @@ namespace TeensyRom.Cli.Helpers
                     table.AddRow($"* {AddHighlights(bullet)}");
                 }                
             }
-            table.AddEmptyRow();
-
             AnsiConsole.Write(table);
             AnsiConsole.WriteLine();
         }
@@ -216,7 +213,7 @@ namespace TeensyRom.Cli.Helpers
         public static Table WriteHelpTable((string Header1, string Header2) headers, List<(string Key, string Value)> rows) 
         {
             var table = new Table()
-                .BorderColor(RadHelper.Theme.Secondary.Color)
+                .BorderColor(Theme.Secondary.Color)
                 .Border(TableBorder.Rounded)
                 .AddColumn(headers.Header1)
                 .AddColumn(headers.Header2);
@@ -226,6 +223,31 @@ namespace TeensyRom.Cli.Helpers
                 table.AddRow(row.Key.EscapeBrackets().AddHighlights(), row.Value.EscapeBrackets().AddHighlights());
             }
 
+            AnsiConsole.Write(table);
+            AnsiConsole.WriteLine();
+
+            return table;
+        }
+
+        public static Table WriteDynamicTable(IEnumerable<string> headers, IEnumerable<IEnumerable<string>> rows)
+        {
+
+            var table = new Table()
+                .BorderColor(Theme.Secondary.Color)
+                .Border(TableBorder.Rounded);
+
+            foreach (var header in headers) 
+            {
+                table.AddColumn(header);
+            }
+            foreach (var row in rows)
+            {
+                var highlightedRows = row
+                    .Select(v => v.EscapeBrackets().AddHighlights())
+                    .ToArray();
+
+                table.AddRow(highlightedRows);
+            }
             AnsiConsole.Write(table);
             AnsiConsole.WriteLine();
 

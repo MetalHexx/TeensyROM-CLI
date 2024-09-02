@@ -34,6 +34,7 @@ namespace TeensyRom.Cli.Commands.Common
         public static TimeSpan? PromptGameTimer() 
         {
             string time = PromptHelper.ChoicePrompt("Game/Image Timer", ["No", "3m", "5m", "15m", "30m", "1h", "Turbo Mode"]);
+            AnsiConsole.WriteLine();
 
             return time switch
             {
@@ -44,14 +45,21 @@ namespace TeensyRom.Cli.Commands.Common
                 "1h" => TimeSpan.FromHours(1),
                 "Turbo Mode" => TimeSpan.FromSeconds(3),
                 _ => null
-            };
+            };            
         }
 
-        public static TeensyStorageType PromptForStorageType(string value)
+        public static TeensyStorageType PromptForStorageType(string value, bool promptAlways = false)
         {
-            if (value.Equals(string.Empty))
+            if (promptAlways is true || value.Equals(string.Empty))
             {
-                value = PromptHelper.ChoicePrompt("Storage Type", new List<string> { "SD", "USB" });
+                if (value == "USB")
+                {
+                    value = PromptHelper.ChoicePrompt("Storage Type", new List<string> { "USB", "SD" });
+                }
+                else 
+                {
+                    value = PromptHelper.ChoicePrompt("Storage Type", new List<string> { "SD", "USB" });
+                }                
                 RadHelper.WriteLine();
             }
 

@@ -123,6 +123,10 @@ public class Program
                     .WithExample(["chipsynth"])
                     .WithExample(["cs"])
                     .WithExample(["cs", "--source c:\\your\\preset\\directory", "--target ASID --clock ntsc"]);
+
+            config.AddCommand<SettingsCommand>("settings")                    
+                    .WithDescription("Change your global settings.")
+                    .WithExample(["settings"]);
         });
 
         //logService.Logs.Subscribe(log => AnsiConsole.Markup($"{log}\r\n\r\n"));
@@ -144,7 +148,7 @@ public class Program
                     resultCode = app.Run(args);
                 }
 
-                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Random Stream", "Navigate Storage", "Launch File", "Search Files", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
+                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Random Stream", "Navigate Storage", "Launch File", "Search Files", "Cache Files", "List Ports", "Settings", "Generate ChipSynth ASID Patches", "Leave"]);
 
                 AnsiConsole.WriteLine();
 
@@ -158,6 +162,7 @@ public class Program
                     "Search Files" => ["search"],
                     "Cache Files" => ["cache"],
                     "List Ports" => ["ports"],
+                    "Settings" => ["settings"],
                     "Generate ChipSynth ASID Patches" => ["chipsynth"],
                     _ => []
                 };
