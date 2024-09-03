@@ -17,7 +17,10 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         {
             player.StopStream();
 
-            RadHelper.WriteMenu("Search Files", "Searches your storage devices.  Search will only include files that have been cached.", []);
+            RadHelper.WriteMenu("Search Files", "Searches your storage devices.  Search will only include files that have been cached.", 
+            [
+                "When launching a SID, or a timer is enabled, the next file in the directory will automatically play.",
+            ]);
             RadHelper.WriteHelpTable(("SearchExample", "Description"), 
             [
                 ("iron maiden aces high", "Searches for any term individually."),

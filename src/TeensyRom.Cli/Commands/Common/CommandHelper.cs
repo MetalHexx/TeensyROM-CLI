@@ -116,7 +116,7 @@ namespace TeensyRom.Cli.Commands.Common
             if (launchItem is null)
             {
                 RadHelper.WriteError("No file found.");
-                AnsiConsole.WriteLine();
+                AnsiConsole.WriteLine(RadHelper.ClearHack);
                 return null;
             }
             return launchItem;

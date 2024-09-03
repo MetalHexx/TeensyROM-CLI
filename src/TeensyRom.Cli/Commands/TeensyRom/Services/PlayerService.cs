@@ -5,6 +5,7 @@ using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Common;
+using TeensyRom.Core.Logging;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Progress;
 using TeensyRom.Core.Serial.State;
@@ -31,6 +32,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         private string _scopePath = "/";
         private string _path = "/";
 
+        private ILaunchableItem? _lastLaunched = null;
         private PlayState _playState = PlayState.Stopped;
         private PlayMode _playMode = PlayMode.Shuffle;
         private TeensyFilterType _filterType = TeensyFilterType.All;
@@ -107,6 +109,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             if (result.IsSuccess)
             {
                 RadHelper.WriteFileInfo(item);
+                _lastLaunched = item;
             }
             else
             {
@@ -159,10 +162,60 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
             progressTimer.StartNewTimer(length);
 
+            
             _progressSubscription = progressTimer.TimerComplete.Subscribe(async _ =>
-            {  
+            {
+                if (_playMode is PlayMode.Shuffle)
+                {   
+                    await PlayRandom(_selectedStorage, _scopePath, _filterType);
+                    return;
+                }
+                await StartNormalStream();
+            });            
+        }
+
+        private async Task StartNormalStream() 
+        {
+            if (_lastLaunched is null)
+            {
                 await PlayRandom(_selectedStorage, _scopePath, _filterType);
-            });
+                return;
+            }
+            var currentPath = _lastLaunched!.Path.GetUnixParentPath();
+            var currentDirectory = await storage.GetDirectory(currentPath);
+
+            if (currentDirectory is null)
+            {
+                RadHelper.WriteError($"Could not find directory {currentPath}. Launching random.");
+                AnsiConsole.WriteLine(RadHelper.ClearHack);
+                await PlayRandom(_selectedStorage, _scopePath, _filterType);
+                return;
+            }
+            var currentFile = currentDirectory.Files?.FirstOrDefault(f => f.Id == _lastLaunched.Id);
+
+            if (currentFile is null)
+            {
+                RadHelper.WriteError($"Could not find current file. Launching random.");
+                AnsiConsole.WriteLine(RadHelper.ClearHack);
+                await PlayRandom(_selectedStorage, _scopePath, _filterType);
+                return;
+            }
+            var currentIndex = currentDirectory.Files!.IndexOf(currentFile);
+
+            var newIndex = currentIndex < currentDirectory.Files.Count - 1
+                ? currentIndex + 1
+                : 0;
+
+            var fileItem = currentDirectory.Files[newIndex];
+
+            if (fileItem is ILaunchableItem launchItem)
+            {
+                await LaunchItem(_selectedStorage, launchItem);
+                return;
+            }
+            RadHelper.WriteError($"{fileItem.Path} is not launchable. Launching random.");
+            AnsiConsole.WriteLine(RadHelper.ClearHack);
+            await PlayRandom(_selectedStorage, _scopePath, _filterType);
         }
 
         public void StopStream()

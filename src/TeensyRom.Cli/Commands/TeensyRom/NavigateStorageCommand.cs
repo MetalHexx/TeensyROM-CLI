@@ -22,8 +22,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             RadHelper.WriteMenu("Navigate Storage", "Navigate through the storage directories and pick a file to launch.",
             [
-               "When a SID ends, a random SID stream will begin.",
-               "Games will not start a stream (for now)",
+               "When launching a SID, or a timer is enabled, the next file in the directory will automatically play.",
                "Directory will be cached after first visit.",
             ]);
 

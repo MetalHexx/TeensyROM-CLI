@@ -19,7 +19,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             RadHelper.WriteMenu("Launch File", "Launch a specific file.",
             [
-               "If the file is a SID, on completion, a random SID will be played next.",
+               "When playing a SID, or you have a Game/Image timer enabled, the next file in the directory will be played.",
                "Parent directory will be cached on first visit.",
             ]);
 
