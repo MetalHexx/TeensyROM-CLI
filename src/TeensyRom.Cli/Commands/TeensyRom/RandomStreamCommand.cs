@@ -10,10 +10,12 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class RandomStreamCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService player) : AsyncCommand<RandomStreamCommandSettings>
+    internal class RandomStreamCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService player, ITypeResolver resolver) : AsyncCommand<RandomStreamCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, RandomStreamCommandSettings settings)
         {
+            var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
+
             player.StopStream();
 
             RadHelper.WriteMenu("Random Stream", "Randomly streams files from the specified directory and it's subdirectories.",
@@ -40,18 +42,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             if (filterType is TeensyFilterType.All or TeensyFilterType.Games or TeensyFilterType.Images)
             {   
-                player.SetStreamTime(CommandHelper.PromptGameTimer());
-
                 if (filterType is TeensyFilterType.All)
                 {
-                    var overrideSidTIme = PromptHelper.ChoicePrompt("Override SID Time", ["No", "Yes"]) switch
-                    {
-                        "No" => false,
-                        "Yes" => true,
-                        _ => false
-                    };
+                    var overrideSidTIme = PromptHelper.Confirm("Override SID Time", false);
                     player.OverrideSidTIme(overrideSidTIme);
                 }
+                player.SetStreamTime(CommandHelper.PromptGameTimer());
             }
 
             if (!settings.ValidateSettings()) return -1;
@@ -60,6 +56,10 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             await player.PlayRandom(storageType, settings.Directory, filterType);
 
+            if(playerCommand is not null) 
+            {
+                await playerCommand.ExecuteAsync(context, new());
+            }
             return 0;
         }
     }

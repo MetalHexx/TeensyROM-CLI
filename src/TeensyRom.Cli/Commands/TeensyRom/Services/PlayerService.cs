@@ -17,10 +17,14 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 {
     internal interface IPlayerService 
     {
+        PlayerSettings GetPlayerSettings();
         Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
         Task LaunchItem(TeensyStorageType storageType, string path);
         void OverrideSidTIme(bool value);
+        Task PlayNext();
         Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType);
+        void SetFilter(TeensyFilterType filterType);
+        void SetPlayMode(PlayMode playMode);
         void SetStreamTime(TimeSpan? timespan);
         void StopStream();
     }
@@ -32,12 +36,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         private string _scopePath = "/";
         private string _path = "/";
 
-        private ILaunchableItem? _lastLaunched = null;
+        private ILaunchableItem? _currentFile = null;
         private PlayState _playState = PlayState.Stopped;
-        private PlayMode _playMode = PlayMode.Shuffle;
+        private PlayMode _playMode = PlayMode.Random;
         private TeensyFilterType _filterType = TeensyFilterType.All;
         private TimeSpan? _streamTimeSpan = null;
-        private bool _overrideSidTimer = false;
+        private bool _overrideSongTimer = false;
 
         private IDisposable? _progressSubscription;
         private readonly IMediator mediator;
@@ -59,23 +63,9 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 .Subscribe(_ => StopStream());
         }
 
-        public void SetStreamTime(TimeSpan? timespan) 
-        {
-            _streamTimeSpan = timespan;
-
-            StopStream();
-
-            if (_streamTimeSpan is not null) 
-            {
-                StartStream(_streamTimeSpan.Value);
-            }
-        }
-
-        public void OverrideSidTIme(bool value) => _overrideSidTimer = value;
-
         public async Task LaunchItem(TeensyStorageType storageType, string path) 
         {
-            _playMode = PlayMode.Normal;
+            _playMode = PlayMode.CurrentDirectory;
 
             var directory = await storage.GetDirectory(path.GetUnixParentPath());
 
@@ -109,7 +99,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             if (result.IsSuccess)
             {
                 RadHelper.WriteFileInfo(item);
-                _lastLaunched = item;
+                _currentFile = item;
             }
             else
             {
@@ -123,7 +113,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         public async Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType)
         {
-            _playMode = PlayMode.Shuffle;
+            _playMode = PlayMode.Random;
 
             var trSettings = await settingsService.Settings.FirstAsync();
             _filterType = filterType;
@@ -144,7 +134,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         private void MaybeStartStream(ILaunchableItem fileItem)
         {
-            if (fileItem is SongItem songItem && _overrideSidTimer is false)
+            if (fileItem is SongItem songItem && _overrideSongTimer is false)
             {   
                 StartStream(songItem.PlayLength);
                 return;
@@ -165,23 +155,25 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             
             _progressSubscription = progressTimer.TimerComplete.Subscribe(async _ =>
             {
-                if (_playMode is PlayMode.Shuffle)
-                {   
-                    await PlayRandom(_selectedStorage, _scopePath, _filterType);
-                    return;
-                }
-                await StartNormalStream();
+                
+                await PlayNext();
             });            
         }
 
-        private async Task StartNormalStream() 
+        public async Task PlayNext() 
         {
-            if (_lastLaunched is null)
+            if (_playMode is PlayMode.Random)
             {
                 await PlayRandom(_selectedStorage, _scopePath, _filterType);
                 return;
             }
-            var currentPath = _lastLaunched!.Path.GetUnixParentPath();
+
+            if (_currentFile is null)
+            {
+                await PlayRandom(_selectedStorage, _scopePath, _filterType);
+                return;
+            }
+            var currentPath = _currentFile!.Path.GetUnixParentPath();
             var currentDirectory = await storage.GetDirectory(currentPath);
 
             if (currentDirectory is null)
@@ -191,7 +183,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 await PlayRandom(_selectedStorage, _scopePath, _filterType);
                 return;
             }
-            var currentFile = currentDirectory.Files?.FirstOrDefault(f => f.Id == _lastLaunched.Id);
+            var currentFile = currentDirectory.Files?.FirstOrDefault(f => f.Id == _currentFile.Id);
 
             if (currentFile is null)
             {
@@ -229,5 +221,35 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             _progressSubscription?.Dispose();
             _progressSubscription = null;
         }
+
+        public PlayerSettings GetPlayerSettings() => new PlayerSettings
+        {
+            PlayState = _playState,
+            PlayMode = _playMode,
+            FilterType = _filterType,
+            ScopePath = _scopePath,
+            PlayTimer = _streamTimeSpan,
+            SidTimerOverride = _overrideSongTimer,
+            CurrentItem = _currentFile
+        };
+
+        public void SetPlayMode(PlayMode playMode) => _playMode = playMode;
+        public void SetFilter(TeensyFilterType filterType) => _filterType = filterType;
+        public void SetStreamTime(TimeSpan? timespan)
+        {
+            _streamTimeSpan = timespan;
+
+            if (_currentFile is SongItem && _overrideSongTimer is false) 
+            {
+                return;
+            }
+
+            if (_streamTimeSpan is not null)
+            {
+                StopStream();
+                StartStream(_streamTimeSpan.Value);
+            }
+        }
+        public void OverrideSidTIme(bool value) => _overrideSongTimer = value;
     }
 }

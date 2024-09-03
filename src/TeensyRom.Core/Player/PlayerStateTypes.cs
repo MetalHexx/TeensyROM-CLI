@@ -8,7 +8,7 @@
     }
     public enum PlayMode
     {
-        Normal,
-        Shuffle
+        CurrentDirectory,
+        Random
     }
 }
