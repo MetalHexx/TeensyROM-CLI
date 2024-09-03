@@ -1,6 +1,7 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
+using System.Transactions;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
@@ -9,7 +10,7 @@ using TeensyRom.Core.Settings;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class SettingsCommand(ISerialStateContext serial, IPlayerService player, ISettingsService settingsService) : AsyncCommand<SettingsCommandSettings>
+    internal class SettingsCommand(ISerialStateContext serial, IPlayerService player, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<SettingsCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, SettingsCommandSettings _)
         {
@@ -28,9 +29,10 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     ["Storage Device", settings.StorageType.ToString(), "Default value to use for your selected storage device."],
                     ["Always Prompt Storage", settings.AlwaysPromptStorage.ToString(), "Determines if you're always prompted to select the storage device."],
                     ["Filter", settings.StartupFilter.ToString(), "Default filter to use for streams."],
+                    ["Debug Logs Enabled", logService.Enabled.ToString(), "Enables verbose logs for debugging." ]
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Default Filter",  "Leave Settings" });
+                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Default Filter", "Toggle Debug Logs",  "Leave Settings" });
 
                 switch (choice)
                 {
@@ -44,6 +46,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
                     case "Default Filter":
                         settings.StartupFilter = CommandHelper.PromptForFilterType("");
+                        break;
+
+                    case "Toggle Debug Logs":
+                        settings.EnableDebugLogs = !settings.EnableDebugLogs;
+                        logService.Enabled = settings.EnableDebugLogs;
                         break;
                 }
                 if (choice != "Leave Settings") 

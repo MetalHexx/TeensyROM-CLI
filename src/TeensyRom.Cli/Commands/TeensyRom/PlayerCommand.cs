@@ -21,7 +21,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             do
             {
-                RadHelper.WriteMenu("Player", "Control the current play stream using the modes listed below");
+                RadHelper.WriteMenu("Player Controls", "Use the options below to control behavior of the file launch stream.");
 
                 choice = string.Empty;
 
@@ -35,18 +35,19 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     ? "Song Length"
                     : "Timer Override";
 
-                RadHelper.WriteDynamicTable(["Player Settings", "Value", "Description"],
+                RadHelper.WriteDynamicTable(["Setting / Action", "Value", "Description"],
                 [
-                    ["State", playerSettings.PlayState.ToString(), "The current known state of the player."],
-                    ["Mode", mode, "Next file launch is random or next in current directory."],
-                    ["Directory", playerSettings.CurrentItem?.Path.GetUnixParentPath() ?? "---", "The directory of the currently playing file."],
-                    ["File", playerSettings.CurrentItem?.Name ?? "---", "The currently playing file."],
-                    ["Filter", playerSettings.FilterType.ToString(), "This is the current filter."],
-                    ["Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Optional play timer used for Games, Images and SIDs." ],
-                    ["SID Timer", sidTimer, "Determines if song length is used or overidden by the set timer."],
+                    ["Next", "---", "Lauches the next file based on the mode and position in history."],
+                    ["Mode", mode, "Next file is random or next in current directory."],
+                    ["Filter", playerSettings.FilterType.ToString(), "Filter used to determine next random file."],
+                    ["Random Scope", playerSettings.ScopeDirectory, "Path to scope random selection.  Includes subdirs."],
+                    ["Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Timer used for Games, Images and SIDs." ],
+                    ["SID Timer", sidTimer, "Use song length or override w/timer."],
+                    ["Current Directory", playerSettings.CurrentItem?.Path.GetUnixParentPath() ?? "---", "Directory of the playing file."],                    
+                    ["File", playerSettings.CurrentItem?.Name ?? "---", "The file playing."],                                        
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Player", new List<string> { "Next", "Mode", "Filter", "Timer", "Refresh", "Leave Player" });
+                choice = PromptHelper.ChoicePrompt("Player Controls", new List<string> { "Next", "Mode", "Filter", "Timer", "Scope", "Refresh Menu", "Leave Player" });
 
                 switch (choice)
                 {
@@ -74,6 +75,17 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     case "Filter":
                         var filter = CommandHelper.PromptForFilterType("");
                         player.SetFilter(filter);
+                        break;
+
+                    case "Scope":
+                        var path = CommandHelper.PromptForDirectoryPath("");
+
+                        if (!path.IsValidUnixPath()) 
+                        {
+                            RadHelper.WriteError("Not a valid Unix path");
+                            break;
+                        }
+                        player.SetScope(path);
                         break;
 
                     case "Timer":

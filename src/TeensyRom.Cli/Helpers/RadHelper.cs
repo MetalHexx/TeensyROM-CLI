@@ -234,9 +234,11 @@ namespace TeensyRom.Cli.Helpers
         public static Table WriteDynamicTable(IEnumerable<string> headers, IEnumerable<IEnumerable<string>> rows)
         {
 
-            var table = new Table()
+            var table = new Table()                
                 .BorderColor(Theme.Secondary.Color)
-                .Border(TableBorder.Rounded);
+                .Border(TableBorder.Rounded)
+                .ShowRowSeparators()
+                .Expand();
 
             foreach (var header in headers) 
             {

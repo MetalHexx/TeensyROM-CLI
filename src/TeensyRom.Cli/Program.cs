@@ -32,13 +32,15 @@ public class Program
 
         var services = new ServiceCollection();
         var logService = new CliLoggingService();
-        var alertService = new CliAlertService();
-        logService.Enabled = false;
+        var alertService = new CliAlertService();        
         var serial = new ObservableSerialPort(logService, alertService);
         var serialState = new SerialStateContext(serial);
-        var settings = new SettingsService();        
+        var settingsService = new SettingsService();        
         var gameService = new GameMetadataService(logService);
-        var sidService = new SidMetadataService(settings);        
+        var sidService = new SidMetadataService(settingsService);        
+
+        var settings = settingsService.GetSettings();
+        logService.Enabled = settings.EnableDebugLogs;
 
         UnpackAssets();
 
@@ -47,7 +49,7 @@ public class Program
         services.AddSingleton<ILoggingService>(logService);
         services.AddSingleton<ICliLoggingService>(logService);
         services.AddSingleton<IAlertService>(alertService);
-        services.AddSingleton<ISettingsService>(settings);
+        services.AddSingleton<ISettingsService>(settingsService);
         services.AddSingleton<IGameMetadataService>(gameService);
         services.AddSingleton<ISidMetadataService>(sidService);
         services.AddSingleton<ICachedStorageService, CachedStorageService>();

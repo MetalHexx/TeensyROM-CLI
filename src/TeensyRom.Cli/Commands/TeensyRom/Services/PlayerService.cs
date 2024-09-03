@@ -26,13 +26,14 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         void SetStreamTime(TimeSpan? timespan);
         void SetSidTimer(SidTimer value);
         void StopStream();
+        void SetScope(string path);
     }
 
     internal class PlayerService : IPlayerService
     {
         private TeensyStorageType _selectedStorage = TeensyStorageType.SD;
         private StorageScope _selectedScope = StorageScope.DirDeep;
-        private string _scopePath = "/";
+        private string _scopeDirectory = "/";
         private string _path = "/";
 
         private ILaunchableItem? _currentFile = null;
@@ -105,7 +106,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 RadHelper.WriteError($"Error Launching: { item.Path.EscapeBrackets() }");
                 AnsiConsole.WriteLine(RadHelper.ClearHack);
 
-                await PlayRandom(_selectedStorage, _scopePath, _filterType);
+                await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
             }
             AnsiConsole.WriteLine(RadHelper.ClearHack);
         }
@@ -116,13 +117,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
             var trSettings = await settingsService.Settings.FirstAsync();
             _filterType = filterType;
-            _scopePath = scopePath;
+            _scopeDirectory = scopePath;
 
             var fileTypes = trSettings.GetFileTypes(_filterType);
 
-            var launchItem = storage.GetRandomFilePath(StorageScope.DirDeep, _scopePath, fileTypes);
+            var launchItem = storage.GetRandomFilePath(StorageScope.DirDeep, _scopeDirectory, fileTypes);
 
-            var item = storage.GetRandomFile(_selectedScope, _scopePath, fileTypes);
+            var item = storage.GetRandomFile(_selectedScope, _scopeDirectory, fileTypes);
 
             if (item is null) return;            
 
@@ -163,13 +164,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         {
             if (_playMode is PlayMode.Random)
             {
-                await PlayRandom(_selectedStorage, _scopePath, _filterType);
+                await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
                 return;
             }
 
             if (_currentFile is null)
             {
-                await PlayRandom(_selectedStorage, _scopePath, _filterType);
+                await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
                 return;
             }
             var currentPath = _currentFile!.Path.GetUnixParentPath();
@@ -179,7 +180,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             {
                 RadHelper.WriteError($"Could not find directory {currentPath}. Launching random.");
                 AnsiConsole.WriteLine(RadHelper.ClearHack);
-                await PlayRandom(_selectedStorage, _scopePath, _filterType);
+                await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
                 return;
             }
             var currentFile = currentDirectory.Files?.FirstOrDefault(f => f.Id == _currentFile.Id);
@@ -188,7 +189,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             {
                 RadHelper.WriteError($"Could not find current file. Launching random.");
                 AnsiConsole.WriteLine(RadHelper.ClearHack);
-                await PlayRandom(_selectedStorage, _scopePath, _filterType);
+                await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
                 return;
             }
             var currentIndex = currentDirectory.Files!.IndexOf(currentFile);
@@ -206,7 +207,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             }
             RadHelper.WriteError($"{fileItem.Path} is not launchable. Launching random.");
             AnsiConsole.WriteLine(RadHelper.ClearHack);
-            await PlayRandom(_selectedStorage, _scopePath, _filterType);
+            await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
         }
 
         public void StopStream()
@@ -226,14 +227,16 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             PlayState = _playState,
             PlayMode = _playMode,
             FilterType = _filterType,
-            ScopePath = _scopePath,
+            ScopePath = _scopeDirectory,
             PlayTimer = _streamTimeSpan,
             SidTimer = _sidTimer,
-            CurrentItem = _currentFile
+            CurrentItem = _currentFile,
+            ScopeDirectory = _scopeDirectory
         };
 
         public void SetPlayMode(PlayMode playMode) => _playMode = playMode;
         public void SetFilter(TeensyFilterType filterType) => _filterType = filterType;
+        public void SetScope(string path) => _scopeDirectory = path;
         public void SetStreamTime(TimeSpan? timespan)
         {
             _streamTimeSpan = timespan;
