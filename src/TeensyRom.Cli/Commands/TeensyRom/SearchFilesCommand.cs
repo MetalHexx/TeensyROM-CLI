@@ -1,9 +1,12 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
+using System.IO;
+using System.Reactive.Joins;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Core.Player;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
@@ -15,11 +18,14 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, SearchFilesCommandSettings settings)
         {
+            var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
+
             player.StopStream();
 
             RadHelper.WriteMenu("Search Files", "Searches your storage devices.  Search will only include files that have been cached.", 
             [
-                "When launching a SID, or a timer is enabled, the next file in the directory will automatically play.",
+
+                "Cache files to fatten your search. ;)",
             ]);
             RadHelper.WriteHelpTable(("SearchExample", "Description"), 
             [
@@ -70,6 +76,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             var file = searchResults.First(f => f.Name == fileName);
 
             await player.LaunchItem(storageType, file.Path);
+
+            player.SetPlayMode(PlayMode.CurrentDirectory);
+
+            if (playerCommand is not null)
+            {
+                await playerCommand.ExecuteAsync(context, new());
+            }
 
             return 0;
         }

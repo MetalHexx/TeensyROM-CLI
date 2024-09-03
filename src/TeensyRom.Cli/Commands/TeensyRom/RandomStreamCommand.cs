@@ -20,9 +20,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             RadHelper.WriteMenu("Random Stream", "Randomly streams files from the specified directory and it's subdirectories.",
             [
-               "SIDs will stream continuously on play length.",
-               "Games, images and demos can be streamed with a timer.",
-               "Options selected for timers will persist across commands (will move to settings)",
+               "SIDs will stream continuously on play length or set timer.",
+               "Games, images and demos can also be streamed with a timer.",
                "Cache files to fatten your stream. ;)"
             ]);
             var globalSettings = settingsService.GetSettings();
@@ -41,18 +40,17 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             var filterType = CommandHelper.PromptForFilterType(settings.Filter);
 
             if (filterType is TeensyFilterType.All or TeensyFilterType.Games or TeensyFilterType.Images)
-            {   
+            {                   
+                player.SetStreamTime(CommandHelper.PromptGameTimer());
+
                 if (filterType is TeensyFilterType.All)
                 {
-                    var overrideSidTIme = PromptHelper.Confirm("Override SID Time", false);
-                    player.OverrideSidTIme(overrideSidTIme);
+                    var sidTimer = CommandHelper.PromptSidTimer("");
+                    player.SetSidTimer(sidTimer);
                 }
-                player.SetStreamTime(CommandHelper.PromptGameTimer());
             }
 
             if (!settings.ValidateSettings()) return -1;
-
-            AnsiConsole.WriteLine();
 
             await player.PlayRandom(storageType, settings.Directory, filterType);
 

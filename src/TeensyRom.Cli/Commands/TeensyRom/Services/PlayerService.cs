@@ -5,7 +5,6 @@ using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Common;
-using TeensyRom.Core.Logging;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Progress;
 using TeensyRom.Core.Serial.State;
@@ -19,13 +18,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
     {
         PlayerSettings GetPlayerSettings();
         Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
-        Task LaunchItem(TeensyStorageType storageType, string path);
-        void OverrideSidTIme(bool value);
+        Task LaunchItem(TeensyStorageType storageType, string path);        
         Task PlayNext();
         Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType);
         void SetFilter(TeensyFilterType filterType);
         void SetPlayMode(PlayMode playMode);
         void SetStreamTime(TimeSpan? timespan);
+        void SetSidTimer(SidTimer value);
         void StopStream();
     }
 
@@ -41,7 +40,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         private PlayMode _playMode = PlayMode.Random;
         private TeensyFilterType _filterType = TeensyFilterType.All;
         private TimeSpan? _streamTimeSpan = null;
-        private bool _overrideSongTimer = false;
+        private SidTimer _sidTimer = SidTimer.SongLength;
 
         private IDisposable? _progressSubscription;
         private readonly IMediator mediator;
@@ -134,7 +133,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         private void MaybeStartStream(ILaunchableItem fileItem)
         {
-            if (fileItem is SongItem songItem && _overrideSongTimer is false)
+            if (fileItem is SongItem songItem && _sidTimer is SidTimer.SongLength)
             {   
                 StartStream(songItem.PlayLength);
                 return;
@@ -229,7 +228,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             FilterType = _filterType,
             ScopePath = _scopePath,
             PlayTimer = _streamTimeSpan,
-            SidTimerOverride = _overrideSongTimer,
+            SidTimer = _sidTimer,
             CurrentItem = _currentFile
         };
 
@@ -239,7 +238,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         {
             _streamTimeSpan = timespan;
 
-            if (_currentFile is SongItem && _overrideSongTimer is false) 
+            if (_currentFile is SongItem && _sidTimer is SidTimer.SongLength) 
             {
                 return;
             }
@@ -250,6 +249,6 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 StartStream(_streamTimeSpan.Value);
             }
         }
-        public void OverrideSidTIme(bool value) => _overrideSongTimer = value;
+        public void SetSidTimer(SidTimer value) => _sidTimer = value;
     }
 }

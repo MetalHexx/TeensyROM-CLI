@@ -5,16 +5,19 @@ using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Logging;
+using TeensyRom.Core.Player;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class LaunchFileConsoleCommand(IMediator mediator, ISerialStateContext serial, ILoggingService logService, IPlayerService player, ICachedStorageService storage, ISettingsService settingsService) : AsyncCommand<LaunchFileCommandSettings>
+    internal class LaunchFileConsoleCommand(IMediator mediator, ISerialStateContext serial, ILoggingService logService, IPlayerService player, ICachedStorageService storage, ISettingsService settingsService, ITypeResolver resolver) : AsyncCommand<LaunchFileCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, LaunchFileCommandSettings settings)
         {
+            var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
+
             player.StopStream();
 
             RadHelper.WriteMenu("Launch File", "Launch a specific file.",
@@ -41,8 +44,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             if (!settings.ValidateSettings()) return -1;
 
             await player.LaunchItem(storageType, settings.FilePath);
+            player.SetPlayMode(PlayMode.CurrentDirectory);
 
-            AnsiConsole.WriteLine();
+            if (playerCommand is not null)
+            {
+                await playerCommand.ExecuteAsync(context, new());
+            }
             return 0;
         }
     }

@@ -45,6 +45,7 @@ public class Program
         services.AddSingleton<IObservableSerialPort>(serial);
         services.AddSingleton<ISerialStateContext>(serialState);
         services.AddSingleton<ILoggingService>(logService);
+        services.AddSingleton<ICliLoggingService>(logService);
         services.AddSingleton<IAlertService>(alertService);
         services.AddSingleton<ISettingsService>(settings);
         services.AddSingleton<IGameMetadataService>(gameService);

@@ -11,4 +11,10 @@
         CurrentDirectory,
         Random
     }
+
+    public enum SidTimer 
+    {
+        SongLength,
+        TimerOverride
+    }
 }

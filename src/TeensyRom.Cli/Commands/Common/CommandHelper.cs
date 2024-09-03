@@ -1,6 +1,7 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Core.Player;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
@@ -86,6 +87,22 @@ namespace TeensyRom.Cli.Commands.Common
                 "Games" => TeensyFilterType.Games,
                 "Images" => TeensyFilterType.Images,
                 _ => TeensyFilterType.All,
+            };
+        }
+
+        public static SidTimer PromptSidTimer(string value)
+        {
+            if (value.Equals(string.Empty))
+            {
+                value = PromptHelper.ChoicePrompt("Sid Timer", new List<string> { "Song Length", "Timer Override" });
+                RadHelper.WriteLine();
+            }
+
+            return value switch
+            {
+                "Song Length" => SidTimer.SongLength,
+                "Timer Override" => SidTimer.TimerOverride,
+                _ => SidTimer.SongLength,
             };
         }
 

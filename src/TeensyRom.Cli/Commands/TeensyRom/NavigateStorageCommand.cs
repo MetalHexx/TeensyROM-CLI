@@ -7,6 +7,7 @@ using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Logging;
+using TeensyRom.Core.Player;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
@@ -18,6 +19,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
     {
         public override async Task<int> ExecuteAsync(CommandContext context, NavigateStorageCommandSettings settings)
         {
+            var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
+
             player.StopStream();
 
             RadHelper.WriteMenu("Navigate Storage", "Navigate through the storage directories and pick a file to launch.",
@@ -64,6 +67,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             AnsiConsole.WriteLine();
 
             await player.LaunchItem(storageType, selectedFile.Path);
+            player.SetPlayMode(PlayMode.CurrentDirectory);            
+
+            if (playerCommand is not null)
+            {
+                await playerCommand.ExecuteAsync(context, new());
+            }
 
             return 0;
         }

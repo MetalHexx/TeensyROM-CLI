@@ -12,6 +12,6 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         public TeensyFilterType FilterType { get; set; } = TeensyFilterType.All;
         public string ScopePath { get; set; } = "/";
         public TimeSpan? PlayTimer { get; set; } = null;
-        public bool SidTimerOverride { get; set; } = false;
+        public SidTimer SidTimer { get; set; } = SidTimer.SongLength;
     }
 }

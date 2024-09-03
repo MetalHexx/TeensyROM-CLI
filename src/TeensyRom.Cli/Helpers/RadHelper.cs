@@ -194,6 +194,7 @@ namespace TeensyRom.Cli.Helpers
             var table = new Table()
                .BorderColor(Theme.Secondary.Color)
                .Border(TableBorder.Rounded)
+               .Expand()
                .AddColumn(title.AddHighlights())
                .AddRow(description);
 
@@ -215,6 +216,7 @@ namespace TeensyRom.Cli.Helpers
             var table = new Table()
                 .BorderColor(Theme.Secondary.Color)
                 .Border(TableBorder.Rounded)
+                .Expand()
                 .AddColumn(headers.Header1)
                 .AddColumn(headers.Header2);
 
@@ -256,6 +258,8 @@ namespace TeensyRom.Cli.Helpers
 
         public static void WriteFileInfo(ILaunchableItem item)
         {
+            AnsiConsole.WriteLine(ClearHack);
+
             var release = string.IsNullOrWhiteSpace(item.ReleaseInfo) ? "Unknown" : item.ReleaseInfo.EscapeBrackets();
 
             var body = string.Empty;

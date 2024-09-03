@@ -7,6 +7,7 @@ using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands;
+using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
@@ -14,7 +15,7 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
 {
-    internal class CacheCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator, ISettingsService settingsService) : AsyncCommand<CacheCommandSettings>
+    internal class CacheCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<CacheCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, CacheCommandSettings settings)
         {
@@ -49,7 +50,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             RadHelper.WriteLine($"Caching files for {storageType}...");
             AnsiConsole.WriteLine();
 
+            var loggingEnabled = logService.Enabled;
+
+            logService.Enabled = true;
             await storage.CacheAll(settings.Path);
+            logService.Enabled = loggingEnabled;
 
             return 0;
         }
