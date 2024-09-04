@@ -53,7 +53,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                                                             
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Player Controls", new List<string> { "Next", "Previous", "Mode", "Filter", "Timer", "Pinned Directory", "Refresh Menu", "Leave Player" });
+                choice = PromptHelper.ChoicePrompt("Player Controls", ["Next", "Previous", "Mode", "Filter", "Timer", "Pinned Directory", "Refresh Menu", "Leave Player"]);
 
                 switch (choice)
                 {
