@@ -15,5 +15,6 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         public string ScopePath { get; set; } = "/";
         public TimeSpan? PlayTimer { get; set; } = null;
         public SidTimer SidTimer { get; set; } = SidTimer.SongLength;
+        public string SearchQuery { get; set; } = "---";
     }
 }

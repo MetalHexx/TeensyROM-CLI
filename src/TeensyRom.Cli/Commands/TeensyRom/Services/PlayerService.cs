@@ -19,11 +19,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
     internal class PlayerService : IPlayerService
     {
+        private const string NotApplicable = "---";
         private TeensyStorageType _selectedStorage = TeensyStorageType.SD;
         private StorageScope _selectedScope = StorageScope.DirDeep;
         private string _scopeDirectory = "/";
         private string _currentDirectory = "/";
-        private string _searchQuery = string.Empty;
+        private string _searchQuery = NotApplicable;
 
         private ILaunchableItem? _currentFile = null;
         private PlayState _playState = PlayState.Stopped;
@@ -412,7 +413,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             _progressSubscription = null;
         }
 
-        public PlayerSettings GetPlayerSettings() => new PlayerSettings
+        public PlayerSettings GetPlayerSettings() => new()
         {
             StorageType = _selectedStorage,
             PlayState = _playState,
@@ -422,7 +423,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             PlayTimer = _streamTimeSpan,
             SidTimer = _sidTimer,
             CurrentItem = _currentFile,
-            ScopeDirectory = _scopeDirectory
+            ScopeDirectory = _scopeDirectory,
+            SearchQuery = _searchQuery
         };
 
         public void SetSearchMode(string query) 
@@ -435,6 +437,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         {
             _playMode = PlayMode.CurrentDirectory;
             _currentDirectory = directoryPath;
+            _searchQuery = NotApplicable;
         }
 
         public void SetRandomMode(string scopePath) 
@@ -445,6 +448,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             }
             _playMode = PlayMode.Random;
             _scopeDirectory = scopePath;
+            _searchQuery = NotApplicable;
         }
 
         public void SetFilter(TeensyFilterType filterType) => _filterType = filterType;
