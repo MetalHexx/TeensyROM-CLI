@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Spectre.Console;
+using System.Diagnostics.Contracts;
 using System.Reactive.Linq;
+using System.Runtime;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
@@ -14,23 +16,6 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.TeensyRom.Services
 {
-    internal interface IPlayerService 
-    {
-        PlayerSettings GetPlayerSettings();
-        Task<LaunchFileResult> LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
-        Task LaunchItem(TeensyStorageType storageType, string path);        
-        Task PlayNext();
-        Task PlayPrevious();
-        Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType);
-        void SetFilter(TeensyFilterType filterType);
-        void SetStreamTime(TimeSpan? timespan);
-        void SetSidTimer(SidTimer value);
-        void StopStream();
-        void SetScope(string path);
-        void SetSearchMode(string query);
-        void SetDirectoryMode(string path);
-        void SetRandomMode(string path);
-    }
 
     internal class PlayerService : IPlayerService
     {
@@ -216,63 +201,89 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         public ILaunchableItem? GetPreviousSearchItem()
         {
-            var files = _storage.Search(_searchQuery, []).ToList();
-
-            if (files.Count == 0) return null;
-
-            var currentFile = files.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
-
-            if (currentFile is null) return null;
-
-            var currentIndex = files.IndexOf(currentFile);
-
-            var index = currentIndex == 0
-                ? files.Count - 1
-                : currentIndex - 1;
-
-            return files[index];
+            var list = _storage.Search(_searchQuery, []).ToList();
+            return GetPreviousFromList(list);
         }
 
-        public async Task<ILaunchableItem?> GetPreviousDirectoryItem() 
+        public async Task<ILaunchableItem?> GetPreviousDirectoryItem()
         {
             var currentPath = _currentFile!.Path.GetUnixParentPath();
             var currentDirectory = await _storage.GetDirectory(currentPath);
 
             if (currentDirectory is null)
             {
-                RadHelper.WriteError($"Could not find directory {currentPath}. Launching random.");
+                RadHelper.WriteError($"Couldn't find directory {currentPath}.");
                 return null;
             }
-            var currentFile = currentDirectory.Files?.FirstOrDefault(f => f.Id == _currentFile.Id);
-
-            if (currentFile is null)
-            {
-                RadHelper.WriteError($"Could not find current file. Launching random.");
-                return null;
-            }
-            var currentIndex = currentDirectory.Files!.IndexOf(currentFile);
-
-            var newIndex = currentIndex == 0
-                ? currentDirectory.Files.Count - 1
-                : currentIndex - 1;
-
-            var fileItem = currentDirectory.Files[newIndex];
-
-            if (fileItem is ILaunchableItem launchItem)
-            {
-                return launchItem;
-            }
-            RadHelper.WriteError($"{fileItem.Path} is not launchable. Launching random.");
-            return null;
+            var items = currentDirectory.Files.OfType<ILaunchableItem>().ToList();
+            return GetPreviousFromList(items);
         }
 
-        public async Task PlayNext() 
+        private ILaunchableItem? GetPreviousFromList(List<ILaunchableItem> list) 
+        {
+            var unfilteredFiles = list;
+
+            if (unfilteredFiles.Count == 0) 
+            {
+                RadHelper.WriteError("Something went wrong.  I coudln't find any files in the target location.");
+                return null;
+            }
+            var currentFile = unfilteredFiles.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
+
+            if (currentFile is null) 
+            {
+                RadHelper.WriteError("Something went wrong.  I coudln't find the current file in the target location.");
+                return null;
+            }
+
+            var unfilteredIndex = unfilteredFiles.IndexOf(currentFile);
+
+            var filteredFiles = unfilteredFiles
+                .Where(f => GetFilterFileTypes()
+                    .Any(t => f.FileType == t))
+                .ToList();
+
+            if (filteredFiles.Count() == 0)
+            {
+                RadHelper.WriteError("There were no files matching your filter in the target location");
+                return null;
+            }
+            if (unfilteredIndex > filteredFiles.Count - 1)
+            {
+                return filteredFiles.Last();
+            }
+            var filteredIndex = filteredFiles.IndexOf(currentFile);
+
+            if (filteredIndex >= 0)
+            {
+                var index = filteredIndex < 0
+                ? filteredIndex - 1
+                : filteredFiles.Count - 1;
+
+                return filteredFiles[index];
+            }
+
+            for (int x = 0; x < unfilteredFiles.Count; x++)
+            {
+                var f = filteredFiles[x];
+                var fIndex = unfilteredFiles.IndexOf(f);
+
+                if (fIndex < unfilteredIndex)
+                {
+                    continue;
+                }
+                return f;
+            }
+            return filteredFiles.First();
+        }
+
+        public async Task PlayNext()
         {
             if (_playMode is PlayMode.Random)
             {
-                var nextHistory = _history.GetNext();
+                var nextHistory = _history.GetNext(GetFilterFileTypes());
 
-                if (nextHistory is not null) 
+                if (nextHistory is not null)
                 {
                     await LaunchItem(_selectedStorage, nextHistory);
                     return;
@@ -280,7 +291,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
                 return;
             }
-            if (_playMode is PlayMode.Search) 
+            if (_playMode is PlayMode.Search)
             {
                 var searchItem = GetNextSearchItem();
 
@@ -307,21 +318,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         public ILaunchableItem? GetNextSearchItem() 
         {
-            var files = _storage.Search(_searchQuery, []).ToList();
-
-            if (files.Count == 0) return null;
-
-            var currentFile = files.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
-
-            if (currentFile is null) return null;
-
-            var currentIndex = files.IndexOf(currentFile);
-
-            var index = currentIndex < files.Count - 1
-                ? currentIndex + 1
-                : 0;
-
-            return files[index];
+            var list = _storage.Search(_searchQuery, []).ToList();
+            return GetNextListItem(list);
         }
 
         public async Task<ILaunchableItem?> GetNextDirectoryItem()
@@ -331,30 +329,75 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
             if (currentDirectory is null)
             {
-                RadHelper.WriteError($"Could not find directory {currentPath}. Launching random.");
                 return null;
             }
-            var currentFile = currentDirectory.Files?.FirstOrDefault(f => f.Id == _currentFile.Id);
+            var list = currentDirectory.Files.OfType<ILaunchableItem>().ToList();
+            return GetNextListItem(list);
+        }
+
+        public ILaunchableItem? GetNextListItem(List<ILaunchableItem> list) 
+        {
+            var unfilteredFiles = list;
+
+            if (unfilteredFiles.Count == 0)
+            {
+                RadHelper.WriteError("Something went wrong.  I coudln't find any files in the target location.");
+                return null;
+            }
+
+            var currentFile = unfilteredFiles.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
 
             if (currentFile is null)
             {
-                RadHelper.WriteError($"Could not find current file. Launching random.");
+                RadHelper.WriteError("Something went wrong.  I coudln't find the current file in the target location.");
                 return null;
             }
-            var currentIndex = currentDirectory.Files!.IndexOf(currentFile);
 
-            var newIndex = currentIndex < currentDirectory.Files.Count - 1
-                ? currentIndex + 1
+            var unfilteredIndex = unfilteredFiles.IndexOf(currentFile);
+
+            var filteredFiles = unfilteredFiles
+                .Where(f => GetFilterFileTypes()
+                    .Any(t => f.FileType == t))
+                .ToList();
+
+            if (filteredFiles.Count() == 0)
+            {
+                RadHelper.WriteError("There were no files matching your filter in the target location");
+                return null;
+            }
+            if (unfilteredIndex > filteredFiles.Count - 1)
+            {
+                return filteredFiles.First();
+            }
+            var filteredIndex = filteredFiles.IndexOf(currentFile);
+
+            if (filteredIndex >= 0)
+            {
+                var index = filteredIndex < filteredFiles.Count - 1
+                ? filteredIndex + 1
                 : 0;
 
-            var fileItem = currentDirectory.Files[newIndex];
-
-            if (fileItem is ILaunchableItem launchItem)
-            {
-                return launchItem;
+                return filteredFiles[index];
             }
-            RadHelper.WriteError($"{fileItem.Path} is not launchable. Launching random.");
-            return null;
+
+            for (int x = 0; x < unfilteredFiles.Count; x++)
+            {
+                var f = filteredFiles[x];
+                var fIndex = unfilteredFiles.IndexOf(f);
+
+                if (fIndex < unfilteredIndex)
+                {
+                    continue;
+                }
+                return f;
+            }
+            return filteredFiles.First();
+        }
+
+        private TeensyFileType[] GetFilterFileTypes()
+        {
+            var trSettings = _settingsService.GetSettings();
+            return trSettings.GetFileTypes(_filterType);
         }
 
         public void StopStream()
@@ -371,6 +414,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         public PlayerSettings GetPlayerSettings() => new PlayerSettings
         {
+            StorageType = _selectedStorage,
             PlayState = _playState,
             PlayMode = _playMode,
             FilterType = _filterType,

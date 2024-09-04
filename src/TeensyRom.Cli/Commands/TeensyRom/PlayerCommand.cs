@@ -41,15 +41,15 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
                 RadHelper.WriteDynamicTable(["Setting / Action", "Value", "Description"],
                 [
-                    ["Next", "---", "Lauches the next file based on the mode."],
-                    ["Previous", "---", "Launches the previous file based on the mode."],
-                    ["Mode", mode, "Next file is random, from search results, or next in the current directory."],
-                    ["Filter", playerSettings.FilterType.ToString(), "Filter used to determine next random file."],
-                    ["Random Scope", playerSettings.ScopeDirectory, "Path to scope random selection.  Includes subdirs."],
+                    ["Current Directory", playerSettings.CurrentItem?.Path.GetUnixParentPath() ?? "---", "Directory of the playing file."],
+                    ["File", playerSettings.CurrentItem?.Name ?? "---", "The file playing."],
+                    ["Storage Device", playerSettings.StorageType.ToString(), "The active storage device."],
+                    ["Mode", mode, "The source of the files available to play."],
+                    ["Filter", playerSettings.FilterType.ToString(), "The type of files that will be played."],
+                    ["Random Scope", playerSettings.ScopeDirectory, "Random files will be selected from this directory and subdirs."],
                     ["Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Timer used for Games, Images and SIDs." ],
                     ["SID Timer", sidTimer, "Use song length or override w/timer."],
-                    ["Current Directory", playerSettings.CurrentItem?.Path.GetUnixParentPath() ?? "---", "Directory of the playing file."],                    
-                    ["File", playerSettings.CurrentItem?.Name ?? "---", "The file playing."],                                        
+                                                            
                 ]);
 
                 choice = PromptHelper.ChoicePrompt("Player Controls", new List<string> { "Next", "Previous", "Mode", "Filter", "Timer", "Random Scope", "Refresh Menu", "Leave Player" });

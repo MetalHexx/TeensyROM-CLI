@@ -6,6 +6,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 {
     internal class PlayerSettings 
     {
+        public TeensyStorageType StorageType { get; set; }
         public ILaunchableItem? CurrentItem = null;
         public string ScopeDirectory = "/";
         public PlayState PlayState { get; set; } = PlayState.Stopped;
