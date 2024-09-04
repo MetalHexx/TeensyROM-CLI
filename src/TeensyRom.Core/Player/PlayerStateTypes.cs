@@ -9,7 +9,8 @@
     public enum PlayMode
     {
         CurrentDirectory,
-        Random
+        Random,
+        Search
     }
 
     public enum SidTimer 

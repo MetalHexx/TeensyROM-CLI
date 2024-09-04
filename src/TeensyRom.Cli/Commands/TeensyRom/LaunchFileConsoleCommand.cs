@@ -43,8 +43,9 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             if (!settings.ValidateSettings()) return -1;
 
+            player.SetDirectoryMode(settings.FilePath);
             await player.LaunchItem(storageType, settings.FilePath);
-            player.SetPlayMode(PlayMode.CurrentDirectory);
+            
 
             if (playerCommand is not null)
             {

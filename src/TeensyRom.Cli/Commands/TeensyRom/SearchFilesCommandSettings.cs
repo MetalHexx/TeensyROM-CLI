@@ -13,14 +13,14 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         [CommandOption("-s|--storage")]
         public string StorageDevice { get; set; } = string.Empty;
 
-        [Description("Search terms.  Use quotes.  Ex: \"iron maiden aces high\"")]
-        [CommandOption("-t|--terms")]
-        public string Terms { get; set; } = string.Empty;
+        [Description("Search query.  Ex: \"iron maiden aces high\"")]
+        [CommandOption("-q|--query")]
+        public string Query { get; set; } = string.Empty;
 
         public void ClearSettings()
         {
             StorageDevice = string.Empty;
-            Terms = string.Empty;
+            Query = string.Empty;
         }
 
         public override ValidationResult Validate()

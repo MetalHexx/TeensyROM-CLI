@@ -81,7 +81,7 @@ public class Program
             config.AddExample("navigate");           
             config.AddExample("navigate -s sd -p /music/MUSICIANS/T/Tjelta_Geir");
             config.AddExample("search");
-            config.AddExample("search -s sd -t \"iron maiden aces high\"");
+            config.AddExample("search -s sd -q \"iron maiden aces high\"");
             config.AddExample("cache");
             config.AddExample("cache -s sd -p /music");
             config.AddExample("ports");
@@ -108,7 +108,7 @@ public class Program
             config.AddCommand<SearchFilesCommand>("search")
                     .WithAlias("s")
                     .WithDescription("Search for launchable files on the TeensyROM.")
-                    .WithExample(["search -s SD -t \"Iron Maiden Aces High\""]);
+                    .WithExample(["search -s SD -q \"Iron Maiden Aces High\""]);
 
             config.AddCommand<CacheCommand>("cache")
                     .WithAlias("c")

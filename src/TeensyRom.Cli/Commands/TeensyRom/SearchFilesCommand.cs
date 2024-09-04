@@ -1,7 +1,5 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
-using System.IO;
-using System.Reactive.Joins;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
@@ -48,9 +46,9 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 storage.SwitchStorage(storageType);
             }
 
-            if (string.IsNullOrWhiteSpace(settings.Terms))
+            if (string.IsNullOrWhiteSpace(settings.Query))
             {
-                settings.Terms = PromptHelper.DefaultValueTextPrompt("Search Terms:", 2, "iron maiden aces high");
+                settings.Query = PromptHelper.DefaultValueTextPrompt("Search Terms:", 2, "iron maiden aces high");
                 RadHelper.WriteLine();
             }
 
@@ -62,7 +60,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 return 0;
             }
 
-            var searchResults = storage.Search(settings.Terms, []);
+            var searchResults = storage.Search(settings.Query, []);
 
             if (!searchResults.Any()) 
             {
@@ -70,20 +68,20 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 AnsiConsole.WriteLine();
             }
 
-            var fileName = PromptHelper.FilePrompt("Select File", searchResults.Select(f => f.Name).ToList());
+            var fileName = PromptHelper.FilePrompt("Select File", searchResults
+                .Select(f => f.Name)
+                .ToList());
+
             AnsiConsole.WriteLine();
 
             var file = searchResults.First(f => f.Name == fileName);
-
+            player.SetSearchMode(settings.Query);
             await player.LaunchItem(storageType, file.Path);
-
-            player.SetPlayMode(PlayMode.CurrentDirectory);
 
             if (playerCommand is not null)
             {
                 await playerCommand.ExecuteAsync(context, new());
             }
-
             return 0;
         }
     }

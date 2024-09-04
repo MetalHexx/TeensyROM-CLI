@@ -27,9 +27,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
                 var playerSettings = player.GetPlayerSettings();
 
-                var mode = playerSettings.PlayMode is PlayMode.CurrentDirectory
-                    ? "Current Directory"
-                    : "Random";
+                var mode = playerSettings.PlayMode switch 
+                {
+                    PlayMode.CurrentDirectory => "Current Directory",
+                    PlayMode.Random => "Random",
+                    PlayMode.Search => "Search Results",
+                    _ => "Random"
+                };
 
                 var sidTimer = playerSettings.SidTimer is SidTimer.SongLength
                     ? "Song Length"
@@ -38,7 +42,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                 RadHelper.WriteDynamicTable(["Setting / Action", "Value", "Description"],
                 [
                     ["Next", "---", "Lauches the next file based on the mode and position in history."],
-                    ["Mode", mode, "Next file is random or next in current directory."],
+                    ["Mode", mode, "Next file is random, from search results, or next in the current directory."],
                     ["Filter", playerSettings.FilterType.ToString(), "Filter used to determine next random file."],
                     ["Random Scope", playerSettings.ScopeDirectory, "Path to scope random selection.  Includes subdirs."],
                     ["Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Timer used for Games, Images and SIDs." ],
@@ -63,13 +67,17 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                         break;
 
                     case "Mode":
-                        var playMode = PromptHelper.ChoicePrompt("Play Mode", ["Random", "Current Directory"]) switch
+                        var playMode = PromptHelper.ChoicePrompt("Play Mode", ["Random", "Current Directory"]);
+                        if (playMode == "Random")
                         {
-                            "Random" => PlayMode.Random,
-                            "Current Directory" => PlayMode.CurrentDirectory,
-                            _ => PlayMode.Random
-                        };
-                        player.SetPlayMode(playMode);
+                            player.SetRandomMode(playerSettings.ScopePath);
+                            break;
+                        }
+                        var directoryPath = playerSettings.CurrentItem is null 
+                            ? "/" 
+                            : playerSettings.CurrentItem.Path.GetUnixParentPath();
+
+                        player.SetDirectoryMode(directoryPath);
                         break;
 
                     case "Filter":
