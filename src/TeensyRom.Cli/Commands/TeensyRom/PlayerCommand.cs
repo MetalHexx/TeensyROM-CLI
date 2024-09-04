@@ -46,13 +46,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     ["Storage Device", playerSettings.StorageType.ToString(), "The active storage device."],
                     ["Mode", mode, "The source of the files available to play."],
                     ["Filter", playerSettings.FilterType.ToString(), "The type of files that will be played."],
-                    ["Random Scope", playerSettings.ScopeDirectory, "Random files will be selected from this directory and subdirs."],
+                    ["Pinned Directory", playerSettings.ScopeDirectory, "Random files will only be played from this directory and subdirs."],
                     ["Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Timer used for Games, Images and SIDs." ],
                     ["SID Timer", sidTimer, "Use song length or override w/timer."],
                                                             
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Player Controls", new List<string> { "Next", "Previous", "Mode", "Filter", "Timer", "Random Scope", "Refresh Menu", "Leave Player" });
+                choice = PromptHelper.ChoicePrompt("Player Controls", new List<string> { "Next", "Previous", "Mode", "Filter", "Timer", "Pinned Directory", "Refresh Menu", "Leave Player" });
 
                 switch (choice)
                 {
@@ -86,7 +86,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                         player.SetFilter(filter);
                         break;
 
-                    case "Random Scope":
+                    case "Pinned Directory":
                         var path = CommandHelper.PromptForDirectoryPath("");
 
                         if (!path.IsValidUnixPath()) 
