@@ -41,7 +41,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
                 RadHelper.WriteDynamicTable(["Setting / Action", "Value", "Description"],
                 [
-                    ["Next", "---", "Lauches the next file based on the mode and position in history."],
+                    ["Next", "---", "Lauches the next file based on the mode."],
+                    ["Previous", "---", "Launches the previous file based on the mode."],
                     ["Mode", mode, "Next file is random, from search results, or next in the current directory."],
                     ["Filter", playerSettings.FilterType.ToString(), "Filter used to determine next random file."],
                     ["Random Scope", playerSettings.ScopeDirectory, "Path to scope random selection.  Includes subdirs."],
@@ -51,7 +52,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     ["File", playerSettings.CurrentItem?.Name ?? "---", "The file playing."],                                        
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Player Controls", new List<string> { "Next", "Mode", "Filter", "Timer", "Scope", "Refresh Menu", "Leave Player" });
+                choice = PromptHelper.ChoicePrompt("Player Controls", new List<string> { "Next", "Previous", "Mode", "Filter", "Timer", "Random Scope", "Refresh Menu", "Leave Player" });
 
                 switch (choice)
                 {
@@ -60,7 +61,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                         break;
 
                     case "Previous":
-                        //player.LaunchItem(playerSettings.StorageType, playerSettings.FilterType, playerSettings.PlayMode, playerSettings.PlayState);
+                        player.PlayPrevious();
                         break;
 
                     case "Pause/Stop":
@@ -85,7 +86,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                         player.SetFilter(filter);
                         break;
 
-                    case "Scope":
+                    case "Random Scope":
                         var path = CommandHelper.PromptForDirectoryPath("");
 
                         if (!path.IsValidUnixPath()) 

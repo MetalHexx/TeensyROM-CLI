@@ -17,9 +17,10 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
     internal interface IPlayerService 
     {
         PlayerSettings GetPlayerSettings();
-        Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
+        Task<LaunchFileResult> LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
         Task LaunchItem(TeensyStorageType storageType, string path);        
         Task PlayNext();
+        Task PlayPrevious();
         Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType);
         void SetFilter(TeensyFilterType filterType);
         void SetStreamTime(TimeSpan? timespan);
@@ -47,20 +48,21 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         private SidTimer _sidTimer = SidTimer.SongLength;
 
         private IDisposable? _progressSubscription;
-        private readonly IMediator mediator;
-        private readonly ICachedStorageService storage;
-        private readonly IProgressTimer progressTimer;
-        private readonly ISettingsService settingsService;
-        private readonly ISerialStateContext serial;
+        private readonly IMediator _mediator;
+        private readonly ICachedStorageService _storage;
+        private readonly IProgressTimer _progressTimer;
+        private readonly ISettingsService _settingsService;
+        private readonly ISerialStateContext _serial;
+        private readonly ILaunchHistory _history;
 
-        public PlayerService(IMediator mediator, ICachedStorageService storage, IProgressTimer progressTimer, ISettingsService settingsService, ISerialStateContext serial)
+        public PlayerService(IMediator mediator, ICachedStorageService storage, IProgressTimer progressTimer, ISettingsService settingsService, ISerialStateContext serial, ILaunchHistory history)
         {
-            this.mediator = mediator;
-            this.storage = storage;
-            this.progressTimer = progressTimer;
-            this.settingsService = settingsService;
-            this.serial = serial;
-
+            _mediator = mediator;
+            _storage = storage;
+            _progressTimer = progressTimer;
+            _settingsService = settingsService;
+            _serial = serial;
+            _history = history;
             serial.CurrentState
                 .Where(state => state is SerialConnectionLostState && _playState is PlayState.Playing)
                 .Subscribe(_ => StopStream());
@@ -68,7 +70,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         public async Task LaunchItem(TeensyStorageType storageType, string path) 
         {
-            var directory = await storage.GetDirectory(path.GetUnixParentPath());
+            var directory = await _storage.GetDirectory(path.GetUnixParentPath());
 
             if (directory is null) 
             {
@@ -88,47 +90,55 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             return;
         }
 
-        public async Task LaunchItem(TeensyStorageType storageType, ILaunchableItem item)
+        public async Task<LaunchFileResult> LaunchItem(TeensyStorageType storageType, ILaunchableItem item)
         {
+            _currentFile = item;
             _selectedStorage = storageType;
-            _currentDirectory = item.Path;
+            _currentDirectory = _currentFile.Path;
             _playState = PlayState.Playing;
 
-            var result = await mediator.Send(new LaunchFileCommand(storageType, item));
-
+            var result = await _mediator.Send(new LaunchFileCommand(storageType, item));
+            
             if (result.IsSuccess)
             {
-                RadHelper.WriteFileInfo(item);
-                _currentFile = item;
+                RadHelper.WriteFileInfo(item);                
             }
             else
             {
                 RadHelper.WriteError($"Error Launching: { item.Path.EscapeBrackets() }");
                 AnsiConsole.WriteLine(RadHelper.ClearHack);
-
-                await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
+                await PlayNext();
             }
             AnsiConsole.WriteLine(RadHelper.ClearHack);
             MaybeStartStream(item);
+
+            return result;
         }
 
         public async Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType)
         {
+            if (_playMode is not PlayMode.Random) 
+            {
+                _history.Clear();
+            }
             _playMode = PlayMode.Random;
 
-            var trSettings = await settingsService.Settings.FirstAsync();
+            var trSettings = await _settingsService.Settings.FirstAsync();
             _filterType = filterType;
             _scopeDirectory = scopePath;
 
             var fileTypes = trSettings.GetFileTypes(_filterType);
 
-            var launchItem = storage.GetRandomFilePath(StorageScope.DirDeep, _scopeDirectory, fileTypes);
+            var randomItem = _storage.GetRandomFile(_selectedScope, _scopeDirectory, fileTypes);
 
-            var item = storage.GetRandomFile(_selectedScope, _scopeDirectory, fileTypes);
+            if (randomItem is null) return;            
 
-            if (item is null) return;            
+            var result = await LaunchItem(storageType, randomItem);
 
-            await LaunchItem(storageType, item);
+            if (result.IsSuccess) 
+            {
+                _history.Add(randomItem);
+            }
         }
 
         private void MaybeStartStream(ILaunchableItem fileItem)
@@ -149,18 +159,124 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             _playState = PlayState.Playing;
             _progressSubscription?.Dispose();
 
-            progressTimer.StartNewTimer(length);
+            _progressTimer.StartNewTimer(length);
             
-            _progressSubscription = progressTimer.TimerComplete.Subscribe(async _ =>
+            _progressSubscription = _progressTimer.TimerComplete.Subscribe(async _ =>
             {                
                 await PlayNext();
             });            
+        }
+
+        public async Task PlayPrevious()
+        {
+            if (_playMode is PlayMode.Random) 
+            {
+                var previous = _history.GetPrevious();
+
+                if (previous is not null) 
+                {
+                    await LaunchItem(_selectedStorage, previous);
+                    return;
+                }
+                if (_currentFile is not null) 
+                {
+                    await LaunchItem(_selectedStorage, _currentFile);
+                }                
+                return;
+            }
+            if (_playMode is PlayMode.Search) 
+            {
+                var searchItem = GetPreviousSearchItem();
+
+                if (searchItem is not null)
+                {
+                    await LaunchItem(_selectedStorage, searchItem);
+                    return;
+                }
+                if (_currentFile is not null)
+                {
+                    await LaunchItem(_selectedStorage, _currentFile);
+                }
+                return;
+            }
+            var previousItem = await GetPreviousDirectoryItem();
+
+            if (previousItem is not null)
+            {
+                await LaunchItem(_selectedStorage, previousItem);
+                AnsiConsole.WriteLine(RadHelper.ClearHack);
+                return;
+            }
+            if (_currentFile is not null)
+            {
+                await LaunchItem(_selectedStorage, _currentFile);
+            }
+            return;
+        }
+
+        public ILaunchableItem? GetPreviousSearchItem()
+        {
+            var files = _storage.Search(_searchQuery, []).ToList();
+
+            if (files.Count == 0) return null;
+
+            var currentFile = files.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
+
+            if (currentFile is null) return null;
+
+            var currentIndex = files.IndexOf(currentFile);
+
+            var index = currentIndex == 0
+                ? files.Count - 1
+                : currentIndex - 1;
+
+            return files[index];
+        }
+
+        public async Task<ILaunchableItem?> GetPreviousDirectoryItem() 
+        {
+            var currentPath = _currentFile!.Path.GetUnixParentPath();
+            var currentDirectory = await _storage.GetDirectory(currentPath);
+
+            if (currentDirectory is null)
+            {
+                RadHelper.WriteError($"Could not find directory {currentPath}. Launching random.");
+                return null;
+            }
+            var currentFile = currentDirectory.Files?.FirstOrDefault(f => f.Id == _currentFile.Id);
+
+            if (currentFile is null)
+            {
+                RadHelper.WriteError($"Could not find current file. Launching random.");
+                return null;
+            }
+            var currentIndex = currentDirectory.Files!.IndexOf(currentFile);
+
+            var newIndex = currentIndex == 0
+                ? currentDirectory.Files.Count - 1
+                : currentIndex - 1;
+
+            var fileItem = currentDirectory.Files[newIndex];
+
+            if (fileItem is ILaunchableItem launchItem)
+            {
+                return launchItem;
+            }
+            RadHelper.WriteError($"{fileItem.Path} is not launchable. Launching random.");
+            return null;
         }
 
         public async Task PlayNext() 
         {
             if (_playMode is PlayMode.Random)
             {
+                var nextHistory = _history.GetNext();
+
+                if (nextHistory is not null) 
+                {
+                    await LaunchItem(_selectedStorage, nextHistory);
+                    return;
+                }
                 await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
                 return;
             }
@@ -178,46 +294,20 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
                 return;
             }
-            var currentPath = _currentFile!.Path.GetUnixParentPath();
-            var currentDirectory = await storage.GetDirectory(currentPath);
+            var nextItem = await GetNextDirectoryItem();
 
-            if (currentDirectory is null)
+            if (nextItem is not null)
             {
-                RadHelper.WriteError($"Could not find directory {currentPath}. Launching random.");
+                var result = await LaunchItem(_selectedStorage, nextItem);
                 AnsiConsole.WriteLine(RadHelper.ClearHack);
-                await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
                 return;
             }
-            var currentFile = currentDirectory.Files?.FirstOrDefault(f => f.Id == _currentFile.Id);
-
-            if (currentFile is null)
-            {
-                RadHelper.WriteError($"Could not find current file. Launching random.");
-                AnsiConsole.WriteLine(RadHelper.ClearHack);
-                await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
-                return;
-            }
-            var currentIndex = currentDirectory.Files!.IndexOf(currentFile);
-
-            var newIndex = currentIndex < currentDirectory.Files.Count - 1
-                ? currentIndex + 1
-                : 0;
-
-            var fileItem = currentDirectory.Files[newIndex];
-
-            if (fileItem is ILaunchableItem launchItem)
-            {
-                await LaunchItem(_selectedStorage, launchItem);
-                return;
-            }
-            RadHelper.WriteError($"{fileItem.Path} is not launchable. Launching random.");
-            AnsiConsole.WriteLine(RadHelper.ClearHack);
             await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
         }
 
         public ILaunchableItem? GetNextSearchItem() 
         {
-            var files = storage.Search(_searchQuery, []).ToList();
+            var files = _storage.Search(_searchQuery, []).ToList();
 
             if (files.Count == 0) return null;
 
@@ -232,6 +322,39 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 : 0;
 
             return files[index];
+        }
+
+        public async Task<ILaunchableItem?> GetNextDirectoryItem()
+        {
+            var currentPath = _currentFile!.Path.GetUnixParentPath();
+            var currentDirectory = await _storage.GetDirectory(currentPath);
+
+            if (currentDirectory is null)
+            {
+                RadHelper.WriteError($"Could not find directory {currentPath}. Launching random.");
+                return null;
+            }
+            var currentFile = currentDirectory.Files?.FirstOrDefault(f => f.Id == _currentFile.Id);
+
+            if (currentFile is null)
+            {
+                RadHelper.WriteError($"Could not find current file. Launching random.");
+                return null;
+            }
+            var currentIndex = currentDirectory.Files!.IndexOf(currentFile);
+
+            var newIndex = currentIndex < currentDirectory.Files.Count - 1
+                ? currentIndex + 1
+                : 0;
+
+            var fileItem = currentDirectory.Files[newIndex];
+
+            if (fileItem is ILaunchableItem launchItem)
+            {
+                return launchItem;
+            }
+            RadHelper.WriteError($"{fileItem.Path} is not launchable. Launching random.");
+            return null;
         }
 
         public void StopStream()
@@ -272,6 +395,10 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         public void SetRandomMode(string scopePath) 
         {
+            if (_playMode is not PlayMode.Random) 
+            {
+                _history.Clear();                
+            }
             _playMode = PlayMode.Random;
             _scopeDirectory = scopePath;
         }
@@ -293,6 +420,6 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 StartStream(_streamTimeSpan.Value);
             }
         }
-        public void SetSidTimer(SidTimer value) => _sidTimer = value;
+        public void SetSidTimer(SidTimer value) => _sidTimer = value;        
     }
 }

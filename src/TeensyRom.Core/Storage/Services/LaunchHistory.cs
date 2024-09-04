@@ -43,8 +43,12 @@ namespace TeensyRom.Core.Storage.Services
 
         public ILaunchableItem? GetPrevious(params TeensyFileType[] types)
         {
-            var filteredList = FilterByTypes(types);
+            var filteredList = _history;
 
+            if (types.Any()) 
+            {
+                filteredList = FilterByTypes(types);
+            }
             int currentFilteredIndex = filteredList.FindLastIndex(tuple => tuple.Item1 < _currentIndex);
 
             if (currentFilteredIndex == -1) return null;
@@ -56,8 +60,12 @@ namespace TeensyRom.Core.Storage.Services
 
         public ILaunchableItem? GetNext(params TeensyFileType[] types)
         {
-            var filteredList = FilterByTypes(types);
+            var filteredList = _history;
 
+            if (types.Any())
+            {
+                filteredList = FilterByTypes(types);
+            }
             int currentFilteredIndex = filteredList.FindIndex(tuple => tuple.Item1 > _currentIndex);
 
             if (currentFilteredIndex == -1) return null;

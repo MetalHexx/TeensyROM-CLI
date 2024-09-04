@@ -56,6 +56,7 @@ public class Program
         services.AddSingleton<IPlayerService, PlayerService>();
         services.AddSingleton<ITypeResolver, TypeResolver>();
         services.AddSingleton<IProgressTimer, ProgressTimer>();
+        services.AddSingleton<ILaunchHistory, LaunchHistory>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CoreAssemblyMarker>());
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
