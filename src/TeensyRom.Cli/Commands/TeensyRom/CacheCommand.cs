@@ -7,6 +7,7 @@ using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands;
+using TeensyRom.Core.Common;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
@@ -53,7 +54,20 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             var loggingEnabled = logService.Enabled;
 
             logService.Enabled = true;
-            await storage.CacheAll(settings.Path);
+
+            try
+            {
+                await storage.CacheAll(settings.Path);
+            }
+            catch (TeensyException ex)
+            {
+                RadHelper.WriteError(ex.Message);
+                AnsiConsole.WriteLine();
+                RadHelper.WriteLine("Problem Caching: Waiting 10 seconds for TeensyROM to reset");
+                AnsiConsole.WriteLine();
+                await Task.Delay(10000);
+                await storage.CacheAll(settings.Path);
+            }
             logService.Enabled = loggingEnabled;
 
             return 0;

@@ -1,18 +1,12 @@
-﻿using CsvHelper.Expressions;
-using MediatR;
+﻿using MediatR;
 using Newtonsoft.Json;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using TeensyRom.Core.Assets;
 using TeensyRom.Core.Commands;
 using TeensyRom.Core.Commands.DeleteFile;
-using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Games;
 using TeensyRom.Core.Logging;
@@ -508,7 +502,10 @@ namespace TeensyRom.Core.Storage.Services
             _alert.Publish($"Refreshing cache for {path} and all nested directories.");
             var response = await _mediator.Send(new GetDirectoryRecursiveCommand(_settings.StorageType, path));
 
-            if (!response.IsSuccess) return;
+            if (!response.IsSuccess) 
+            {
+                throw new TeensyException(response.Error);
+            }
 
             _alert.Publish($"Enriching music and games.");
 

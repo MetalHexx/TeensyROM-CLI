@@ -2,7 +2,6 @@
 using Spectre.Console.Cli;
 using System.ComponentModel;
 using TeensyRom.Cli.Commands.Common;
-using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Common;
 
 namespace TeensyRom.Cli.Commands.TeensyRom
@@ -16,6 +15,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
         [Description("Specific TeensyROM path to cache")]
         [CommandOption("-p|--path")]
         public string Path { get; set; } = string.Empty;
+
+        public string Example => "cache -s sd -p /music/ ";
 
         public void ClearSettings()
         {
