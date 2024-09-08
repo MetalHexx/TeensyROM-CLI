@@ -52,7 +52,6 @@ public class Program
         services.AddSingleton<ISidMetadataService>(sidService);
         services.AddSingleton<ICachedStorageService, CachedStorageService>();
         services.AddSingleton<IPlayerService, PlayerService>();
-        services.AddSingleton<FileLaunchWriter>();
         services.AddSingleton<ITypeResolver, TypeResolver>();
         services.AddSingleton<IProgressTimer, ProgressTimer>();
         services.AddSingleton<ILaunchHistory, LaunchHistory>();

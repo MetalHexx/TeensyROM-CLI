@@ -1,11 +1,14 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
+using System.Numerics;
+using System.Windows.Markup;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Settings;
+using TeensyRom.Core.Storage.Entities;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
@@ -14,58 +17,38 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         public new void ClearSettings() { }
     }
 
-    internal class PlayerCommand(IPlayerService player) : Command<PlayerSettings>
+    internal class PlayerCommand : Command<PlayerSettings>
     {
+        private readonly IPlayerService _player;
+
+        public PlayerCommand(IPlayerService player)
+        {
+            _player = player;
+            _player.FileLaunched.Subscribe(DisplayLaunchedFile);
+        }
         public override int Execute(CommandContext context, PlayerSettings settings)
         {
             string choice;
 
+            RadHelper.WriteMenu("Stream Player", "There are many paths your stream can take...");
+            WriteHelp();
+
             do
             {
-                RadHelper.WriteMenu("Player Controls", "Use the options below to control behavior of the file launch stream.");
+                var playerSettings = _player.GetPlayerSettings();
 
                 choice = string.Empty;
 
-                var playerSettings = player.GetPlayerSettings();
-
-                var mode = playerSettings.PlayMode switch
-                {
-                    PlayMode.CurrentDirectory => "Current Directory",
-                    PlayMode.Random => "Random",
-                    PlayMode.Search => "Search Results",
-                    _ => "Random"
-                };
-
-                var sidTimer = playerSettings.SidTimer is SidTimer.SongLength
-                    ? "Song Length"
-                    : "Timer Override";
-
-                //TODO: Add ability to turn help on and off and add a setting.
-
-                RadHelper.WriteDynamicTable(["Setting / Action", "Value", "Description"],
-                [
-                    ["Current Directory", playerSettings.CurrentItem?.Path.GetUnixParentPath() ?? "---", "Directory of the playing file."],
-                    ["File", playerSettings.CurrentItem?.Name ?? "---", "The file playing."],
-                    ["Storage Device", playerSettings.StorageType.ToString(), "The active storage device."],
-                    ["Filter", playerSettings.FilterType.ToString(), "The type of files that will be played."],
-                    ["Mode", mode, "The source of the files available to play."],
-                    ["Search Query", playerSettings.SearchQuery ?? "---", "The current active search query."],
-                    ["Pinned Directory", playerSettings.ScopePath, "Random files will only be played from this directory and subdirs."],
-                    ["Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Timer used for Games, Images and SIDs." ],
-                    ["SID Timer", sidTimer, "Use song length or override w/timer."],
-
-                ]);
-
-                choice = PromptHelper.ChoicePrompt("Player Controls", ["Next", "Previous", "Mode", "Filter", "Timer", "Pin Directory", "Refresh Menu", "Back"]);
+                choice = PromptHelper.ChoicePrompt("Player Controls", ["Next", "Previous", "Mode", "Filter", "Timer", "Pin Directory", "Help", "Back"]);
 
                 switch (choice)
                 {
                     case "Next":
-                        player.PlayNext();
+                        _player.PlayNext();
                         break;
 
                     case "Previous":
-                        player.PlayPrevious();
+                        _player.PlayPrevious();
                         break;
 
                     case "Pause/Stop":
@@ -75,19 +58,19 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                         var playMode = PromptHelper.ChoicePrompt("Play Mode", ["Random", "Current Directory"]);
                         if (playMode == "Random")
                         {
-                            player.SetRandomMode(playerSettings.ScopePath);
+                            _player.SetRandomMode(playerSettings.ScopePath);
                             break;
                         }
                         var directoryPath = playerSettings.CurrentItem is null
                         ? "/"
                             : playerSettings.CurrentItem.Path.GetUnixParentPath();
 
-                        player.SetDirectoryMode(directoryPath);
+                        _player.SetDirectoryMode(directoryPath);
                         break;
 
                     case "Filter":
                         var filter = CommandHelper.PromptForFilterType("");
-                        player.SetFilter(filter);
+                        _player.SetFilter(filter);
                         break;
 
                     case "Pin Directory":
@@ -98,20 +81,80 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                             RadHelper.WriteError("Not a valid Unix path");
                             break;
                         }
-                        player.SetDirectoryScope(path);
+                        _player.SetDirectoryScope(path);
                         break;
 
                     case "Timer":
                         var timer = CommandHelper.PromptGameTimer("");
                         var sidTimerSelection = CommandHelper.PromptSidTimer("");
-                        player.SetSidTimer(sidTimerSelection);
-                        player.SetStreamTime(timer);
+                        _player.SetSidTimer(sidTimerSelection);
+                        _player.SetStreamTime(timer);
+                        break;
+
+                    case "Help":
+                        AnsiConsole.WriteLine(RadHelper.ClearHack);
+                        WriteHelp();
                         break;
                 }
 
             } while (choice != "Back");
 
             return 0;
+        }
+
+        private void WriteHelp()
+        {
+            var playerSettings = _player.GetPlayerSettings();
+
+            var mode = playerSettings.PlayMode switch
+            {
+                PlayMode.CurrentDirectory => "Current Directory",
+                PlayMode.Random => "Random",
+                PlayMode.Search => "Search Results",
+                _ => "Random"
+            };
+
+            var sidTimer = playerSettings.SidTimer is SidTimer.SongLength
+                ? "Song Length"
+                : "Timer Override";
+
+            //AnsiConsole.WriteLine();
+            RadHelper.WriteDynamicTable(["Setting", "Current Value", "Description"],
+            [
+                ["Storage Device", playerSettings.StorageType.ToString(), "The storage device the file is stored on."],
+                ["Current Directory", playerSettings.CurrentItem?.Path.GetUnixParentPath() ?? "---", "Directory of the playing file."],
+                ["File", playerSettings.CurrentItem?.Name ?? "---", "The current file playing."],
+                ["Mode", mode, "Play random or stick to a specific directory."],                
+                ["Filter", playerSettings.FilterType.ToString(), "The types of files that will be streamed."],
+                ["Pinned Directory", playerSettings.ScopePath, "Random mode will launch from this directory and subdirs."],
+                ["Search Query", playerSettings.SearchQuery ?? "---", "The current search query your stream is using."],                
+                ["Stream Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Continuous play timer for Games, Images and SIDs." ],
+                ["SID Timer", sidTimer, "SIDs play time is song length or overriden w/timer."]
+            ]);
+        }
+
+        private void DisplayLaunchedFile(ILaunchableItem item) 
+        {
+            AnsiConsole.WriteLine(RadHelper.ClearHack);
+            var release = string.IsNullOrWhiteSpace(item.ReleaseInfo) ? "Unknown" : item.ReleaseInfo.EscapeBrackets();
+
+            var body = string.Empty;
+
+            if (item is SongItem song)
+            {
+                body = $"\r\n  Title: {song.Title}\r\n  Creator: {song.Creator}\r\n  Release: {release}\r\n  Length: {song.PlayLength}\r\n  Clock: {song.Meta1}\r\n  SID: {song.Meta2}";
+            }
+            body = $"{body}\r\n  File Name: {item.Name}\r\n  Path: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\n";
+
+            var panel = new Panel(body.EscapeBrackets())
+                  .PadTop(2)
+                  .BorderColor(RadHelper.Theme.Secondary.Color)
+                  .Border(BoxBorder.Rounded)
+                  .Expand();
+
+            panel.Header($" Now Playing: {item.Title.EscapeBrackets()} ".AddHighlights());
+
+            AnsiConsole.Write(panel);
         }
     }
 }

@@ -47,7 +47,6 @@ public sealed class TypeRegistrar : ITypeRegistrar
             return new TypeResolver(_provider);
         }
         _provider = _builder.BuildServiceProvider();
-        var _ = _provider.GetRequiredService<FileLaunchWriter>();
 
         return new TypeResolver(_provider);
     }
