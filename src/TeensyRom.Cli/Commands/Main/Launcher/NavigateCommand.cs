@@ -21,13 +21,12 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         [CommandOption("-p|--path")]
         public string StartingPath { get; set; } = string.Empty;
 
-        public static string Example => "launch nav -s SD -p /music/MUSICIANS/T/Tjelta_Geir/";
-        public static string Description => "Navigate through the storage directories and pick a file to launch.";
+        public new static string Example => "launch nav -s SD -p /music/MUSICIANS/T/Tjelta_Geir/";
+        public new static string Description => "Navigate through the storage directories and pick a file to launch.";
 
-        public void ClearSettings()
+        public new void ClearSettings()
         {
             StorageDevice = string.Empty;
-            StartingPath = string.Empty;
         }
 
         public override ValidationResult Validate()
@@ -46,6 +45,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
     internal class NavigateCommand(ICachedStorageService storage, ITypeResolver resolver, IPlayerService player, ISettingsService settingsService) : AsyncCommand<NavigateSettings>
     {
+        private string _lastDirectory = string.Empty;
+
         public override async Task<int> ExecuteAsync(CommandContext context, NavigateSettings settings)
         {
             var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
@@ -54,8 +55,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             RadHelper.WriteMenu("Navigate Storage", "Navigate through the storage directories and pick a file to launch.",
             [
-               "When launching a SID, or a timer is enabled, the next file in the directory will automatically play.",
-               "Directory will be cached after first visit.",
+               "Your player mode will be set to \"Directory\" when you launch from here.",
             ]);
 
             var globalSettings = settingsService.GetSettings();
@@ -70,13 +70,15 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             {
                 storage.SwitchStorage(storageType);
             }
-            settings.StartingPath = CommandHelper.PromptForDirectoryPath(settings.StartingPath);
+            if (string.IsNullOrWhiteSpace(_lastDirectory)) _lastDirectory = settings.StartingPath;
 
-            var cacheItem = await storage.GetDirectory(settings.StartingPath);
+            _lastDirectory = CommandHelper.PromptForDirectoryPath(_lastDirectory);
+
+            var cacheItem = await storage.GetDirectory(_lastDirectory);
 
             if (cacheItem is null || !cacheItem.Files.Any() && !cacheItem.Directories.Any())
             {
-                RadHelper.WriteError($"No directories or files found in {storageType.ToString()} at path {settings.StartingPath}");
+                RadHelper.WriteError($"No directories or files found in {storageType.ToString()} at path {_lastDirectory}");
                 AnsiConsole.WriteLine();
                 return 0;
             }
@@ -106,7 +108,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         }
 
         public async Task<FileItem?> TraverseStorage(List<StorageItem> items, string targetDirectory)
-        {            
+        {
             if (targetDirectory != "/")
             {
                 items.Insert(0, new StorageItem 
@@ -121,6 +123,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (selectedStorageItem is FileItem file)
             {
+                _lastDirectory = file.Path.GetUnixParentPath();
                 return file;
             }
             var nextDirectory = selectedStorageItem.Path;
