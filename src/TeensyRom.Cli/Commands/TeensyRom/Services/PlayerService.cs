@@ -1,9 +1,6 @@
 ﻿using MediatR;
 using Spectre.Console;
-using System.Diagnostics.Contracts;
 using System.Reactive.Linq;
-using System.Runtime;
-using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Common;
@@ -19,12 +16,10 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
     internal class PlayerService : IPlayerService
     {
-        private const string NotApplicable = "---";
         private TeensyStorageType _selectedStorage = TeensyStorageType.SD;
         private StorageScope _selectedScope = StorageScope.DirDeep;
         private string _scopeDirectory = "/";
-        private string _currentDirectory = "/";
-        private string _searchQuery = NotApplicable;
+        private string? _searchQuery;
 
         private ILaunchableItem? _currentFile = null;
         private PlayState _playState = PlayState.Stopped;
@@ -33,10 +28,10 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         private TimeSpan? _streamTimeSpan = null;
         private SidTimer _sidTimer = SidTimer.SongLength;
 
-        private IDisposable? _progressSubscription;
+        private IDisposable? _timerSubscription;
         private readonly IMediator _mediator;
         private readonly ICachedStorageService _storage;
-        private readonly IProgressTimer _progressTimer;
+        private readonly IProgressTimer _timer;
         private readonly ISettingsService _settingsService;
         private readonly ISerialStateContext _serial;
         private readonly ILaunchHistory _history;
@@ -45,13 +40,20 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         {
             _mediator = mediator;
             _storage = storage;
-            _progressTimer = progressTimer;
+            _timer = progressTimer;
             _settingsService = settingsService;
             _serial = serial;
             _history = history;
+
+            var settings = settingsService.GetSettings();
+            _selectedStorage = settings.StorageType;
+            _filterType = settings.StartupFilter;
+            
             serial.CurrentState
                 .Where(state => state is SerialConnectionLostState && _playState is PlayState.Playing)
                 .Subscribe(_ => StopStream());
+
+            SetupTimerSubscription();
         }
 
         public async Task LaunchItem(TeensyStorageType storageType, string path) 
@@ -60,7 +62,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
             if (directory is null) 
             {
-                RadHelper.WriteError("File not found.");
+                RadHelper.WriteError("Directory not found.");
                 AnsiConsole.WriteLine();
                 return;
             }
@@ -80,7 +82,6 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         {
             _currentFile = item;
             _selectedStorage = storageType;
-            _currentDirectory = _currentFile.Path;
             _playState = PlayState.Playing;
 
             var result = await _mediator.Send(new LaunchFileCommand(storageType, item));
@@ -109,7 +110,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             }
             _playMode = PlayMode.Random;
 
-            var trSettings = await _settingsService.Settings.FirstAsync();
+            var trSettings = _settingsService.GetSettings();
             _filterType = filterType;
             _scopeDirectory = scopePath;
 
@@ -117,7 +118,13 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
             var randomItem = _storage.GetRandomFile(_selectedScope, _scopeDirectory, fileTypes);
 
-            if (randomItem is null) return;            
+            if (randomItem is null) 
+            {
+                AnsiConsole.WriteLine();
+                RadHelper.WriteError($"No files of that type were found on {storageType}");
+                AnsiConsole.WriteLine();
+                return;
+            }           
 
             var result = await LaunchItem(storageType, randomItem);
 
@@ -143,14 +150,18 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         private void StartStream(TimeSpan length)
         {
             _playState = PlayState.Playing;
-            _progressSubscription?.Dispose();
+            SetupTimerSubscription();
+            _timer.StartNewTimer(length);
+        }
 
-            _progressTimer.StartNewTimer(length);
-            
-            _progressSubscription = _progressTimer.TimerComplete.Subscribe(async _ =>
-            {                
+        private void SetupTimerSubscription()
+        {
+            _timerSubscription?.Dispose();
+
+            _timerSubscription = _timer.TimerComplete.Subscribe(async _ =>
+            {
                 await PlayNext();
-            });            
+            });
         }
 
         public async Task PlayPrevious()
@@ -226,18 +237,16 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
             if (unfilteredFiles.Count == 0) 
             {
-                RadHelper.WriteError("Something went wrong.  I coudln't find any files in the target location.");
+                RadHelper.WriteError("Something went wrong.  I couldn't find any files in the target location.");
                 return null;
             }
             var currentFile = unfilteredFiles.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
 
             if (currentFile is null) 
             {
-                RadHelper.WriteError("Something went wrong.  I coudln't find the current file in the target location.");
+                RadHelper.WriteError("Something went wrong.  I couldn't find the current file in the target location.");
                 return null;
             }
-
-            var unfilteredIndex = unfilteredFiles.IndexOf(currentFile);
 
             var filteredFiles = unfilteredFiles
                 .Where(f => GetFilterFileTypes()
@@ -249,33 +258,50 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 RadHelper.WriteError("There were no files matching your filter in the target location");
                 return null;
             }
-            if (unfilteredIndex > filteredFiles.Count - 1)
+
+            var currentFileUnfilteredIndex = unfilteredFiles.IndexOf(currentFile);
+
+            var currentFileComesAfterLastItemInFilteredList = unfilteredFiles.IndexOf(filteredFiles.Last()) < currentFileUnfilteredIndex;
+
+            if (currentFileComesAfterLastItemInFilteredList)
             {
                 return filteredFiles.Last();
             }
             var filteredIndex = filteredFiles.IndexOf(currentFile);
 
-            if (filteredIndex >= 0)
+            if (filteredIndex != -1)
             {
-                var index = filteredIndex < 0
-                ? filteredIndex - 1
-                : filteredFiles.Count - 1;
+                ///music/MUSICIANS/A/A-Man/Zack_Theme.sid  last sid in the directory
+                var index = filteredIndex == 0
+                    ? filteredFiles.Count - 1
+                    : filteredIndex - 1;
 
                 return filteredFiles[index];
             }
 
-            for (int x = 0; x < unfilteredFiles.Count; x++)
+            ILaunchableItem? candidate = null;
+
+            for (int x = 0; x < filteredFiles.Count; x++)
             {
                 var f = filteredFiles[x];
+
                 var fIndex = unfilteredFiles.IndexOf(f);
 
-                if (fIndex < unfilteredIndex)
+                if (fIndex < currentFileUnfilteredIndex)
                 {
+                    candidate = f;
                     continue;
                 }
-                return f;
+                else if (fIndex > currentFileUnfilteredIndex)
+                {
+                    break;
+                }
             }
-            return filteredFiles.First();
+            if (candidate is null)
+            {
+                return filteredFiles.First();
+            }
+            return candidate;
         }
 
         public async Task PlayNext()
@@ -372,7 +398,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             }
             var filteredIndex = filteredFiles.IndexOf(currentFile);
 
-            if (filteredIndex >= 0)
+            if (filteredIndex != -1)
             {
                 var index = filteredIndex < filteredFiles.Count - 1
                 ? filteredIndex + 1
@@ -381,18 +407,29 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
                 return filteredFiles[index];
             }
 
-            for (int x = 0; x < unfilteredFiles.Count; x++)
+            ILaunchableItem? candidate = null;
+
+            for (int x = 0; x < filteredFiles.Count; x++)
             {
                 var f = filteredFiles[x];
+
                 var fIndex = unfilteredFiles.IndexOf(f);
 
-                if (fIndex < unfilteredIndex)
+                if (fIndex > unfilteredIndex)
                 {
+                    candidate = f;
                     continue;
                 }
-                return f;
+                else if (fIndex < unfilteredIndex)
+                {
+                    break;
+                }
             }
-            return filteredFiles.First();
+            if (candidate is null)
+            {
+                return filteredFiles.First();
+            }
+            return candidate;
         }
 
         private TeensyFileType[] GetFilterFileTypes()
@@ -403,29 +440,35 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
 
         public void StopStream()
         {
-            if (_progressSubscription is not null) 
+            if (_timerSubscription is not null) 
             {
                 RadHelper.WriteTitle("Stopping Stream");
                 AnsiConsole.WriteLine(RadHelper.ClearHack);
             }            
             _playState = PlayState.Stopped;
-            _progressSubscription?.Dispose();
-            _progressSubscription = null;
+            _timerSubscription?.Dispose();
+            _timerSubscription = null;
         }
 
-        public PlayerSettings GetPlayerSettings() => new()
+        public PlayerSettings GetPlayerSettings() 
         {
-            StorageType = _selectedStorage,
-            PlayState = _playState,
-            PlayMode = _playMode,
-            FilterType = _filterType,
-            ScopePath = _scopeDirectory,
-            PlayTimer = _streamTimeSpan,
-            SidTimer = _sidTimer,
-            CurrentItem = _currentFile,
-            ScopeDirectory = _scopeDirectory,
-            SearchQuery = _searchQuery
-        };
+            var settings = _settingsService.GetSettings();
+
+           //TODO: Need to make storage settings more accessible from player.
+
+            return new PlayerSettings
+            {
+                StorageType = _selectedStorage,
+                PlayState = _playState,
+                PlayMode = _playMode,
+                FilterType = _filterType,
+                ScopePath = _scopeDirectory,
+                PlayTimer = _streamTimeSpan,
+                SidTimer = _sidTimer,
+                CurrentItem = _currentFile,
+                SearchQuery = _searchQuery
+            };
+        }
 
         public void SetSearchMode(string query) 
         {
@@ -436,8 +479,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         public void SetDirectoryMode(string directoryPath) 
         {
             _playMode = PlayMode.CurrentDirectory;
-            _currentDirectory = directoryPath;
-            _searchQuery = NotApplicable;
+            _scopeDirectory = directoryPath;
+            _searchQuery = null;
         }
 
         public void SetRandomMode(string scopePath) 
@@ -448,11 +491,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
             }
             _playMode = PlayMode.Random;
             _scopeDirectory = scopePath;
-            _searchQuery = NotApplicable;
+            _searchQuery = null;
         }
 
         public void SetFilter(TeensyFilterType filterType) => _filterType = filterType;
-        public void SetScope(string path) => _scopeDirectory = path;
+        public void SetDirectoryScope(string path) => _scopeDirectory = path;
         public void SetStreamTime(TimeSpan? timespan)
         {
             _streamTimeSpan = timespan;

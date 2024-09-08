@@ -17,7 +17,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom.Services
         void SetStreamTime(TimeSpan? timespan);
         void SetSidTimer(SidTimer value);
         void StopStream();
-        void SetScope(string path);
+        void SetDirectoryScope(string path);
         void SetSearchMode(string query);
         void SetDirectoryMode(string path);
         void SetRandomMode(string path);
