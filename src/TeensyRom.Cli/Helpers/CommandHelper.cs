@@ -77,7 +77,7 @@ namespace TeensyRom.Cli.Helpers
         {
             if (value.Equals(string.Empty))
             {
-                value = PromptHelper.ChoicePrompt("Stream Type", new List<string> { "All", "Music", "Games", "Images" });
+                value = PromptHelper.ChoicePrompt("Filter", new List<string> { "All", "Music", "Games", "Images" });
                 RadHelper.WriteLine();
             }
 
