@@ -1,24 +1,54 @@
 ﻿using MediatR;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System.Numerics;
-using System.Reactive.Linq;
-using TeensyRom.Cli.Commands.Common;
-using TeensyRom.Cli.Commands.TeensyRom.Services;
+using System.ComponentModel;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Cli.Services;
 using TeensyRom.Core.Commands;
 using TeensyRom.Core.Common;
-using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
 
-namespace TeensyRom.Cli.Commands.TeensyRom
+namespace TeensyRom.Cli.Commands.Main
 {
-    internal class CacheCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<CacheCommandSettings>
+    internal class CacheSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
     {
-        public override async Task<int> ExecuteAsync(CommandContext context, CacheCommandSettings settings)
+        [Description("Storage files to cache files for. (sd or usb)")]
+        [CommandOption("-s|--storage")]
+        public string StorageDevice { get; set; } = string.Empty;
+
+        [Description("Specific TeensyROM path to cache")]
+        [CommandOption("-p|--path")]
+        public string Path { get; set; } = string.Empty;
+
+        public static string Example => "cache -s sd -p /music/ ";
+        public static string Description => "Caches all the files on your storage device to enhance search and streaming features.";
+
+        public void ClearSettings()
+        {
+            StorageDevice = string.Empty;
+            Path = string.Empty;
+        }
+
+        public override ValidationResult Validate()
+        {
+            if (!StorageDevice.Equals(string.Empty) && !StorageDevice.IsValueValid(["sd", "usb"]))
+            {
+                return ValidationResult.Error($"Storage device must be 'sd' or 'usb'.");
+            }
+            if (!Path.Equals(string.Empty) && !Path.IsValidUnixPath())
+            {
+                return ValidationResult.Error($"Must be a valid unix path.");
+            }
+            return base.Validate();
+        }
+    }
+
+
+    internal class CacheCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<CacheSettings>
+    {
+        public override async Task<int> ExecuteAsync(CommandContext context, CacheSettings settings)
         {
             player.StopStream();
 
@@ -31,8 +61,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             var globalSettings = settingsService.GetSettings();
 
-            settings.StorageDevice = string.IsNullOrWhiteSpace(settings.StorageDevice) 
-                ? globalSettings.StorageType.ToString() 
+            settings.StorageDevice = string.IsNullOrWhiteSpace(settings.StorageDevice)
+                ? globalSettings.StorageType.ToString()
                 : settings.StorageDevice;
 
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice, promptAlways: true);

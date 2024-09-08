@@ -82,8 +82,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Commands\Main\Files\" />
-  </ItemGroup>
-
 </Project>

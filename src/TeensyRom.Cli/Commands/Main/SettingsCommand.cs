@@ -2,13 +2,12 @@
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
 using System.Transactions;
-using TeensyRom.Cli.Commands.Common;
-using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Cli.Services;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 
-namespace TeensyRom.Cli.Commands.TeensyRom
+namespace TeensyRom.Cli.Commands.Main
 {
     internal class SettingsCommand(ISerialStateContext serial, IPlayerService player, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<SettingsCommandSettings>
     {
@@ -18,7 +17,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             var choice = string.Empty;
 
-            do 
+            do
             {
                 RadHelper.WriteMenu("Settings", "Change your global settings.", []);
 
@@ -32,7 +31,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     ["Debug Logs Enabled", logService.Enabled.ToString(), "Enables verbose logs for debugging." ]
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Default Filter", "Toggle Debug Logs",  "Leave Settings" });
+                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Default Filter", "Toggle Debug Logs", "Leave Settings" });
 
                 switch (choice)
                 {
@@ -53,7 +52,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                         logService.Enabled = settings.EnableDebugLogs;
                         break;
                 }
-                if (choice != "Leave Settings") 
+                if (choice != "Leave Settings")
                 {
                     settingsService.SaveSettings(settings);
                 }

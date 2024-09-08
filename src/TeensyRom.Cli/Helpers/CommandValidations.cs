@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TeensyRom.Core.Common;
 
-namespace TeensyRom.Cli.Commands.Common
+namespace TeensyRom.Cli.Helpers
 {
     internal static class CommandValidations
     {

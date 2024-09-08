@@ -1,15 +1,14 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
-using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Serial.State;
 
-namespace TeensyRom.Cli.Commands.Common
+namespace TeensyRom.Cli.Helpers
 {
     internal class CommandInterceptor(ISerialStateContext serial) : ICommandInterceptor
     {
-        public void Intercept(CommandContext context, CommandSettings settings) 
+        public void Intercept(CommandContext context, CommandSettings settings)
         {
             if (settings is IRequiresConnection)
             {
@@ -25,7 +24,7 @@ namespace TeensyRom.Cli.Commands.Common
                 }
                 if (serialState is SerialStartState)
                 {
-                    throw new TeensyStateException("Command unavailable as no connectable ports have been found. ");                    
+                    throw new TeensyStateException("Command unavailable as no connectable ports have been found. ");
                 }
 
                 if (serialState is SerialConnectionLostState)
@@ -40,10 +39,10 @@ namespace TeensyRom.Cli.Commands.Common
                 throw new TeensyStateException("Command unavailable while serial is in an unknown state.");
             }
         }
-        public void InterceptResult(CommandContext context, CommandSettings settings, ref int result) 
+        public void InterceptResult(CommandContext context, CommandSettings settings, ref int result)
         {
-            if (settings is ITeensyCommandSettings s) 
-            {   
+            if (settings is ITeensyCommandSettings s)
+            {
                 s.ClearSettings();
             }
         }

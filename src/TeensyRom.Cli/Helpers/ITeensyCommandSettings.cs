@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TeensyRom.Cli.Commands.Common
+namespace TeensyRom.Cli.Helpers
 {
     internal interface ITeensyCommandSettings
     {

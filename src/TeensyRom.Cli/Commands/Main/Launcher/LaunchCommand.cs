@@ -1,6 +1,5 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
-using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Helpers;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
@@ -8,6 +7,9 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
     internal class LaunchSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
     {
         public void ClearSettings() { }
+
+        public static string Description => "Launch files from your storage device.";
+        public static string Example => "launch";
     }
     internal class LaunchCommand : AsyncCommand<LaunchSettings>
     {

@@ -1,11 +1,58 @@
-﻿using System.Xml.Linq;
+﻿using System.ComponentModel;
+using System.Xml.Linq;
+using Newtonsoft.Json;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Cli.Services;
 
-namespace TeensyRom.Cli.Commands.Chipsynth
+namespace TeensyRom.Cli.Commands.Main
 {
+    internal class GeneratePresetsSettings : CommandSettings
+    {
+        [JsonIgnore]
+        [Description("SID Clock that matches your machine.")]
+        [CommandOption("-c|--clock")]
+        public string Clock { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        [Description("Source path of the Chipsynth C64 presets. (Absolute Path)")]
+        [CommandOption("-s|--source")]
+        public string SourcePath { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        [Description("Target path of the Chipsynth C64 presets. (Relative Path)")]
+        [CommandOption("-t|--target")]
+
+        public static string Description => "Generate ASID friendly Chipsynth ASID presets.";
+        public static string Example => "chipsynth --clock ntsc --target ASID --source c:\\your\\preset\\directory";
+
+        public string TargetPath { get; set; } = string.Empty;
+        public bool RunWizard { get; set; } = false;
+
+        public override ValidationResult Validate()
+        {
+            var validSource = string.IsNullOrWhiteSpace(SourcePath) || Directory.Exists(SourcePath);
+
+            if (!validSource)
+            {
+                return ValidationResult.Error($"The source path '{SourcePath}' does not exist.");
+            }
+            var validTarget = string.IsNullOrWhiteSpace(TargetPath) || !Path.IsPathRooted(TargetPath);
+
+            if (!validTarget)
+            {
+                return ValidationResult.Error($"The target path '{TargetPath}' must be a relative path.");
+            }
+            var validClock = string.IsNullOrWhiteSpace(Clock) || Clock.Equals("PAL", StringComparison.OrdinalIgnoreCase) || Clock.Equals("NTSC", StringComparison.OrdinalIgnoreCase);
+
+            if (!validClock)
+            {
+                return ValidationResult.Error($"The clock '{Clock}' must be 'PAL' or 'NTSC'.");
+            }
+            return base.Validate();
+        }
+    }
     internal class GeneratePresetsCommand(IPlayerService player) : Command<GeneratePresetsSettings>
     {
         public override int Execute(CommandContext context, GeneratePresetsSettings s)
@@ -32,7 +79,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return 0;
         }
 
-        public bool RunWizard(GeneratePresetsSettings s) 
+        public bool RunWizard(GeneratePresetsSettings s)
         {
             var reRun = false;
             do
@@ -58,7 +105,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
 
                 var validationResult = s.Validate();
 
-                if (validationResult.Message is not null) 
+                if (validationResult.Message is not null)
                 {
                     RadHelper.WriteError(validationResult.Message);
                     AnsiConsole.WriteLine();
@@ -72,9 +119,9 @@ namespace TeensyRom.Cli.Commands.Chipsynth
                     reRun = true;
                 }
             }
-            while (reRun);            
+            while (reRun);
 
-            return true;            
+            return true;
         }
 
         private static bool EnsureTargetPath(GeneratePresetsSettings s)
@@ -106,14 +153,14 @@ namespace TeensyRom.Cli.Commands.Chipsynth
                 .AddColumn("Setting")
                 .AddColumn("Value")
                 .AddRow(
-                    RadHelper.AddSecondaryColor($"SID Clock"),
-                    RadHelper.AddSecondaryColor(s.Clock.ToUpper()))
+                    $"SID Clock".AddSecondaryColor(),
+                    s.Clock.ToUpper().AddSecondaryColor())
                 .AddRow(
-                    RadHelper.AddSecondaryColor($"Source Path"),
-                    RadHelper.AddSecondaryColor(s.SourcePath))
+                    $"Source Path".AddSecondaryColor(),
+                    s.SourcePath.AddSecondaryColor())
                 .AddRow(
-                    RadHelper.AddSecondaryColor($"Target Path"),
-                    RadHelper.AddSecondaryColor(Path.Combine(s.SourcePath, s.TargetPath)))
+                    $"Target Path".AddSecondaryColor(),
+                    Path.Combine(s.SourcePath, s.TargetPath).AddSecondaryColor())
                 .BorderColor(RadHelper.Theme.Primary.Color)
                 .Border(TableBorder.Rounded);
 
@@ -126,7 +173,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             AnsiConsole.WriteLine();
             List<FileInfo> files = GetExistingPresets(s);
 
-            if(files.Count == 0)
+            if (files.Count == 0)
             {
                 RadHelper.WriteError("No .fermatax files found.");
                 return -1;
@@ -134,8 +181,8 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             foreach (var file in files)
             {
                 WritePreset(file, s);
-            }  
-            AnsiConsole.WriteLine();            
+            }
+            AnsiConsole.WriteLine();
             return 0;
         }
 
@@ -150,7 +197,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             return files;
         }
 
-        private void WritePreset(FileInfo file, GeneratePresetsSettings s) 
+        private void WritePreset(FileInfo file, GeneratePresetsSettings s)
         {
             var transformer = new PresetTransformer();
 
@@ -158,7 +205,7 @@ namespace TeensyRom.Cli.Commands.Chipsynth
             {
                 RadHelper.WriteError("File was null.");
                 return;
-            }            
+            }
             XDocument xmlDoc = XDocument.Load(file.FullName);
 
             xmlDoc = transformer.Transform(xmlDoc, s.Clock);

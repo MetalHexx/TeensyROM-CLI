@@ -1,14 +1,9 @@
-﻿using MediatR;
-using Spectre.Console;
+﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
-using TeensyRom.Cli.Commands.Common;
-using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Cli.Services;
 using TeensyRom.Core.Common;
-using TeensyRom.Core.Logging;
-using TeensyRom.Core.Player;
-using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Services;
 

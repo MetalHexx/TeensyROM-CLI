@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using System;
+using TeensyRom.Cli.Services;
 
 public sealed class TypeResolver : ITypeResolver
 {
@@ -45,6 +47,8 @@ public sealed class TypeRegistrar : ITypeRegistrar
             return new TypeResolver(_provider);
         }
         _provider = _builder.BuildServiceProvider();
+        var _ = _provider.GetRequiredService<FileLaunchWriter>();
+
         return new TypeResolver(_provider);
     }
 

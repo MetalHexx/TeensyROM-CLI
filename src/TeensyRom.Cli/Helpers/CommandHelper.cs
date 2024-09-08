@@ -1,19 +1,18 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
-using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
 
-namespace TeensyRom.Cli.Commands.Common
+namespace TeensyRom.Cli.Helpers
 {
-    internal static class SpecialChars 
+    internal static class SpecialChars
     {
         public const string BulletPoint = "\u2022";
     }
     internal static class CommandHelper
-    {   
+    {
         public static TCommand? ResolveCommand<TCommand>(this ITypeResolver resolver) where TCommand : class
         {
             var command = resolver.Resolve(typeof(TCommand)) as TCommand;
@@ -27,18 +26,18 @@ namespace TeensyRom.Cli.Commands.Common
             return command;
         }
 
-        public static void DisplayCommandTitle(string message) 
+        public static void DisplayCommandTitle(string message)
         {
             RadHelper.WriteHorizonalRule(message, Justify.Left);
         }
 
-        public static TimeSpan? PromptGameTimer(string value) 
+        public static TimeSpan? PromptGameTimer(string value)
         {
             if (value.Equals(string.Empty))
             {
                 value = PromptHelper.ChoicePrompt("Game/Image Timer", ["No", "3m", "5m", "15m", "30m", "1h", "Turbo Mode"]);
                 RadHelper.WriteLine();
-            }            
+            }
             return value switch
             {
                 "3m" => TimeSpan.FromMinutes(3),
@@ -48,7 +47,7 @@ namespace TeensyRom.Cli.Commands.Common
                 "1h" => TimeSpan.FromHours(1),
                 "Turbo Mode" => TimeSpan.FromSeconds(3),
                 _ => null
-            };            
+            };
         }
 
         public static TeensyStorageType PromptForStorageType(string value, bool promptAlways = false)
@@ -59,10 +58,10 @@ namespace TeensyRom.Cli.Commands.Common
                 {
                     value = PromptHelper.ChoicePrompt("Storage Type", new List<string> { "USB", "SD" });
                 }
-                else 
+                else
                 {
                     value = PromptHelper.ChoicePrompt("Storage Type", new List<string> { "SD", "USB" });
-                }                
+                }
                 RadHelper.WriteLine();
             }
 
@@ -110,7 +109,7 @@ namespace TeensyRom.Cli.Commands.Common
             };
         }
 
-        public static string PromptForFilePath(string value, string defaultValue = "/music/MUSICIANS/T/Tjelta_Geir/Artillery.sid") 
+        public static string PromptForFilePath(string value, string defaultValue = "/music/MUSICIANS/T/Tjelta_Geir/Artillery.sid")
         {
             return PromptForPath(value, "File Path:", defaultValue);
         }
@@ -120,7 +119,7 @@ namespace TeensyRom.Cli.Commands.Common
             return PromptForPath(value, "Within Directory:", defaultValue);
         }
 
-        private static string PromptForPath(string value, string title, string defaultValue) 
+        private static string PromptForPath(string value, string title, string defaultValue)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
@@ -143,7 +142,7 @@ namespace TeensyRom.Cli.Commands.Common
             return launchItem;
         }
 
-        public static bool ValidateSettings(this CommandSettings settings) 
+        public static bool ValidateSettings(this CommandSettings settings)
         {
             var validation = settings.Validate();
 
@@ -152,7 +151,7 @@ namespace TeensyRom.Cli.Commands.Common
                 RadHelper.WriteError(validation?.Message ?? "Validation error");
                 RadHelper.WriteLine();
                 return false;
-            }            
+            }
             return true;
         }
     }

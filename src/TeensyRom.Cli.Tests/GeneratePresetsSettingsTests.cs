@@ -1,5 +1,5 @@
 using System.Reflection;
-using TeensyRom.Cli.Commands.Chipsynth;
+using TeensyRom.Cli.Commands.Main;
 
 namespace TeensyRom.Cli.Tests
 {
