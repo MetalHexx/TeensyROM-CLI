@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.IO.Ports;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -25,6 +24,7 @@ namespace TeensyRom.Core.Serial
         private readonly BehaviorSubject<Type> _state = new(typeof(SerialStartState));
         private readonly SerialPort _serialPort = new() { BaudRate = 115200 };
         private bool _healthCheckEnabled = true;
+        private bool _firstConnection = true;
 
         public int BytesToRead => _serialPort.BytesToRead;
         public void Write(string text) => _serialPort.Write(text);
@@ -91,7 +91,7 @@ namespace TeensyRom.Core.Serial
                     _serialPort.WriteTimeout = SerialPort.InfiniteTimeout;
                 }
 
-                var ms = 4000;
+                var ms = _firstConnection ? 300 : 4000;
 
                 _log.Internal($"ObservableSerialPort.EnsureConnection: Waiting {ms}ms for PING response");
 
@@ -107,13 +107,15 @@ namespace TeensyRom.Core.Serial
                 }
                 if(response.Contains("minimal", StringComparison.OrdinalIgnoreCase))
                 {
-                    _alert.Publish($"Detected TeensyROM minimal mode. You've been reconnected to {_serialPort.PortName}. :)");
+                    _alert.Publish($"Detected TeensyROM minimal mode. You've been reconnected to {_serialPort.PortName}.");
                 }
                 else
                 {
-                    _alert.Publish($"Connected to TeensyROM on {_serialPort.PortName}! :)");
+                    _alert.Publish($"Connected to TeensyROM on {_serialPort.PortName}!");
                 }
                 _log.Internal($"ObservableSerialPort.EnsureConnection: PING succeeded");
+
+                _firstConnection = false;
                 
                 ReadAndLogStaleBuffer();
                 Unlock();
@@ -122,7 +124,7 @@ namespace TeensyRom.Core.Serial
             if (_serialPort.IsOpen) _serialPort.Close();
 
             Unlock();
-            _alert.Publish("Unable to connect to TeensyROM! :(");
+            _alert.Publish("Unable to connect to TeensyROM!");
             throw new TeensyException($"ObservableSerialPort.EnsureConnection: Failed to ensure the connection to {_serialPort.PortName}. Retrying in {SerialPortConstants.Health_Check_Milliseconds} ms.");
         }
 
@@ -207,6 +209,8 @@ namespace TeensyRom.Core.Serial
             _log.InternalSuccess($"Successfully disconnected from {_serialPort.PortName}.");
 
             _healthCheckSubscription?.Dispose();
+
+            _firstConnection = true;
 
             return Unit.Default;
         }
