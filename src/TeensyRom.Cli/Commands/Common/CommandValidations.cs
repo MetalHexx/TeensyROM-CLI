@@ -13,6 +13,16 @@ namespace TeensyRom.Cli.Commands.Common
         public static bool IsValueValid(this string value, string[] validValues) => validValues.Contains(value.ToLower());
         public static bool IsValidStorageDevice(this string value) => value.IsValueValid(new[] { "sd", "usb" });
         public static bool IsValidFilter(this string value) => value.IsValueValid(new[] { "all", "music", "games", "images" });
+        public static bool IsValidTimer(this string value) => value.IsValueValid(new[] { "no", "3m", "5m", "15m", "30m", "1h", "turbo" });
+
+        public static ValidationResult ValidateTimer(this string value)
+        {
+            if (!string.IsNullOrWhiteSpace(value) && !value.IsValidTimer())
+            {
+                return ValidationResult.Error("Timer must be No, 3m, 5m, 15m, 30m, 1h, or Turbo.");
+            }
+            return ValidationResult.Success();
+        }
 
         public static ValidationResult ValidateStorageDevice(this string value)
         {

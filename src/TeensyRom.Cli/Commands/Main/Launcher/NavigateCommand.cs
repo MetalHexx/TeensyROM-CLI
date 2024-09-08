@@ -1,23 +1,53 @@
-﻿using MediatR;
-using Spectre.Console;
+﻿using Spectre.Console;
 using Spectre.Console.Cli;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Core.Logging;
-using TeensyRom.Core.Player;
-using TeensyRom.Core.Serial.State;
+using TeensyRom.Core.Common;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
 
-namespace TeensyRom.Cli.Commands.TeensyRom
+namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class NavigateStorageCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ITypeResolver resolver, IPlayerService player, ISettingsService settingsService) : AsyncCommand<NavigateStorageCommandSettings>
+    internal class NavigateSettings : LaunchSettings, ITeensyCommandSettings, IRequiresConnection
     {
-        public override async Task<int> ExecuteAsync(CommandContext context, NavigateStorageCommandSettings settings)
+        [Description("Storage device of file to launch. (sd or usb)")]
+        [CommandOption("-s|--storage")]
+        public string StorageDevice { get; set; } = string.Empty;
+
+        [Description("The path of the files to list.")]
+        [CommandOption("-p|--path")]
+        public string StartingPath { get; set; } = string.Empty;
+
+        public static string Example => "launch nav -s SD -p /music/MUSICIANS/T/Tjelta_Geir/";
+        public static string Description => "Navigate through the storage directories and pick a file to launch.";
+
+        public void ClearSettings()
+        {
+            StorageDevice = string.Empty;
+            StartingPath = string.Empty;
+        }
+
+        public override ValidationResult Validate()
+        {
+            if (!StorageDevice.Equals(string.Empty) && !StorageDevice.IsValueValid(["sd", "usb"]))
+            {
+                return ValidationResult.Error($"Storage device must be 'sd' or 'usb'.");
+            }
+            if (!StartingPath.Equals(string.Empty) && !StartingPath.IsValidUnixPath())
+            {
+                return ValidationResult.Error($"Must be a valid unix path.");
+            }
+            return base.Validate();
+        }
+    }
+
+    internal class NavigateCommand(ICachedStorageService storage, ITypeResolver resolver, IPlayerService player, ISettingsService settingsService) : AsyncCommand<NavigateSettings>
+    {
+        public override async Task<int> ExecuteAsync(CommandContext context, NavigateSettings settings)
         {
             var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
 
@@ -45,7 +75,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             var cacheItem = await storage.GetDirectory(settings.StartingPath);
 
-            if (cacheItem is null || (!cacheItem.Files.Any() && !cacheItem.Directories.Any()))
+            if (cacheItem is null || !cacheItem.Files.Any() && !cacheItem.Directories.Any())
             {
                 RadHelper.WriteError($"No directories or files found in {storageType.ToString()} at path {settings.StartingPath}");
                 AnsiConsole.WriteLine();
@@ -58,7 +88,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             var selectedFile = await TraverseStorage(storageItems, settings.StartingPath);
 
-            if (selectedFile is null) 
+            if (selectedFile is null)
             {
                 RadHelper.WriteError("Directory or files not found.");
                 AnsiConsole.WriteLine();
@@ -67,13 +97,12 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             AnsiConsole.WriteLine();
 
             player.SetDirectoryMode(selectedFile.Path);
-            await player.LaunchItem(storageType, selectedFile.Path);                        
+            await player.LaunchItem(storageType, selectedFile.Path);
 
             if (playerCommand is not null)
             {
-                await playerCommand.ExecuteAsync(context, new());
+                playerCommand.Execute(context, new());
             }
-
             return 0;
         }
 
@@ -83,7 +112,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             var selectedStorageItem = items.First(s => s.Name == storageItemName);
 
-            if (selectedStorageItem is FileItem file) 
+            if (selectedStorageItem is FileItem file)
             {
                 return file;
             }
@@ -91,7 +120,7 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 
             var cacheItem = await storage.GetDirectory(nextDirectory);
 
-            if (cacheItem is null) 
+            if (cacheItem is null)
             {
                 RadHelper.WriteError("Directory not found.");
                 AnsiConsole.WriteLine();
@@ -104,11 +133,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom
             return await TraverseStorage(storageItems, nextDirectory);
         }
 
-        public List<DirectoryItem> PrepareDirectories(IEnumerable<DirectoryItem> directories) 
+        public List<DirectoryItem> PrepareDirectories(IEnumerable<DirectoryItem> directories)
         {
             return directories
                 .Select(d => d.Clone())
-                .Select(d => 
+                .Select(d =>
                 {
                     d.Name = $"/{d.Name}";
                     return d;

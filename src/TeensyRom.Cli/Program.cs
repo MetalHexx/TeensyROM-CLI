@@ -2,10 +2,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Spectre.Console.Cli.Help;
 using System.Diagnostics;
+using System.Drawing;
 using System.Reflection;
 using TeensyRom.Cli.Commands.Chipsynth;
 using TeensyRom.Cli.Commands.Common;
+using TeensyRom.Cli.Commands.Main.Launcher;
 using TeensyRom.Cli.Commands.TeensyRom;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Fonts;
@@ -22,7 +25,6 @@ using TeensyRom.Core.Serial;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Services;
-
 public class Program
 {
     private static int Main(string[] args)
@@ -42,7 +44,7 @@ public class Program
         var settings = settingsService.GetSettings();
         logService.Enabled = settings.EnableDebugLogs;
 
-        UnpackAssets();
+        //UnpackAssets();
 
         services.AddSingleton<IObservableSerialPort>(serial);
         services.AddSingleton<ISerialStateContext>(serialState);
@@ -75,41 +77,57 @@ public class Program
 
             config.SetApplicationName("TeensyROM.Cli");
             config.SetApplicationVersion("1.0.0");
-            config.AddExample("random");
-            config.AddExample("random -s -f=all");
-            config.AddExample("launch");
-            config.AddExample("launch -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid");
-            config.AddExample("navigate");           
-            config.AddExample("navigate -s sd -p /music/MUSICIANS/T/Tjelta_Geir");
-            config.AddExample("search");
-            config.AddExample("search -s sd -q \"iron maiden aces high\"");
-            config.AddExample("cache");
-            config.AddExample("cache -s sd -p /music");
-            config.AddExample("ports");
-            config.AddExample(["chipsynth"]);
-            config.AddExample(["cs"]);
+
+            config.AddBranch<LaunchSettings>("launch", launch =>
+            {
+                launch.SetDefaultCommand<LaunchCommand>();
+
+                launch.AddCommand<RandomCommand>("random")
+                      .WithAlias("r")
+                      .WithDescription(RandomSettings.Description)
+                      .WithExample(RandomSettings.Example);
 
 
-            config.AddCommand<RandomStreamCommand>("random")
-                    .WithAlias("r")
-                    .WithDescription("Stream random files by file type and directory.")
-                    .WithExample("random")
-                    .WithExample("random -s -f=all -s=/games");
+                launch.AddCommand<NavigateCommand>("nav")
+                      .WithAlias("n")
+                      .WithDescription(NavigateSettings.Description)
+                      .WithExample(NavigateSettings.Example);
 
-            config.AddCommand<LaunchFileConsoleCommand>("launch")
-                    .WithAlias("l")
-                    .WithDescription("Launch a file on TeensyROM")
-                    .WithExample(["launch"]);
+                launch.AddCommand<SearchCommand>("search")
+                      .WithAlias("s")
+                      .WithDescription(SearchSettings.Description)
+                      .WithExample(SearchSettings.Example);
 
-            config.AddCommand<NavigateStorageCommand>("navigate")
-                    .WithAlias("n")
-                    .WithDescription("Navigate through the storage directories and pick a file to launch.")
-                    .WithExample(["nav -s SD -p /music/MUSICIANS/T/Tjelta_Geir/"]);
+                launch.AddCommand<FileLaunchCommand>("file")
+                      .WithAlias("s")
+                      .WithDescription(FileLaunchSettings.Description)
+                      .WithExample(FileLaunchSettings.Example);
 
-            config.AddCommand<SearchFilesCommand>("search")
-                    .WithAlias("s")
-                    .WithDescription("Search for launchable files on the TeensyROM.")
-                    .WithExample(["search -s SD -q \"Iron Maiden Aces High\""]);
+
+
+                launch.AddCommand<TeensyRom.Cli.Commands.Main.Launcher.PlayerCommand>("player");
+        });
+
+            var help = config.Settings.HelpProviderStyles;
+            help!.Arguments!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
+            help!.Description!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
+            help!.Usage!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
+            help!.Options!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
+            help!.Examples!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
+            help!.Commands!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
+            config.Settings.HelpProviderStyles = help;
+
+            config.AddExample(RandomSettings.Example);                        
+            config.AddExample(FileLaunchSettings.Example);            
+            config.AddExample(NavigateSettings.Example);            
+            config.AddExample(SearchSettings.Example);
+
+            //config.AddExample("cache");
+            //config.AddExample("cache -s sd -p /music");
+            //config.AddExample("ports");
+            //config.AddExample(["chipsynth"]);
+            //config.AddExample(["cs"]);
+
 
             config.AddCommand<CacheCommand>("cache")
                     .WithAlias("c")
@@ -128,23 +146,13 @@ public class Program
                     .WithExample(["cs"])
                     .WithExample(["cs", "--source c:\\your\\preset\\directory", "--target ASID --clock ntsc"]);
 
-            config.AddCommand<SettingsCommand>("settings")                    
+            config.AddCommand<SettingsCommand>("settings")
                     .WithDescription("Change your global settings.")
                     .WithExample(["settings"]);
 
-            config.AddCommand<PlayerCommand>("player")
-                .WithDescription("Shows file player interface")
-                .IsHidden();
-                
         });
 
         //logService.Logs.Subscribe(log => AnsiConsole.Markup($"{log}\r\n\r\n"));
-
-        if (args.Contains("-h") || args.Contains("--help") || args.Contains("-v") || args.Contains("--version"))
-        {
-            app.Run(args);
-            return -99;
-        }
 
         var resultCode = 0;
 
@@ -152,33 +160,47 @@ public class Program
         {
             try
             {
-                if (args.Length > 0)
+                if (args.Contains("-h") || args.Contains("--help") || args.Contains("-v") || args.Contains("--version"))
                 {
-                    resultCode = app.Run(args);
+                    app.Run(args);
+                    return -99;
                 }
 
-                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Random Stream", "Navigate Storage", "Launch File", "Search Files", "Show Player", "Settings", "Cache Files", "List Ports", "Generate ChipSynth ASID Patches", "Leave"]);
+                if (args.Length > 0)
+                {
+                    var help = args.ToList();
+                    help.Add("-h");
+                    AnsiConsole.WriteLine();
+
+                    resultCode = app.Run(help.ToArray());
+                    resultCode = app.Run(args);
+                    args = [];
+                }
+
+                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch", "Settings", "Cache Files", "List Ports", "Generate ASID Patches", "Leave"]);
 
                 AnsiConsole.WriteLine();
 
                 if (menuChoice == "Leave") return 0;
 
                 args = menuChoice switch
-                {
-                    "Random Stream" => ["random"],
-                    "Launch File" => ["launch"],
-                    "Navigate Storage" => ["navigate"],
-                    "Search Files" => ["search"],
-                    "Show Player" => ["player"],
+                {   
+                    "Launch" => ["launch"],    
                     "Cache Files" => ["cache"],
                     "Settings" => ["settings"],
-                    "List Ports" => ["ports"],                    
+                    "List Ports" => ["ports"],
                     "Generate ChipSynth ASID Patches" => ["chipsynth"],
                     _ => []
                 };
                 app.Run(args);
 
                 args = [];
+            }
+            catch(CommandParseException ex)
+            {
+                RadHelper.WriteError(ex.Message);
+                AnsiConsole.WriteLine();
+                args = ["-h"];
             }
             catch (TeensyStateException ex)
             {
@@ -190,7 +212,7 @@ public class Program
                 RadHelper.WriteError(ex.Message);
                 continue;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 AnsiConsole.WriteException(ex, ExceptionFormats.Default);
                 LogExceptionToFile(ex);
@@ -202,7 +224,7 @@ public class Program
 
     private static void UnpackAssets()
     {
-        
+
         AssetHelper.UnpackAssets(GameConstants.Game_Image_Local_Path, "OneLoad64.zip");
         AssetHelper.UnpackAssets(MusicConstants.Musician_Image_Local_Path, "Composers.zip");
         AssetHelper.UnpackAssets(AssetConstants.VicePath, "vice-bins.zip");
@@ -231,5 +253,4 @@ public class Program
             Debug.WriteLine("Failed to log exception: " + logEx.Message);
         }
     }
-
 }

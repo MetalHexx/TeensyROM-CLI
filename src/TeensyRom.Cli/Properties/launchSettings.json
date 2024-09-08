@@ -1,8 +1,8 @@
 {
   "profiles": {
     "TeensyRom.Cli": {
-      "commandName": "Project"
-      //"commandLineArgs": "launch"
+      "commandName": "Project",
+      "commandLineArgs": ""
     },
     "WSL": {
       "commandName": "WSL",
