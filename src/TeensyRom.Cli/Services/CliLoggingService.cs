@@ -5,7 +5,7 @@ using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Logging;
 
-namespace TeensyRom.Cli.Commands.TeensyRom.Services
+namespace TeensyRom.Cli.Services
 {
     internal interface ICliLoggingService : ILoggingService
     {

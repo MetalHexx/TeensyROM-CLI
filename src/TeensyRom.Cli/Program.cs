@@ -2,17 +2,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using Spectre.Console.Cli.Help;
 using System.Diagnostics;
-using System.Drawing;
 using System.Reflection;
-using TeensyRom.Cli.Commands.Chipsynth;
-using TeensyRom.Cli.Commands.Common;
+using TeensyRom.Cli.Commands.Main;
 using TeensyRom.Cli.Commands.Main.Launcher;
-using TeensyRom.Cli.Commands.TeensyRom;
-using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Cli.Services;
 using TeensyRom.Core;
 using TeensyRom.Core.Assets;
 using TeensyRom.Core.Common;
@@ -56,6 +52,7 @@ public class Program
         services.AddSingleton<ISidMetadataService>(sidService);
         services.AddSingleton<ICachedStorageService, CachedStorageService>();
         services.AddSingleton<IPlayerService, PlayerService>();
+        services.AddSingleton<FileLaunchWriter>();
         services.AddSingleton<ITypeResolver, TypeResolver>();
         services.AddSingleton<IProgressTimer, ProgressTimer>();
         services.AddSingleton<ILaunchHistory, LaunchHistory>();
@@ -81,32 +78,58 @@ public class Program
             config.AddBranch<LaunchSettings>("launch", launch =>
             {
                 launch.SetDefaultCommand<LaunchCommand>();
+                config.AddExample(LaunchSettings.Example);
+                launch.SetDescription(LaunchSettings.Description);
+                launch.AddExample(LaunchSettings.Example);
 
+                config.AddExample(RandomSettings.Example);
                 launch.AddCommand<RandomCommand>("random")
                       .WithAlias("r")
                       .WithDescription(RandomSettings.Description)
                       .WithExample(RandomSettings.Example);
 
-
+                config.AddExample(NavigateSettings.Example);
                 launch.AddCommand<NavigateCommand>("nav")
                       .WithAlias("n")
                       .WithDescription(NavigateSettings.Description)
                       .WithExample(NavigateSettings.Example);
 
+                config.AddExample(SearchSettings.Example);
                 launch.AddCommand<SearchCommand>("search")
                       .WithAlias("s")
                       .WithDescription(SearchSettings.Description)
                       .WithExample(SearchSettings.Example);
 
+                config.AddExample(FileLaunchSettings.Example);
                 launch.AddCommand<FileLaunchCommand>("file")
                       .WithAlias("s")
                       .WithDescription(FileLaunchSettings.Description)
                       .WithExample(FileLaunchSettings.Example);
 
+                launch.AddCommand<PlayerCommand>("player")
+                      .IsHidden();
+            });
 
+            config.AddExample(CacheSettings.Example);
+            config.AddCommand<CacheCommand>("cache")
+                  .WithAlias("c")
+                  .WithDescription(CacheSettings.Description)
+                  .WithExample(CacheSettings.Example);
 
-                launch.AddCommand<TeensyRom.Cli.Commands.Main.Launcher.PlayerCommand>("player");
-        });
+            config.AddExample(PortListSettings.Example);
+            config.AddCommand<PortListCommand>("ports")
+                  .WithAlias("p")
+                  .WithDescription(PortListSettings.Description)
+                  .WithExample(PortListSettings.Example);
+
+            config.AddExample(GeneratePresetsSettings.Example);
+            config.AddCommand<GeneratePresetsCommand>("chipsynth")
+                  .WithAlias("cs")
+                  .WithDescription(GeneratePresetsSettings.Description)
+                  .WithExample(GeneratePresetsSettings.Example);
+
+            config.AddCommand<SettingsCommand>("settings")
+                  .IsHidden();
 
             var help = config.Settings.HelpProviderStyles;
             help!.Arguments!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
@@ -116,39 +139,6 @@ public class Program
             help!.Examples!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
             help!.Commands!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
             config.Settings.HelpProviderStyles = help;
-
-            config.AddExample(RandomSettings.Example);                        
-            config.AddExample(FileLaunchSettings.Example);            
-            config.AddExample(NavigateSettings.Example);            
-            config.AddExample(SearchSettings.Example);
-
-            //config.AddExample("cache");
-            //config.AddExample("cache -s sd -p /music");
-            //config.AddExample("ports");
-            //config.AddExample(["chipsynth"]);
-            //config.AddExample(["cs"]);
-
-
-            config.AddCommand<CacheCommand>("cache")
-                    .WithAlias("c")
-                    .WithDescription("Caches all the files on your storage device to enhance search and streaming features.")
-                    .WithExample(["cache -s sd -p /music/ "]);
-
-            config.AddCommand<PortListCommand>("ports")
-                    .WithAlias("p")
-                    .WithDescription("Lists all COM ports for troubleshooting purposes.")
-                    .WithExample(["ports"]);
-
-            config.AddCommand<GeneratePresetsCommand>("chipsynth")
-                    .WithAlias("cs")
-                    .WithDescription("Generate ASID friendly Chipsynth ASID presets.")
-                    .WithExample(["chipsynth"])
-                    .WithExample(["cs"])
-                    .WithExample(["cs", "--source c:\\your\\preset\\directory", "--target ASID --clock ntsc"]);
-
-            config.AddCommand<SettingsCommand>("settings")
-                    .WithDescription("Change your global settings.")
-                    .WithExample(["settings"]);
 
         });
 

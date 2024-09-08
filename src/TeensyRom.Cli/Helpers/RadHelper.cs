@@ -259,32 +259,6 @@ namespace TeensyRom.Cli.Helpers
             return table;
         }
 
-        public static void WriteFileInfo(ILaunchableItem item)
-        {
-            AnsiConsole.WriteLine(ClearHack);
-
-            var release = string.IsNullOrWhiteSpace(item.ReleaseInfo) ? "Unknown" : item.ReleaseInfo.EscapeBrackets();
-
-            var body = string.Empty;
-
-            if (item is SongItem song) 
-            { 
-                body = $"\r\n  Title: {song.Title}\r\n  Creator: {song.Creator}\r\n  Release: {release}\r\n  Length: {song.PlayLength}\r\n  Clock: {song.Meta1}\r\n  SID: {song.Meta2}";
-            }
-            body = $"{body}\r\n  File Name: {item.Name}\r\n  Path: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\n";
-                
-                
-          var panel = new Panel(body.EscapeBrackets())
-                .PadTop(2)
-                .BorderColor(Theme.Secondary.Color)
-                .Border(BoxBorder.Rounded)
-                .Expand();                
-
-            panel.Header($" Now Playing: {item.Title.EscapeBrackets()} ".AddHighlights());
-
-            AnsiConsole.Write(panel);
-        }
-
         public static string EscapeBrackets(this string message) => message.Replace("[", "[[").Replace("]", "]]");
         public static string UnescapeBrackets(this string message) => message.Replace("[[", "[").Replace("]]", "]");
         public const string ClearHack = "                                                                          ";

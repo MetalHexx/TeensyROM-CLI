@@ -7,13 +7,17 @@ using TeensyRom.Core.Storage.Services;
 using TeensyRom.Core.Progress;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
-using TeensyRom.Cli.Commands.TeensyRom.Services;
 using System.Reactive.Linq;
 using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Player;
 using System.Reactive.Subjects;
 using Unit = System.Reactive.Unit;
 using TeensyRom.Core.Common;
+using TeensyRom.Cli.Services;
+using System.Reactive;
+using System.Threading.Tasks;
+using Microsoft.Reactive.Testing;
+using System;
 
 namespace TeensyRom.Cli.Tests
 {
@@ -333,6 +337,27 @@ namespace TeensyRom.Cli.Tests
             await playerService.LaunchItem(TeensyStorageType.SD, "/music/sid1.sid");
             playerService.SetStreamTime(TimeSpan.FromDays(1));
             _progressTimer.Received(0).StartNewTimer(TimeSpan.FromDays(1));
+        }
+
+        [Fact]
+        public async Task When_FileLaunched_Then_Emit() 
+        {
+            //Arrange
+            var playerService = _fixture.Create<PlayerService>();
+            var expectedFile = CreateFile<SongItem>("/music/sid1.sid");
+            SetupStorageService(expectedFile);
+            SetupMediatorSuccess();
+
+            //Act
+            var tcs = new TaskCompletionSource<ILaunchableItem>();
+            playerService.FileLaunched.Subscribe(tcs.SetResult);
+            
+            await playerService.LaunchItem(TeensyStorageType.SD, "/music/sid1.sid");
+
+            var actualFile = await tcs.Task;
+
+            // Assert
+            actualFile.Should().BeEquivalentTo(expectedFile);
         }
 
         [Theory]
