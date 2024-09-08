@@ -1,10 +1,11 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Reactive.Linq;
+using TeensyRom.Cli.Helpers;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Serial.State;
 
-namespace TeensyRom.Cli.Helpers
+namespace TeensyRom.Cli.Services
 {
     internal class CommandInterceptor(ISerialStateContext serial) : ICommandInterceptor
     {
