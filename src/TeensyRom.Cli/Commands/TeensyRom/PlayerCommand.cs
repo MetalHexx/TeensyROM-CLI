@@ -1,5 +1,6 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
+using System.ComponentModel;
 using TeensyRom.Cli.Commands.Common;
 using TeensyRom.Cli.Commands.TeensyRom.Services;
 using TeensyRom.Cli.Helpers;
@@ -10,7 +11,22 @@ namespace TeensyRom.Cli.Commands.TeensyRom
 {
     internal class PlayerCommandSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
     {
-        public void ClearSettings() { }
+        [Description("Timer used for Games, Images and SIDs. (No, 3m, 5m, 15m, 30m, 1h, Turbo)")]
+        [CommandOption("-t|--timer")]
+        public string Timer { get; set; } = string.Empty;
+
+        public void ClearSettings() 
+        {
+            Timer = string.Empty;
+        }
+
+        public override ValidationResult Validate()
+        {
+            var timerValidation = Timer.ValidateTimer();
+            if (!timerValidation.Successful) return timerValidation;
+
+            return base.Validate();
+        }
     }
 
     internal class PlayerCommand(IPlayerService player) : AsyncCommand<PlayerCommandSettings>
@@ -46,8 +62,8 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                     ["Storage Device", playerSettings.StorageType.ToString(), "The active storage device."],
                     ["Filter", playerSettings.FilterType.ToString(), "The type of files that will be played."],
                     ["Mode", mode, "The source of the files available to play."],                                        
-                    ["Search Query", playerSettings.SearchQuery, "The current active search query."],
-                    ["Pinned Directory", playerSettings.ScopeDirectory, "Random files will only be played from this directory and subdirs."],
+                    ["Search Query", playerSettings.SearchQuery ?? "---", "The current active search query."],
+                    ["Pinned Directory", playerSettings.ScopePath, "Random files will only be played from this directory and subdirs."],
                     ["Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Timer used for Games, Images and SIDs." ],
                     ["SID Timer", sidTimer, "Use song length or override w/timer."],
                                                             
@@ -95,11 +111,11 @@ namespace TeensyRom.Cli.Commands.TeensyRom
                             RadHelper.WriteError("Not a valid Unix path");
                             break;
                         }
-                        player.SetScope(path);
+                        player.SetDirectoryScope(path);
                         break;
 
                     case "Timer":
-                        var timer = CommandHelper.PromptGameTimer();
+                        var timer = CommandHelper.PromptGameTimer(settings.Timer);
                         var sidTimerSelection = CommandHelper.PromptSidTimer("");
                         player.SetSidTimer(sidTimerSelection);
                         player.SetStreamTime(timer);
