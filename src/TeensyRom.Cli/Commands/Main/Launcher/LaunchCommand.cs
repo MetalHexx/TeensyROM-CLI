@@ -36,12 +36,13 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             do
             {
-                RadHelper.WriteMenu("Launch Menu", "The path to launch files is yours to choose...");
+                RadHelper.WriteMenu("Launch Menu", "Tip: Consider a play timer to stream SIDs, Demos, and Game Intros together. Retro Jukebox! ;)");
 
                 RadHelper.WriteDynamicTable(["Menu Item", "Description"],
                 [
-                    ["Random", "Plays a random file."],
-                    ["Navigate", "Navigate your storage to find a file to launch."],
+                    ["Random", "Play a random file."],
+                    ["Search", "Search for files."],
+                    ["Navigate", "Navigate storage to find file."],
                     ["File", "Launch a file directory with a path or DeepSID link"],
                     ["Player", "Go to the player view."],
                     ["Back", "Back to main menu."],
@@ -62,7 +63,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                         break;
 
                     case "Player":
-                        return _playerCommand.Execute(context, new PlayerSettings { });
+                        _playerCommand.Execute(context, new PlayerSettings { });
+                        break;
 
                     default:
                         shouldLeave = true;
