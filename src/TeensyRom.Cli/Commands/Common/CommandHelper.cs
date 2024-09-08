@@ -32,12 +32,14 @@ namespace TeensyRom.Cli.Commands.Common
             RadHelper.WriteHorizonalRule(message, Justify.Left);
         }
 
-        public static TimeSpan? PromptGameTimer() 
+        public static TimeSpan? PromptGameTimer(string value) 
         {
-            string time = PromptHelper.ChoicePrompt("Game/Image Timer", ["No", "3m", "5m", "15m", "30m", "1h", "Turbo Mode"]);
-            AnsiConsole.WriteLine();
-
-            return time switch
+            if (value.Equals(string.Empty))
+            {
+                value = PromptHelper.ChoicePrompt("Game/Image Timer", ["No", "3m", "5m", "15m", "30m", "1h", "Turbo Mode"]);
+                RadHelper.WriteLine();
+            }            
+            return value switch
             {
                 "3m" => TimeSpan.FromMinutes(3),
                 "5m" => TimeSpan.FromMinutes(5),
@@ -101,6 +103,8 @@ namespace TeensyRom.Cli.Commands.Common
             return value switch
             {
                 "Song Length" => SidTimer.SongLength,
+                "length" => SidTimer.SongLength,
+                "override" => SidTimer.TimerOverride,
                 "Timer Override" => SidTimer.TimerOverride,
                 _ => SidTimer.SongLength,
             };
