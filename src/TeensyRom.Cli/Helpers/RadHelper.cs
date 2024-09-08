@@ -15,6 +15,7 @@ namespace TeensyRom.Cli.Helpers
             Primary: new MarkupColor(Color.Fuchsia, "fuchsia"),
             Secondary: new MarkupColor(Color.Aqua, "aqua"),
             Highlight: new MarkupColor(Color.White, "white"),
+            Dark: new MarkupColor(Color.Grey, "grey"),
             Error: new MarkupColor(Color.Red, "red"));
 
         /// <summary>
