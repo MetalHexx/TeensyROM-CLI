@@ -83,7 +83,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             var directories = PrepareDirectories(cacheItem.Directories);
 
-            IEnumerable<StorageItem> storageItems = directories.Concat(cacheItem.Files.Cast<StorageItem>());
+            List<StorageItem> storageItems = directories.Concat(cacheItem.Files.Cast<StorageItem>()).ToList();
 
             var selectedFile = await TraverseStorage(storageItems, settings.StartingPath);
 
@@ -105,8 +105,16 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             return 0;
         }
 
-        public async Task<FileItem?> TraverseStorage(IEnumerable<StorageItem> items, string targetDirectory)
-        {
+        public async Task<FileItem?> TraverseStorage(List<StorageItem> items, string targetDirectory)
+        {            
+            if (targetDirectory != "/")
+            {
+                items.Insert(0, new StorageItem 
+                {
+                    Name = "..",
+                    Path = targetDirectory.GetUnixParentPath(),
+                });                
+            }
             var storageItemName = PromptHelper.FilePrompt(targetDirectory, items.Select(s => s.Name).ToList());
 
             var selectedStorageItem = items.First(s => s.Name == storageItemName);
@@ -125,14 +133,14 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 AnsiConsole.WriteLine();
                 return null;
             }
-            IEnumerable<StorageItem> directories = PrepareDirectories(cacheItem.Directories);
+            List<DirectoryItem> directories = PrepareDirectories(cacheItem.Directories);
 
-            IEnumerable<StorageItem> storageItems = directories.Concat(cacheItem.Files.Cast<StorageItem>());
+            List<StorageItem> storageItems = directories.Concat(cacheItem.Files.Cast<StorageItem>()).ToList();
 
             return await TraverseStorage(storageItems, nextDirectory);
         }
 
-        public List<DirectoryItem> PrepareDirectories(IEnumerable<DirectoryItem> directories)
+        public List<DirectoryItem> PrepareDirectories(List<DirectoryItem> directories)
         {
             return directories
                 .Select(d => d.Clone())
