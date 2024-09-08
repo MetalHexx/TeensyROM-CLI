@@ -31,7 +31,7 @@ namespace TeensyRom.Cli.Commands.Main
                     ["Debug Logs Enabled", logService.Enabled.ToString(), "Enables verbose logs for debugging." ]
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Default Filter", "Toggle Debug Logs", "Leave Settings" });
+                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Toggle Debug Logs", "Leave Settings" });
 
                 switch (choice)
                 {
@@ -41,10 +41,6 @@ namespace TeensyRom.Cli.Commands.Main
 
                     case "Always Prompt Storage":
                         settings.AlwaysPromptStorage = PromptHelper.Confirm("Always Prompt Storage", settings.AlwaysPromptStorage);
-                        break;
-
-                    case "Default Filter":
-                        settings.StartupFilter = CommandHelper.PromptForFilterType("");
                         break;
 
                     case "Toggle Debug Logs":
