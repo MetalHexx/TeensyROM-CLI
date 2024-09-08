@@ -13,7 +13,7 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class PlayerSettings : LaunchSettings 
+    internal class PlayerSettings : LaunchSettings, ITeensyCommandSettings, IRequiresConnection
     {
         public new void ClearSettings() { }
     }
