@@ -9,6 +9,7 @@ using TeensyRom.Core.Common;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
@@ -20,10 +21,12 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
     internal class PlayerCommand : Command<PlayerSettings>
     {
         private readonly IPlayerService _player;
+        private readonly ICachedStorageService _storage;
 
-        public PlayerCommand(IPlayerService player)
+        public PlayerCommand(IPlayerService player, ICachedStorageService storage)
         {
             _player = player;
+            _storage = storage;
             _player.FileLaunched.Subscribe(DisplayLaunchedFile);
         }
         public override int Execute(CommandContext context, PlayerSettings settings)
@@ -39,7 +42,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
                 choice = string.Empty;
 
-                choice = PromptHelper.ChoicePrompt("Player Controls", ["Next", "Previous", "Mode", "Filter", "Timer", "Pin Directory", "Help", "Back"]);
+                choice = PromptHelper.ChoicePrompt("Player Controls", ["Next", "Previous", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Help", "Back"]);
 
                 switch (choice)
                 {
@@ -51,7 +54,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                         _player.PlayPrevious();
                         break;
 
-                    case "Pause/Stop":
+                    case "Favorite":
+                        HandleFavorite(playerSettings);
                         break;
 
                     case "Mode":
@@ -102,6 +106,29 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             return 0;
         }
 
+        private void HandleFavorite(Services.PlayerSettings playerSettings)
+        {
+            AnsiConsole.WriteLine(RadHelper.ClearHack);
+
+            if (playerSettings.CurrentItem is null)
+            {
+                RadHelper.WriteLine("No file is currently playing");
+                return;
+            }
+            if(playerSettings.CurrentItem.IsFavorite)
+            {
+                var shouldRemove = PromptHelper.Confirm("Remove Favorite?", false);
+
+                if (shouldRemove)
+                {
+                    RadHelper.WriteLine(RadHelper.ClearHack);
+                    _storage.RemoveFavorite(playerSettings.CurrentItem);
+                }
+                return;
+            }
+            _storage.SaveFavorite(playerSettings.CurrentItem);
+        }
+
         private void WriteHelp()
         {
             var playerSettings = _player.GetPlayerSettings();
@@ -144,7 +171,9 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             {
                 body = $"\r\n  Title: {song.Title}\r\n  Creator: {song.Creator}\r\n  Release: {release}\r\n  Length: {song.PlayLength}\r\n  Clock: {song.Meta1}\r\n  SID: {song.Meta2}";
             }
-            body = $"{body}\r\n  File Name: {item.Name}\r\n  Path: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\n";
+            var isFavorite = item.IsFavorite ? "Yes" : "No";
+
+            body = $"{body}\r\n  File Name: {item.Name}\r\n  Path: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\n  Favorite: {isFavorite}";
 
             var panel = new Panel(body.EscapeBrackets())
                   .PadTop(2)
