@@ -27,7 +27,6 @@ namespace TeensyRom.Cli.Commands.Main
                 [
                     ["Storage Device", settings.StorageType.ToString(), "Default value to use for your selected storage device."],
                     ["Always Prompt Storage", settings.AlwaysPromptStorage.ToString(), "Determines if you're always prompted to select the storage device."],
-                    ["Filter", settings.StartupFilter.ToString(), "Default filter to use for streams."],
                     ["Debug Logs Enabled", logService.Enabled.ToString(), "Enables verbose logs for debugging." ]
                 ]);
 
