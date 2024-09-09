@@ -13,7 +13,7 @@ namespace TeensyRom.Cli.Services
         {
             if(!string.IsNullOrWhiteSpace(error))
             {
-                RadHelper.WriteLine(error);                
+                RadHelper.WriteLine(error.EscapeBrackets());                
                 
             }
             AnsiConsole.WriteLine(RadHelper.ClearHack);
@@ -21,7 +21,7 @@ namespace TeensyRom.Cli.Services
 
         public void PublishError(string message)
         {
-            RadHelper.WriteError(message);
+            RadHelper.WriteError(message.EscapeBrackets());
             AnsiConsole.WriteLine(RadHelper.ClearHack);
         }
     }
