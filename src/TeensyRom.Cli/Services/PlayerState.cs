@@ -4,7 +4,7 @@ using TeensyRom.Core.Storage.Entities;
 
 namespace TeensyRom.Cli.Services
 {
-    internal class PlayerSettings
+    internal class PlayerState
     {
         public TeensyStorageType StorageType { get; set; }
         public ILaunchableItem? CurrentItem = null;

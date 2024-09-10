@@ -144,7 +144,7 @@ namespace TeensyRom.Core.Music.Sid
             if (string.IsNullOrWhiteSpace(stilDescription)) return string.Empty;
 
             var cleanedDescription = $"{stilDescription.StripCarriageReturnsAndExtraWhitespace()}";
-            cleanedDescription = cleanedDescription.Replace("COMMENT:", "\r\nComment:\r\n");
+            cleanedDescription = cleanedDescription.Replace("COMMENT:", "\r\nComment: ");
             cleanedDescription = cleanedDescription.Replace("ARTIST:", "\r\nArtist: ");
             cleanedDescription = cleanedDescription.Replace("TITLE:", "\r\nTitle: ");
             cleanedDescription = cleanedDescription.RemoveFirstOccurrence("\r\n");

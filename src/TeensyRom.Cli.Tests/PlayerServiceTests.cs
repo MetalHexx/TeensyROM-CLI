@@ -56,7 +56,7 @@ namespace TeensyRom.Cli.Tests
             //Arrange
             SetupSettingsWithStorage(TeensyStorageType.SD);
 
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 CurrentItem = null,
                 StorageType = TeensyStorageType.SD,
@@ -83,7 +83,7 @@ namespace TeensyRom.Cli.Tests
             //Arrange
             SetupSettingsWithStorage(TeensyStorageType.USB);
 
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 CurrentItem = null,
                 StorageType = TeensyStorageType.USB,
@@ -110,7 +110,7 @@ namespace TeensyRom.Cli.Tests
             //Arrange
             SetupSettingsWithFilter(TeensyFilterType.All);
 
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 CurrentItem = null,
                 StorageType = TeensyStorageType.SD,
@@ -137,7 +137,7 @@ namespace TeensyRom.Cli.Tests
             //Arrange
             SetupSettingsWithFilter(TeensyFilterType.Games);
 
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 CurrentItem = null,
                 StorageType = TeensyStorageType.SD,
@@ -162,7 +162,7 @@ namespace TeensyRom.Cli.Tests
         public void Given_PlayerFirstInitialization_And_SetScope_Then_SettingsCorrect()
         {
             //Arrange
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 ScopePath = "/music",
             };
@@ -181,7 +181,7 @@ namespace TeensyRom.Cli.Tests
         public void Given_PlayerFirstInitialization_And_SetSearchMode_ThenSettingsCorrect()
         {
             //Arrange
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 PlayMode = PlayMode.Search,
                 SearchQuery = "this is a query",
@@ -202,7 +202,7 @@ namespace TeensyRom.Cli.Tests
         public void Given_PlayerFirstInitialization_And_SetDirectoryMode_Then_SettingsCorrect()
         {
             //Arrange
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 PlayMode = PlayMode.CurrentDirectory,
                 ScopePath = "/music",
@@ -225,7 +225,7 @@ namespace TeensyRom.Cli.Tests
         public void Given_PlayerFirstInitialization_And_SetRandom_Then_SettingsCorrect()
         {
             //Arrange
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 PlayMode = PlayMode.Random,
                 ScopePath = "/music",
@@ -248,7 +248,7 @@ namespace TeensyRom.Cli.Tests
         public void Given_PlayerFirstInitialization_And_SetFilter_Then_SettingsCorrect()
         {
             //Arrange
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 PlayMode = PlayMode.Random,
                 ScopePath = "/music",
@@ -271,7 +271,7 @@ namespace TeensyRom.Cli.Tests
         public void Given_PlayerFirstInitialization_And_SetStreamTime_Then_SettingsCorrect()
         {
             //Arrange
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 PlayState = PlayState.Playing,
                 PlayMode = PlayMode.Random,
@@ -292,7 +292,7 @@ namespace TeensyRom.Cli.Tests
         public void Given_PlayerFirstInitialization_And_SetSidTimer_Then_SettingsCorrect()
         {
             //Arrange
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 SidTimer = SidTimer.TimerOverride
             };
@@ -366,7 +366,7 @@ namespace TeensyRom.Cli.Tests
         public async Task Given_FileDoesNotExist_When_LaunchedRequested_Then_SettingsAreCorrect(TeensyStorageType storageType)
         {
             //Arrange
-            PlayerSettings expectedSettings = new();
+            PlayerState expectedSettings = new();
             expectedSettings.CurrentItem = null;
             expectedSettings.StorageType = TeensyStorageType.SD;
             expectedSettings.PlayState = PlayState.Stopped;
@@ -413,7 +413,7 @@ namespace TeensyRom.Cli.Tests
             SeedStorageDirectory([]);
 
             //Arrange
-            PlayerSettings expectedSettings = new();
+            PlayerState expectedSettings = new();
             expectedSettings.CurrentItem = null;
             expectedSettings.StorageType = TeensyStorageType.SD;
             expectedSettings.PlayState = PlayState.Stopped;
@@ -479,7 +479,7 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(existingSong);
             SetupMediatorSuccess();
 
-            PlayerSettings expectedSettings = new();
+            PlayerState expectedSettings = new();
             expectedSettings.CurrentItem = existingSong;
             expectedSettings.StorageType = storageType;
             expectedSettings.PlayState = PlayState.Playing;
@@ -575,7 +575,7 @@ namespace TeensyRom.Cli.Tests
                 expectedFile,
                 CreateFile<SongItem>("/music/4.sid"),
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
@@ -610,7 +610,7 @@ namespace TeensyRom.Cli.Tests
                 CreateFile<SongItem>("/music/3.sid"),
                 currentFile,
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
@@ -647,7 +647,7 @@ namespace TeensyRom.Cli.Tests
                 CreateFile<GameItem>("/files/3.crt"),
                 expectedFile,
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
@@ -689,7 +689,7 @@ namespace TeensyRom.Cli.Tests
                 CreateFile<SongItem>("/files/8.sid"),
                 CreateFile<GameItem>("/files/9.crt"),
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
@@ -731,7 +731,7 @@ namespace TeensyRom.Cli.Tests
                 CreateFile<GameItem>("/files/8.crt"),
                 CreateFile<GameItem>("/files/9.crt"),
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
@@ -767,7 +767,7 @@ namespace TeensyRom.Cli.Tests
                 currentFile,
                 CreateFile<SongItem>("/music/4.sid"),
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
@@ -803,7 +803,7 @@ namespace TeensyRom.Cli.Tests
                 expectedFile,
 
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
@@ -840,7 +840,7 @@ namespace TeensyRom.Cli.Tests
                 CreateFile<GameItem>("/files/3.crt"),
                 currentFile,
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
@@ -882,7 +882,7 @@ namespace TeensyRom.Cli.Tests
                 CreateFile<SongItem>("/files/8.sid"),
                 CreateFile<GameItem>("/files/9.crt"),
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
@@ -924,7 +924,7 @@ namespace TeensyRom.Cli.Tests
                 CreateFile<GameItem>("/files/8.crt"),
                 CreateFile<GameItem>("/files/9.crt"),
             ]);
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
@@ -952,7 +952,7 @@ namespace TeensyRom.Cli.Tests
 
             var expectedFile = CreateFile<SongItem>("/music/1.sid");
 
-            var expectedSettings = new PlayerSettings
+            var expectedSettings = new PlayerState
             {
                 StorageType = TeensyStorageType.USB,
                 PlayMode = PlayMode.Random,

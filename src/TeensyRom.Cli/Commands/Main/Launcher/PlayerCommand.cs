@@ -84,7 +84,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             return 0;
         }
 
-        private static void HandleShare(Services.PlayerSettings playerSettings)
+        private static void HandleShare(Services.PlayerState playerSettings)
         {
             if (playerSettings.CurrentItem is not null)
             {
@@ -121,7 +121,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             _player.SetFilter(filter);
         }
 
-        private void HandleMode(Services.PlayerSettings playerSettings)
+        private void HandleMode(Services.PlayerState playerSettings)
         {
             var playMode = PromptHelper.ChoicePrompt("Play Mode", ["Random", "Current Directory"]);
 
@@ -137,7 +137,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             _player.SetDirectoryMode(directoryPath);
         }
 
-        private void HandleFavorite(Services.PlayerSettings playerSettings)
+        private void HandleFavorite(Services.PlayerState playerSettings)
         {
             AnsiConsole.WriteLine(RadHelper.ClearHack);
 

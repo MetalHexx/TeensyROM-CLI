@@ -19,7 +19,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
         [Description("The path of the files to list.")]
         [CommandOption("-p|--path")]
-        public string StartingPath { get; set; } = string.Empty;
+        [DefaultValue("/")]
+        public string StartingPath { get; set; } = "/";
 
         public new static string Example => "launch nav -s SD -p /music/MUSICIANS/T/Tjelta_Geir/";
         public new static string Description => "Navigate through the storage directories and pick a file to launch.";
@@ -56,6 +57,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             RadHelper.WriteMenu("Navigate Storage", "Navigate through the storage directories and pick a file to launch.",
             [
                "Your player mode will be set to \"Directory\" when you launch from here.",
+               "Your last visited directory will remembered for next time."
             ]);
 
             var globalSettings = settingsService.GetSettings();
@@ -71,8 +73,6 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 storage.SwitchStorage(storageType);
             }
             if (string.IsNullOrWhiteSpace(_lastDirectory)) _lastDirectory = settings.StartingPath;
-
-            _lastDirectory = CommandHelper.PromptForDirectoryPath(_lastDirectory);
 
             var cacheItem = await storage.GetDirectory(_lastDirectory);
 

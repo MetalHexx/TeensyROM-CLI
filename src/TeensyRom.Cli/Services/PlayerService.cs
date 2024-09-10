@@ -273,7 +273,6 @@ namespace TeensyRom.Cli.Services
 
             if (filteredIndex != -1)
             {
-                ///music/MUSICIANS/A/A-Man/Zack_Theme.sid  last sid in the directory
                 var index = filteredIndex == 0
                     ? filteredFiles.Count - 1
                     : filteredIndex - 1;
@@ -450,13 +449,11 @@ namespace TeensyRom.Cli.Services
             _timerSubscription = null;
         }
 
-        public PlayerSettings GetPlayerSettings()
+        public PlayerState GetPlayerSettings()
         {
             var settings = _settingsService.GetSettings();
 
-            //TODO: Need to make storage settings more accessible from player.
-
-            return new PlayerSettings
+            return new PlayerState
             {
                 StorageType = _selectedStorage,
                 PlayState = _playState,
