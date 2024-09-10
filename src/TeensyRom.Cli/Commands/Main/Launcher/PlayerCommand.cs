@@ -27,18 +27,16 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         }
         public override int Execute(CommandContext context, PlayerSettings settings)
         {
-            string choice;
-
             RadHelper.WriteMenu("Stream Player", "There are many paths your stream can take...");
             WriteHelp();
 
+            var choice = string.Empty; ;
+
             do
             {
-                var playerSettings = _player.GetPlayerSettings();
-
-                choice = string.Empty;
-
                 choice = PromptHelper.ChoicePrompt("Player Controls", ["Next", "Previous", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Help", "Back"]);
+
+                var playerSettings = _player.GetPlayerSettings();
 
                 switch (choice)
                 {
@@ -55,44 +53,22 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                         break;
 
                     case "Mode":
-                        var playMode = PromptHelper.ChoicePrompt("Play Mode", ["Random", "Current Directory"]);
-                        if (playMode == "Random")
-                        {
-                            _player.SetRandomMode(playerSettings.ScopePath);
-                            break;
-                        }
-                        var directoryPath = playerSettings.CurrentItem is null
-                        ? "/"
-                            : playerSettings.CurrentItem.Path.GetUnixParentPath();
-
-                        _player.SetDirectoryMode(directoryPath);
+                        HandleMode(playerSettings);
                         break;
 
                     case "Filter":
-                        var filter = CommandHelper.PromptForFilterType("");
-                        _player.SetFilter(filter);
+                        HandleFilter();
                         break;
 
                     case "Pin Directory":
-                        var path = CommandHelper.PromptForDirectoryPath("");
-
-                        if (!path.IsValidUnixPath())
-                        {
-                            RadHelper.WriteError("Not a valid Unix path");
-                            break;
-                        }
-                        _player.SetDirectoryScope(path);
+                        HandlePinDirectory();
                         break;
 
                     case "Timer":
-                        var timer = CommandHelper.PromptGameTimer("");
-                        var sidTimerSelection = CommandHelper.PromptSidTimer("");
-                        _player.SetSidTimer(sidTimerSelection);
-                        _player.SetStreamTime(timer);
+                        HandleTimer();
                         break;
 
-                    case "Help":
-                        AnsiConsole.WriteLine(RadHelper.ClearHack);
+                    case "Help":                        
                         WriteHelp();
                         break;
                 }
@@ -100,6 +76,48 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             } while (choice != "Back");
 
             return 0;
+        }
+
+        private void HandleTimer()
+        {
+            var timer = CommandHelper.PromptGameTimer("");
+            var sidTimerSelection = CommandHelper.PromptSidTimer("");
+            _player.SetSidTimer(sidTimerSelection);
+            _player.SetStreamTime(timer);
+        }
+
+        private void HandlePinDirectory()
+        {
+            var path = CommandHelper.PromptForDirectoryPath("");
+
+            if (!path.IsValidUnixPath())
+            {
+                RadHelper.WriteError("Not a valid Unix path");
+                return;
+            }
+            _player.SetDirectoryScope(path);
+        }
+
+        private void HandleFilter()
+        {
+            var filter = CommandHelper.PromptForFilterType("");
+            _player.SetFilter(filter);
+        }
+
+        private void HandleMode(Services.PlayerSettings playerSettings)
+        {
+            var playMode = PromptHelper.ChoicePrompt("Play Mode", ["Random", "Current Directory"]);
+
+            if (playMode == "Random")
+            {
+                _player.SetRandomMode(playerSettings.ScopePath);
+                return;
+            }
+            var directoryPath = playerSettings.CurrentItem is null
+            ? "/"
+                : playerSettings.CurrentItem.Path.GetUnixParentPath();
+
+            _player.SetDirectoryMode(directoryPath);
         }
 
         private void HandleFavorite(Services.PlayerSettings playerSettings)
@@ -127,6 +145,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
         private void WriteHelp()
         {
+            AnsiConsole.WriteLine(RadHelper.ClearHack);
+
             var playerSettings = _player.GetPlayerSettings();
 
             var mode = playerSettings.PlayMode switch
@@ -158,48 +178,39 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
         private void DisplayLaunchedFile(ILaunchableItem item) 
         {
-            try
+            AnsiConsole.WriteLine(RadHelper.ClearHack);
+            var release = string.IsNullOrWhiteSpace(item.ReleaseInfo) ? "Unknown" : item.ReleaseInfo.EscapeBrackets();
+
+            var body = string.Empty;
+
+            if (item is SongItem song)
             {
-                AnsiConsole.WriteLine(RadHelper.ClearHack);
-                var release = string.IsNullOrWhiteSpace(item.ReleaseInfo) ? "Unknown" : item.ReleaseInfo.EscapeBrackets();
-
-                var body = string.Empty;
-
-                if (item is SongItem song)
-                {
-                    body = $"\r\nCreator: {song.Creator}\r\nRelease: {release}\r\nLength: {song.PlayLength}\r\nClock: {song.Meta1}\r\nSID: {song.Meta2}";
-                }
-                var isFavorite = item.IsFavorite ? "Yes" : "No";
-
-                body = $"{body}\r\nFile Name: {item.Name}\r\nPath: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\nFavorite: {isFavorite}\r\n";
-
-                var fileInfoPanel = new Panel(body.EscapeBrackets())
-                    .Header($" Now Playing: {item.Title.EscapeBrackets()} ".AddHighlights())
-                    .PadLeft(3)
-                    .BorderColor(RadHelper.Theme.Secondary.Color)
-                    .Border(BoxBorder.Rounded)
-                    .Expand();
-
-                AnsiConsole.Write(fileInfoPanel);
-
-                if (item is SongItem && !string.IsNullOrWhiteSpace(item.Description))
-                {
-                    var stilCommentPanel = new Panel($"\r\n{item.Description.EscapeBrackets().Trim()}\r\n")
-                    .Header(" SID Comments ".AddSecondaryColor())
-                    .PadLeft(3)
-                    .BorderColor(RadHelper.Theme.Primary.Color)
-                    .Border(BoxBorder.Rounded)
-                    .Expand();
-
-                    AnsiConsole.Write(stilCommentPanel);
-                }
+                body = $"\r\nCreator: {song.Creator}\r\nRelease: {release}\r\nLength: {song.PlayLength}\r\nClock: {song.Meta1}\r\nSID: {song.Meta2}";
             }
-            catch (Exception ex)
+            var isFavorite = item.IsFavorite ? "Yes" : "No";
+
+            body = $"{body}\r\nFile Name: {item.Name}\r\nPath: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\nFavorite: {isFavorite}\r\n";
+
+            var fileInfoPanel = new Panel(body.EscapeBrackets())
+                .Header($" Now Playing: {item.Title.EscapeBrackets()} ".AddHighlights())
+                .PadLeft(3)
+                .BorderColor(RadHelper.Theme.Secondary.Color)
+                .Border(BoxBorder.Rounded)
+                .Expand();
+
+            AnsiConsole.Write(fileInfoPanel);
+
+            if (item is SongItem && !string.IsNullOrWhiteSpace(item.Description))
             {
-                
-                var x = 0;
-            }
-            
+                var stilCommentPanel = new Panel($"\r\n{item.Description.EscapeBrackets().Trim()}\r\n")
+                .Header(" SID Comments ".AddSecondaryColor())
+                .PadLeft(3)
+                .BorderColor(RadHelper.Theme.Primary.Color)
+                .Border(BoxBorder.Rounded)
+                .Expand();
+
+                AnsiConsole.Write(stilCommentPanel);
+            }            
         }
     }
 }
