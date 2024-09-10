@@ -3,7 +3,7 @@
     public class GameItem : FileItem, ILaunchableItem, IViewableItem
     {
         public override string Creator => GetExtensionShortDescription();
-        public override string Description => GetExtensionLongDescription();
+        public override string Description => "No Description";
         public override string Title => $"{Name[..Name.LastIndexOf('.')]}";
         public override string Meta1 => Name[(Name.LastIndexOf('.') + 1)..];
         public List<ViewableItemImage> Images { get; init; } = [];

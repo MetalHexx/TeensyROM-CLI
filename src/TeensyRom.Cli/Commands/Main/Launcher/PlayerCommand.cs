@@ -1,13 +1,9 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
-using System.ComponentModel;
-using System.Numerics;
-using System.Windows.Markup;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Player;
-using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
 
@@ -162,28 +158,48 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
         private void DisplayLaunchedFile(ILaunchableItem item) 
         {
-            AnsiConsole.WriteLine(RadHelper.ClearHack);
-            var release = string.IsNullOrWhiteSpace(item.ReleaseInfo) ? "Unknown" : item.ReleaseInfo.EscapeBrackets();
-
-            var body = string.Empty;
-
-            if (item is SongItem song)
+            try
             {
-                body = $"\r\n  Title: {song.Title}\r\n  Creator: {song.Creator}\r\n  Release: {release}\r\n  Length: {song.PlayLength}\r\n  Clock: {song.Meta1}\r\n  SID: {song.Meta2}";
+                AnsiConsole.WriteLine(RadHelper.ClearHack);
+                var release = string.IsNullOrWhiteSpace(item.ReleaseInfo) ? "Unknown" : item.ReleaseInfo.EscapeBrackets();
+
+                var body = string.Empty;
+
+                if (item is SongItem song)
+                {
+                    body = $"\r\nCreator: {song.Creator}\r\nRelease: {release}\r\nLength: {song.PlayLength}\r\nClock: {song.Meta1}\r\nSID: {song.Meta2}";
+                }
+                var isFavorite = item.IsFavorite ? "Yes" : "No";
+
+                body = $"{body}\r\nFile Name: {item.Name}\r\nPath: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\nFavorite: {isFavorite}\r\n";
+
+                var fileInfoPanel = new Panel(body.EscapeBrackets())
+                    .Header($" Now Playing: {item.Title.EscapeBrackets()} ".AddHighlights())
+                    .PadLeft(3)
+                    .BorderColor(RadHelper.Theme.Secondary.Color)
+                    .Border(BoxBorder.Rounded)
+                    .Expand();
+
+                AnsiConsole.Write(fileInfoPanel);
+
+                if (item is SongItem && !string.IsNullOrWhiteSpace(item.Description))
+                {
+                    var stilCommentPanel = new Panel($"\r\n{item.Description.EscapeBrackets().Trim()}\r\n")
+                    .Header(" SID Comments ".AddSecondaryColor())
+                    .PadLeft(3)
+                    .BorderColor(RadHelper.Theme.Primary.Color)
+                    .Border(BoxBorder.Rounded)
+                    .Expand();
+
+                    AnsiConsole.Write(stilCommentPanel);
+                }
             }
-            var isFavorite = item.IsFavorite ? "Yes" : "No";
-
-            body = $"{body}\r\n  File Name: {item.Name}\r\n  Path: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\n  Favorite: {isFavorite}";
-
-            var panel = new Panel(body.EscapeBrackets())
-                  .PadTop(2)
-                  .BorderColor(RadHelper.Theme.Secondary.Color)
-                  .Border(BoxBorder.Rounded)
-                  .Expand();
-
-            panel.Header($" Now Playing: {item.Title.EscapeBrackets()} ".AddHighlights());
-
-            AnsiConsole.Write(panel);
+            catch (Exception ex)
+            {
+                
+                var x = 0;
+            }
+            
         }
     }
 }
