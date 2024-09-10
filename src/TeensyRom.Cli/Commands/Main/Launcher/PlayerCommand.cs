@@ -1,11 +1,13 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
+using System;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
+using TextCopy;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
@@ -34,7 +36,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             do
             {
-                choice = PromptHelper.ChoicePrompt("Player Controls", ["Next", "Previous", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Help", "Back"]);
+                choice = PromptHelper.ChoicePrompt("Player Controls", ["Next", "Previous", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Share", "Help", "Back"]);
 
                 var playerSettings = _player.GetPlayerSettings();
 
@@ -68,6 +70,10 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                         HandleTimer();
                         break;
 
+                    case "Share":
+                        HandleShare(playerSettings);
+                        break;
+
                     case "Help":                        
                         WriteHelp();
                         break;
@@ -76,6 +82,17 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             } while (choice != "Back");
 
             return 0;
+        }
+
+        private static void HandleShare(Services.PlayerSettings playerSettings)
+        {
+            if (playerSettings.CurrentItem is not null)
+            {
+                RadHelper.WriteLine();
+                ClipboardService.SetText(playerSettings.CurrentItem.ShareUrl);
+                RadHelper.WriteLine("DeepSID share link has been copied to your clipboard.");
+                RadHelper.WriteLine();
+            }
         }
 
         private void HandleTimer()
