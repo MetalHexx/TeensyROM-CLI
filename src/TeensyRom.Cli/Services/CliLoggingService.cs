@@ -14,7 +14,7 @@ namespace TeensyRom.Cli.Services
     internal class CliLoggingService : LoggingService, ICliLoggingService
     {
         public bool Enabled { get; set; } = true;
-        public override void Log(string message, string hExColor)
+        public override void Log(string message, string hExColor, bool newLine = true)
         {
             var sb = new StringBuilder();
 
@@ -29,7 +29,8 @@ namespace TeensyRom.Cli.Services
 
             if (Enabled)
             {
-                AnsiConsole.Markup($"{log}\r\n\r\n");
+                var carriageReturn = newLine ? "\r\n\r\n" : "\r\n";
+                AnsiConsole.Markup($"{log}{carriageReturn}");
             }
             base.Log(message, hExColor);
         }

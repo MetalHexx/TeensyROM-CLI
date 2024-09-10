@@ -4,12 +4,12 @@
     {
         IObservable<string> Logs { get; }
 
-        void External(string message);
-        void ExternalSuccess(string message);
-        void ExternalError(string message);
-        void Internal(string message);
-        void InternalError(string message);
-        void InternalSuccess(string message);
-        void Log(string message, string hExColor);
+        void External(string message, bool newLine = true);
+        void ExternalSuccess(string message, bool newLine = true);
+        void ExternalError(string message, bool newLine = true);
+        void Internal(string message, bool newLine = true);
+        void InternalError(string message, bool newLine = true);
+        void InternalSuccess(string message, bool newLine = true);
+        void Log(string message, string hExColor, bool newLine = true);
     }
 }

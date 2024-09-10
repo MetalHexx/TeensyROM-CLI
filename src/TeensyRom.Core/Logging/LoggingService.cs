@@ -25,16 +25,16 @@ namespace TeensyRom.Core.Logging
 
         }
 
-        public virtual void Internal(string message) => Log(message, LogConstants.InternalColor);
-        public virtual void InternalSuccess(string message) => Log(message, LogConstants.InternalSuccessColor);
-        public virtual void InternalError(string message) => Log(message, LogConstants.InternalErrorColor);
-        public virtual void External(string message) => Log($"[TR]: {message}", LogConstants.ExternalColor);
-        public virtual void ExternalSuccess(string message) => Log($"[TR]: {message}", LogConstants.ExternalSuccessColor);
-        public virtual void ExternalError(string message) => Log($"[TR]: {message}", LogConstants.ExternalErrorColor);
+        public virtual void Internal(string message, bool newLine = true) => Log(message, LogConstants.InternalColor, newLine);
+        public virtual void InternalSuccess(string message, bool newLine = true) => Log(message, LogConstants.InternalSuccessColor, newLine);
+        public virtual void InternalError(string message, bool newLine = true) => Log(message, LogConstants.InternalErrorColor, newLine);
+        public virtual void External(string message, bool newLine = true) => Log($"[TR]: {message}", LogConstants.ExternalColor, newLine);
+        public virtual void ExternalSuccess(string message, bool newLine = true) => Log($"[TR]: {message}", LogConstants.ExternalSuccessColor, newLine);
+        public virtual void ExternalError(string message, bool newLine = true) => Log($"[TR]: {message}", LogConstants.ExternalErrorColor, newLine);
 
         private static readonly object _logFileLock = new object();
 
-        public virtual void Log(string message, string hExColor)
+        public virtual void Log(string message, string hExColor, bool newLine = true)
         {
             lock (_logFileLock)
             {
