@@ -11,8 +11,8 @@ namespace TeensyRom.Cli.Services
         IObservable<ILaunchableItem> FileLaunched { get; }
 
         PlayerState GetPlayerSettings();
-        Task<LaunchFileResult> LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
-        Task LaunchItem(TeensyStorageType storageType, string path);
+        Task<bool> LaunchItem(TeensyStorageType storageType, ILaunchableItem item);
+        Task LaunchFromDirectory(TeensyStorageType storageType, string path);
         Task PlayNext();
         Task PlayPrevious();
         Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType);
