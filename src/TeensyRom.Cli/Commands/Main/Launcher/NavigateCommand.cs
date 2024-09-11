@@ -98,7 +98,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             AnsiConsole.WriteLine();
 
             player.SetDirectoryMode(selectedFile.Path);
-            await player.LaunchItem(storageType, selectedFile.Path);
+            await player.LaunchFromDirectory(storageType, selectedFile.Path);
 
             if (playerCommand is not null)
             {

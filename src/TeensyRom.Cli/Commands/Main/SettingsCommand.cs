@@ -30,7 +30,7 @@ namespace TeensyRom.Cli.Commands.Main
                     ["Debug Logs Enabled", logService.Enabled.ToString(), "Enables verbose logs for debugging." ]
                 ]);
 
-                choice = PromptHelper.ChoicePrompt("Settings", new List<string> { "Storage Device", "Always Prompt Storage", "Toggle Debug Logs", "Leave Settings" });
+                choice = PromptHelper.ChoicePrompt("Choose wisely", new List<string> { "Storage Device", "Always Prompt Storage", "Toggle Debug Logs", "Leave Settings" });
 
                 switch (choice)
                 {

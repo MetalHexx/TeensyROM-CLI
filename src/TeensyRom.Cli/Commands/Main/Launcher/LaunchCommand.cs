@@ -14,6 +14,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
     internal class LaunchCommand : AsyncCommand<LaunchSettings>
     {
         private readonly RandomCommand _randomCommand;
+        private readonly SearchCommand _searchCommand;
         private readonly NavigateCommand _navigateCommand;
         private readonly FileLaunchCommand _fileCommand;
         private readonly PlayerCommand _playerCommand;
@@ -21,6 +22,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         public LaunchCommand(ITypeResolver resolver)
         {
             _randomCommand = (resolver.Resolve(typeof(RandomCommand)) as RandomCommand)!;
+            _searchCommand = (resolver.Resolve(typeof(SearchCommand)) as SearchCommand)!;
             _navigateCommand = (resolver.Resolve(typeof(NavigateCommand)) as NavigateCommand)!;
             _fileCommand = (resolver.Resolve(typeof(FileLaunchCommand)) as FileLaunchCommand)!;
             _playerCommand = (resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand)!;
@@ -36,7 +38,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             do
             {
-                RadHelper.WriteMenu("Launch Menu", "Tip: Consider a play timer to stream SIDs, Demos, and Game Intros together. Retro Jukebox! ;)");
+                RadHelper.WriteMenu("Start a stream", "Consider a play timer to stream SIDs, Demos, and Game Intros together. Retro Jukebox! ;)");
 
                 RadHelper.WriteDynamicTable(["Menu Item", "Description"],
                 [
@@ -48,22 +50,26 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                     ["Back", "Back to main menu."],
                 ]);
 
-                switch (PromptHelper.ChoicePrompt("Launch Menu", ["Random", "Navigate", "File", "Player", "Back"]))
+                switch (PromptHelper.ChoicePrompt("Choose wisely", ["Random", "Search", "Navigate", "File", "Player", "Back"]))
                 {
                     case "Random":
-                        await _randomCommand.ExecuteAsync(context, new RandomSettings { });
+                        await _randomCommand.ExecuteAsync(context, new RandomSettings());
+                        break;
+
+                    case "Search":
+                        await _searchCommand.ExecuteAsync(context, new SearchSettings());
                         break;
 
                     case "Navigate":
-                        await _navigateCommand.ExecuteAsync(context, new NavigateSettings { });
+                        await _navigateCommand.ExecuteAsync(context, new NavigateSettings());
                         break;
 
                     case "File":
-                        await _fileCommand.ExecuteAsync(context, new FileLaunchSettings { });
+                        await _fileCommand.ExecuteAsync(context, new FileLaunchSettings());
                         break;
 
                     case "Player":
-                        _playerCommand.Execute(context, new PlayerSettings { });
+                        _playerCommand.Execute(context, new PlayerSettings());
                         break;
 
                     default:

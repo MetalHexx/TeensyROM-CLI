@@ -73,8 +73,9 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             RadHelper.WriteMenu("Random Stream", "Randomly streams files from the specified directory and it's subdirectories.",
             [
-               "SIDs will stream continuously on play length or set timer.",
-               "Games, images and demos can also be streamed with a timer.",
+               "You can limit randomization to a directory and its subdirs. Ex: /demos.",
+               "Games, images and demos can be streamed with a timer.",
+               "SIDs will stream continuously on play length or timer.",                              
                "Cache files to fatten your stream. ;)"
             ]);
             var globalSettings = settingsService.GetSettings();

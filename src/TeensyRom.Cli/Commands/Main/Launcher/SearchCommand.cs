@@ -47,17 +47,13 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             player.StopStream();
 
-            RadHelper.WriteMenu("Search Files", "Searches your storage devices.  Search will only include files that have been cached.",
+            RadHelper.WriteMenu("Search Stream", "Cache your files to fatten your search.");
+            RadHelper.WriteHelpTable(("Example Search", "Description"),
             [
-
-                "Cache files to fatten your search. ;)",
-            ]);
-            RadHelper.WriteHelpTable(("SearchExample", "Description"),
-            [
-                ("iron maiden aces high", "Searches for any term individually."),
-                ("iron maiden \"aces high\"", "Search will consider phrases between quotes as an individual search term."),
-                ("+iron maiden aces high", "\"iron\" must have a match in every search result"),
-                ("\"aces high\" +\"iron maiden\"", "\"iron maiden\" must have a match in every search result"),
+                ("iron maiden aces high", "Searches for ANY term individually."),
+                ("iron maiden \"aces high\"", "Add quotes to match a phrase"),
+                ("+iron maiden aces high", "\"iron\" MUST have a match in every search result"),
+                ("+\"iron maiden\" \"aces high\"", "\"iron maiden\" MUST have a match in every search result"),
             ]);
 
             var globalSettings = settingsService.GetSettings();
@@ -103,7 +99,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             var file = searchResults.First(f => f.Name == fileName);
             player.SetSearchMode(settings.Query);
-            await player.LaunchItem(storageType, file.Path);
+            await player.LaunchFromDirectory(storageType, file.Path);
 
             if (playerCommand is not null)
             {

@@ -116,7 +116,7 @@ namespace TeensyRom.Cli.Helpers
 
         public static string PromptForDirectoryPath(string value, string defaultValue = "/")
         {
-            return PromptForPath(value, "Within Directory:", defaultValue);
+            return PromptForPath(value, "Directory:", defaultValue);
         }
 
         private static string PromptForPath(string value, string title, string defaultValue)

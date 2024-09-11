@@ -30,13 +30,12 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         public override int Execute(CommandContext context, PlayerSettings settings)
         {
             RadHelper.WriteMenu("Stream Player", "There are many paths your stream can take...");
-            WriteHelp();
 
             var choice = string.Empty; ;
 
             do
             {
-                choice = PromptHelper.ChoicePrompt("Player Controls", ["Next", "Previous", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Share", "Help", "Back"]);
+                choice = PromptHelper.ChoicePrompt("Choose wisely", ["Next", "Previous", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Share", "Help", "Back"]);
 
                 var playerSettings = _player.GetPlayerSettings();
 
@@ -162,8 +161,6 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
         private void WriteHelp()
         {
-            AnsiConsole.WriteLine(RadHelper.ClearHack);
-
             var playerSettings = _player.GetPlayerSettings();
 
             var mode = playerSettings.PlayMode switch
@@ -185,11 +182,11 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 ["Current Directory", playerSettings.CurrentItem?.Path.GetUnixParentPath() ?? "---", "Directory of the playing file."],
                 ["File", playerSettings.CurrentItem?.Name ?? "---", "The current file playing."],
                 ["Mode", mode, "Play random or stick to a specific directory."],                
-                ["Filter", playerSettings.FilterType.ToString(), "The types of files that will be streamed."],
+                ["Filter", playerSettings.FilterType.ToString(), "The types of files that will be played."],
+                ["Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Continuous play timer for Games, Images and SIDs." ],
+                ["SID Timer", sidTimer, "SIDs play time based on song length or overriden w/timer."],
                 ["Pinned Directory", playerSettings.ScopePath, "Random mode will launch from this directory and subdirs."],
-                ["Search Query", playerSettings.SearchQuery ?? "---", "The current search query your stream is using."],                
-                ["Stream Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Continuous play timer for Games, Images and SIDs." ],
-                ["SID Timer", sidTimer, "SIDs play time is song length or overriden w/timer."]
+                ["Search Query", playerSettings.SearchQuery ?? "---", "The current search query your  is using."],     
             ]);
         }
 
