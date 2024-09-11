@@ -86,7 +86,7 @@ namespace TeensyRom.Cli.Tests
             var result = settings.Validate();
 
             //Assert
-            result.Message.Should().Contain($"The target path '{Path.GetDirectoryName(assemblyLocation)}' is not a relative path.");
+            result.Message.Should().Contain($"The target path '{Path.GetDirectoryName(assemblyLocation)}' must be a relative path.");
         }
 
         [Fact]
@@ -169,7 +169,7 @@ namespace TeensyRom.Cli.Tests
             var result = settings.Validate();
 
             //Assert
-            result.Message.Should().Contain("The clock 'invalid' is not valid.  Must be 'PAL' or 'NTSC'.");
+            result.Message.Should().Contain("The clock 'invalid' must be 'PAL' or 'NTSC'");
         }
 
         [Fact]
