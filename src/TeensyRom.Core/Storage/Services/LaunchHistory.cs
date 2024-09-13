@@ -27,8 +27,10 @@ namespace TeensyRom.Core.Storage.Services
 
         public void Remove(ILaunchableItem fileItem)
         {
-            int index = _history.FindIndex(tuple => tuple.Item2 == fileItem);            
+            int index = _history.FindIndex(tuple => tuple.Item2 == fileItem);    
+            
             if (index == -1) return;            
+            
             _history.RemoveAt(index);
             
             if (index <= _currentIndex)
