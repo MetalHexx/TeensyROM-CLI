@@ -203,7 +203,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             }
             var isFavorite = item.IsFavorite ? "Yes" : "No";
 
-            body = $"{body}\r\nFile Name: {item.Name}\r\nPath: {item.Path.GetUnixParentPath().EscapeBrackets()}\r\nFavorite: {isFavorite}\r\n";
+            body = $"{body}\r\nPath: {item.Path.EscapeBrackets()}\r\nFavorite: {isFavorite}\r\n";
 
             var fileInfoPanel = new Panel(body.EscapeBrackets())
                 .Header($" Now Playing: {item.Title.EscapeBrackets()} ".AddHighlights())
