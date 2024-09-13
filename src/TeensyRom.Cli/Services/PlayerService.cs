@@ -84,7 +84,6 @@ namespace TeensyRom.Cli.Services
             if (!launchSuccessful) 
             {
                 await PlayNext();
-                return;
             }
         }
 
@@ -93,8 +92,6 @@ namespace TeensyRom.Cli.Services
             _currentFile = item;
             _selectedStorage = storageType;
             _playState = PlayState.Playing;
-
-            
 
             if (!item.IsCompatible) 
             {
@@ -159,7 +156,7 @@ namespace TeensyRom.Cli.Services
         {
             ILaunchableItem? fileToPlay = _playMode switch
             {
-                PlayMode.Random => _randomHistory.GetPrevious(),
+                PlayMode.Random => _randomHistory.GetPrevious(GetFilterFileTypes()),
                 PlayMode.Search => GetPreviousSearchItem(),
                 PlayMode.CurrentDirectory => await GetPreviousDirectoryItem(),
                 _ => _currentFile
@@ -276,23 +273,27 @@ namespace TeensyRom.Cli.Services
         {
             ILaunchableItem? fileToPlay = null;
 
-            if (_playMode is PlayMode.Random)
+            switch (_playMode) 
             {
-                fileToPlay = _randomHistory.GetNext();
-                
-                if(fileToPlay is null)
-                {
-                    fileToPlay = _storage.GetRandomFile(_selectedScope, _scopeDirectory, GetFilterFileTypes());
-                }
+                case PlayMode.Random:
+                    fileToPlay = _randomHistory.GetNext(GetFilterFileTypes());
+
+                    if (fileToPlay is null)
+                    {
+                        await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
+                        return;
+                    }
+                    break;
+
+                case PlayMode.Search:
+                    fileToPlay = GetNextSearchItem();
+                    break;
+
+                case PlayMode.CurrentDirectory:
+                    fileToPlay = await GetNextDirectoryItem();
+                    break;
             }
-            if (_playMode is PlayMode.Search)
-            {
-                fileToPlay = GetNextSearchItem();
-            }
-            if (_playMode is PlayMode.CurrentDirectory)
-            {
-                fileToPlay = await GetNextDirectoryItem();
-            }
+
             if (fileToPlay is null)
             {
                 fileToPlay = _currentFile;
