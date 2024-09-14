@@ -5,6 +5,7 @@ using Spectre.Console.Cli;
 using System.Diagnostics;
 using System.Reflection;
 using TeensyRom.Cli.Commands.Main;
+using TeensyRom.Cli.Commands.Main.ASID;
 using TeensyRom.Cli.Commands.Main.Launcher;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
@@ -109,11 +110,11 @@ public class Program
                       .IsHidden();
             });
 
-            config.AddExample(CacheSettings.Example);
-            config.AddCommand<CacheCommand>("cache")
-                  .WithAlias("c")
-                  .WithDescription(CacheSettings.Description)
-                  .WithExample(CacheSettings.Example);
+            config.AddExample(IndexSettings.Example);
+            config.AddCommand<IndexCommand>("index")
+                  .WithAlias("i")
+                  .WithDescription(IndexSettings.Description)
+                  .WithExample(IndexSettings.Example);
 
             config.AddExample(PortListSettings.Example);
             config.AddCommand<PortListCommand>("ports")
@@ -166,7 +167,7 @@ public class Program
                     args = [];
                 }
 
-                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch", "Settings", "Cache Files", "List Ports", "Generate ASID Patches", "Leave"]);
+                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch", "Settings", "Index Files", "List Ports", "Generate ASID Patches", "Leave"]);
 
                 AnsiConsole.WriteLine();
 
@@ -175,7 +176,7 @@ public class Program
                 args = menuChoice switch
                 {   
                     "Launch" => ["launch"],    
-                    "Cache Files" => ["cache"],
+                    "Index Files" => ["index"],
                     "Settings" => ["settings"],
                     "List Ports" => ["ports"],
                     "Generate ChipSynth ASID Patches" => ["chipsynth"],

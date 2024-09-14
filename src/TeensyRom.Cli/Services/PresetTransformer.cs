@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
-namespace TeensyRom.Cli
+namespace TeensyRom.Cli.Services
 {
     internal class PresetTransformer
     {
@@ -16,7 +10,7 @@ namespace TeensyRom.Cli
 
             var settings = xmlDoc.Descendants("Settings").FirstOrDefault();
 
-            if (settings is null) 
+            if (settings is null)
             {
                 Console.WriteLine("Settings element not found.");
                 return xmlDoc;
@@ -26,7 +20,7 @@ namespace TeensyRom.Cli
 
             var slot = GetSlot(xmlDoc);
 
-            if(slot is null)
+            if (slot is null)
             {
                 Console.WriteLine("Slot element not found.");
                 return xmlDoc;
@@ -56,7 +50,7 @@ namespace TeensyRom.Cli
             element.SetAttributeValue(attributeName, value + 1);
         }
 
-        public XElement? GetSlot(XDocument xmlDoc) 
+        public XElement? GetSlot(XDocument xmlDoc)
         {
             return xmlDoc
                 .Descendants("Slot")

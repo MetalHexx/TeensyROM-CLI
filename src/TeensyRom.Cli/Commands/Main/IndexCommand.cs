@@ -12,18 +12,18 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main
 {
-    internal class CacheSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
+    internal class IndexSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
     {
-        [Description("Storage files to cache files for. (sd or usb)")]
+        [Description("Storage files to index. (sd or usb)")]
         [CommandOption("-s|--storage")]
         public string StorageDevice { get; set; } = string.Empty;
 
-        [Description("Specific TeensyROM path to cache")]
+        [Description("Specific TeensyROM path to index")]
         [CommandOption("-p|--path")]
         public string Path { get; set; } = string.Empty;
 
-        public static string Example => "cache -s sd -p /music/ ";
-        public static string Description => "Caches all the files on your storage device to enhance search and streaming features.";
+        public static string Example => "index -s sd -p /music/ ";
+        public static string Description => "Indexes all the files on your storage device to enhance search and streaming features.";
 
         public void ClearSettings()
         {
@@ -46,17 +46,17 @@ namespace TeensyRom.Cli.Commands.Main
     }
 
 
-    internal class CacheCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<CacheSettings>
+    internal class IndexCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<IndexSettings>
     {
-        public override async Task<int> ExecuteAsync(CommandContext context, CacheSettings settings)
+        public override async Task<int> ExecuteAsync(CommandContext context, IndexSettings settings)
         {
             player.StopStream();
 
-            RadHelper.WriteMenu("Cache Files", "Launch random files from storage and discover something new.",
+            RadHelper.WriteMenu("Index Files", "Indexes your storage for enhanced an enhanced experience.",
             [
-               "Caching enables search and randomization features.",
-               "Caching will increase overall performance and stability.",
-               "Cache your files when you make changes to storage outside of this app.",
+               "Indexing enables search and randomization features.",
+               "Indexing will increase overall performance and stability.",
+               "Index your files when you make changes to storage outside of this app.",
             ]);
 
             var globalSettings = settingsService.GetSettings();
@@ -99,6 +99,8 @@ namespace TeensyRom.Cli.Commands.Main
                 await storage.CacheAll(settings.Path);
             }
             logService.Enabled = loggingEnabled;
+            globalSettings.HasIndexed = true;
+            settingsService.SaveSettings(globalSettings);
 
             return 0;
         }

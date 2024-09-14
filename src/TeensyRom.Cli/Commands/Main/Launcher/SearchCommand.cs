@@ -47,7 +47,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             player.StopStream();
 
-            RadHelper.WriteMenu("Search Stream", "Cache your files to fatten your search.");
+            RadHelper.WriteMenu("Search Stream", "Index your files to fatten your search. ;)");
             RadHelper.WriteHelpTable(("Example Search", "Description"),
             [
                 ("iron maiden aces high", "Searches for ANY term individually."),

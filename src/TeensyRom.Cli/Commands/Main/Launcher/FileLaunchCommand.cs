@@ -51,7 +51,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             RadHelper.WriteMenu("Launch File", "Launch a specific file.",
             [
                "When playing a SID, or you have a Game/Image timer enabled, the next file in the directory will be played.",
-               "Parent directory will be cached on first visit.",
+               "Parent directory will be indexed on first visit.",
             ]);
 
             var globalSettings = settingsService.GetSettings();

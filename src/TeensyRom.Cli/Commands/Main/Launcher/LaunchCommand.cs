@@ -1,6 +1,7 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Core.Settings;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
@@ -18,22 +19,40 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         private readonly NavigateCommand _navigateCommand;
         private readonly FileLaunchCommand _fileCommand;
         private readonly PlayerCommand _playerCommand;
+        private readonly IndexCommand _indexCommand;
+        private readonly ISettingsService _settingsService;
 
-        public LaunchCommand(ITypeResolver resolver)
+        public LaunchCommand(ITypeResolver resolver, ISettingsService settingsService)
         {
             _randomCommand = (resolver.Resolve(typeof(RandomCommand)) as RandomCommand)!;
             _searchCommand = (resolver.Resolve(typeof(SearchCommand)) as SearchCommand)!;
             _navigateCommand = (resolver.Resolve(typeof(NavigateCommand)) as NavigateCommand)!;
             _fileCommand = (resolver.Resolve(typeof(FileLaunchCommand)) as FileLaunchCommand)!;
             _playerCommand = (resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand)!;
+            _indexCommand = (resolver.Resolve(typeof(IndexCommand)) as IndexCommand)!;
 
-            if(_randomCommand == null || _navigateCommand == null || _fileCommand == null || _playerCommand == null)
+            if (_randomCommand == null || _navigateCommand == null || _fileCommand == null || _playerCommand == null)
             {
                 throw new Exception("Failed to resolve command dependencies");
-            }   
+            }
+
+            _settingsService = settingsService;
         }
         public override async Task<int> ExecuteAsync(CommandContext context, LaunchSettings settings)
         {
+            var globalSettings = _settingsService.GetSettings();
+
+            if (!globalSettings.HasIndexed) 
+            {
+                RadHelper.WriteMenu("Index Missing", "You have not yet indexed the storage on your TeensyROM. Indexing your files is important for search and random launch.  If you avoid indexing your files, only directories you have navigated to and launched files from will be available.");
+                var shouldIndex = PromptHelper.ChoicePrompt("Index Files", ["Yes", "No"]);
+
+                if(shouldIndex == "Yes")
+                {
+                    await _indexCommand.ExecuteAsync(context, new IndexSettings());
+                }
+            }
+
             var shouldLeave = false;
 
             do

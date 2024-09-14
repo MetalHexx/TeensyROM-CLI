@@ -46,6 +46,7 @@ namespace TeensyRom.Core.Settings
         public SearchWeights SearchWeights { get; set; } = new();
         public List<string> SearchStopWords = [];
         public bool EnableDebugLogs { get; set; } = false;
+        public bool HasIndexed { get; set; } = false;
 
         public TeensySettings()
         {
