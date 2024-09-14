@@ -87,7 +87,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             List<StorageItem> storageItems = directories.Concat(cacheItem.Files.Cast<StorageItem>()).ToList();
 
-            var selectedFile = await TraverseStorage(storageItems, settings.StartingPath);
+            var selectedFile = await TraverseStorage(storageItems, _lastDirectory);
+
 
             if (selectedFile is null)
             {
