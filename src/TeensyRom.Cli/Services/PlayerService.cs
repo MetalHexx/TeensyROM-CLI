@@ -456,12 +456,15 @@ namespace TeensyRom.Cli.Services
         public void SetSearchMode(string query)
         {
             _playMode = PlayMode.Search;
+
             _searchQuery = query;
         }
 
         public void SetDirectoryMode(string directoryPath)
         {
             _playMode = PlayMode.CurrentDirectory;
+            _alert.Publish("Switching filter to \"All\"");
+            _filterType = TeensyFilterType.All;
             _scopeDirectory = directoryPath;
             _searchQuery = null;
         }
