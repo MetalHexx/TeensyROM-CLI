@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TeensyRom.Cli.Helpers
 {
-    internal interface ITeensyCommandSettings
+    internal interface IClearableSettings
     {
         void ClearSettings();
     }

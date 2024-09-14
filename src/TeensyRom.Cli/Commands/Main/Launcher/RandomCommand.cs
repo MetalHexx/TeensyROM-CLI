@@ -10,7 +10,7 @@ using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class RandomSettings : LaunchSettings, ITeensyCommandSettings, IRequiresConnection
+    internal class RandomSettings : LaunchSettings, IClearableSettings, IRequiresConnection
     {
         [Description("Storage device of file to launch. (sd or usb)")]
         [CommandOption("-s|--storage")]

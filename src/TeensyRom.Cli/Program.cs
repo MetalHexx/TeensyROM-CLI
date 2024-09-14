@@ -179,7 +179,7 @@ public class Program
                     "Index Files" => ["index"],
                     "Settings" => ["settings"],
                     "List Ports" => ["ports"],
-                    "Generate ChipSynth ASID Patches" => ["chipsynth"],
+                    "Generate ASID Patches" => ["chipsynth"],
                     _ => []
                 };
                 app.Run(args);

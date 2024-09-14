@@ -5,7 +5,7 @@ using TeensyRom.Core.Settings;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class LaunchSettings : CommandSettings, ITeensyCommandSettings, IRequiresConnection
+    internal class LaunchSettings : CommandSettings, IClearableSettings, IRequiresConnection
     {
         public void ClearSettings() { }
 

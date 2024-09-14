@@ -11,7 +11,7 @@ using TextCopy;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class PlayerSettings : LaunchSettings, ITeensyCommandSettings, IRequiresConnection
+    internal class PlayerSettings : LaunchSettings, IClearableSettings, IRequiresConnection
     {
         public new void ClearSettings() { }
     }

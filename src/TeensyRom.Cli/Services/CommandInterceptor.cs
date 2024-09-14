@@ -42,7 +42,7 @@ namespace TeensyRom.Cli.Services
         }
         public void InterceptResult(CommandContext context, CommandSettings settings, ref int result)
         {
-            if (settings is ITeensyCommandSettings s)
+            if (settings is IClearableSettings s)
             {
                 s.ClearSettings();
             }

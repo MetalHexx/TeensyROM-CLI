@@ -8,7 +8,7 @@ using TeensyRom.Cli.Services;
 
 namespace TeensyRom.Cli.Commands.Main.Asid
 {
-    internal class GeneratePresetsSettings : CommandSettings
+    internal class GeneratePresetsSettings : CommandSettings, IClearableSettings
     {
         [JsonIgnore]
         [Description("SID Clock that matches your machine.")]
@@ -23,12 +23,11 @@ namespace TeensyRom.Cli.Commands.Main.Asid
         [JsonIgnore]
         [Description("Target path of the Chipsynth C64 presets. (Relative Path)")]
         [CommandOption("-t|--target")]
+        public string TargetPath { get; set; } = string.Empty;
+        public bool RunWizard { get; set; } = false;
 
         public static string Description => "Generate ASID friendly Chipsynth ASID presets.";
         public static string Example => "chipsynth --clock ntsc --target ASID --source c:\\your\\preset\\directory";
-
-        public string TargetPath { get; set; } = string.Empty;
-        public bool RunWizard { get; set; } = false;
 
         public override ValidationResult Validate()
         {
@@ -51,6 +50,14 @@ namespace TeensyRom.Cli.Commands.Main.Asid
                 return ValidationResult.Error($"The clock '{Clock}' must be 'PAL' or 'NTSC'.");
             }
             return base.Validate();
+        }
+
+        public void ClearSettings()
+        {
+            Clock = string.Empty;
+            SourcePath = string.Empty;
+            TargetPath = string.Empty;
+            RunWizard = true;
         }
     }
     internal class GeneratePresetsCommand(IPlayerService player) : Command<GeneratePresetsSettings>
