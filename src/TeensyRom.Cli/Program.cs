@@ -5,7 +5,7 @@ using Spectre.Console.Cli;
 using System.Diagnostics;
 using System.Reflection;
 using TeensyRom.Cli.Commands.Main;
-using TeensyRom.Cli.Commands.Main.ASID;
+using TeensyRom.Cli.Commands.Main.Asid;
 using TeensyRom.Cli.Commands.Main.Launcher;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;

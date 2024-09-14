@@ -1,5 +1,5 @@
 using System.Reflection;
-using TeensyRom.Cli.Commands.Main;
+using TeensyRom.Cli.Commands.Main.Asid;
 
 namespace TeensyRom.Cli.Tests
 {

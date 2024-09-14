@@ -6,7 +6,7 @@ using Spectre.Console.Cli;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
 
-namespace TeensyRom.Cli.Commands.Main.ASID
+namespace TeensyRom.Cli.Commands.Main.Asid
 {
     internal class GeneratePresetsSettings : CommandSettings
     {
