@@ -63,8 +63,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 [
                     ["Random", "Play a random file."],
                     ["Search", "Search for files."],
-                    ["Navigate", "Navigate storage to find file."],
-                    ["File", "Launch a file directory with a path or DeepSID link"],
+                    ["Navigate", "Navigate storage to find a file."],
+                    ["File", "Launch a file directory with a path."],
                     ["Player", "Go to the player view."],
                     ["Back", "Back to main menu."],
                 ]);
