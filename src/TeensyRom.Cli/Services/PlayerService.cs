@@ -3,6 +3,7 @@ using Spectre.Console;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using TeensyRom.Cli.Helpers;
+using TeensyRom.Core.Commands;
 using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Logging;
@@ -435,6 +436,17 @@ namespace TeensyRom.Cli.Services
             _timerSubscription = null;
         }
 
+        public void PauseStream() 
+        {
+            _playState = PlayState.Paused;
+            _timer.PauseTimer();
+        }
+        public void ResumeStream() 
+        {
+            _playState = PlayState.Playing;
+            _timer.ResumeTimer();
+        }
+
         public PlayerState GetPlayerSettings()
         {
             var settings = _settingsService.GetSettings();
@@ -503,6 +515,41 @@ namespace TeensyRom.Cli.Services
         {
             var trSettings = _settingsService.GetSettings();
             return trSettings.GetFileTypes(_filterType);
+        }
+
+        public void TogglePlay()
+        {
+            if(_playState is PlayState.Playing)
+            {   
+                PauseStream();
+                
+                if(_currentFile is SongItem) 
+                {
+                    _mediator.Send(new ToggleMusicCommand());
+                    _alert.Publish($"{_currentFile.Name} has been paused.");
+                    return;
+                }
+                _mediator.Send(new ResetCommand());
+                _alert.Publish($"{_currentFile?.Name} has been stopped.");
+                return;
+            }
+            if(_currentFile is null)
+            {
+                _alert.PublishError("Hit back and try starting a new stream.");
+                return;
+            }
+            ResumeStream();
+
+            _playState = PlayState.Playing;
+            if (_currentFile is SongItem)
+            {
+                _mediator.Send(new ToggleMusicCommand());
+            }
+            else 
+            {
+                _mediator.Send(new LaunchFileCommand(_selectedStorage, _currentFile));
+            }
+            _alert.Publish($"{_currentFile.Name} has been resumed.");
         }
     }
 }

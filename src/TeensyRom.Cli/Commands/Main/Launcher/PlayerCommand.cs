@@ -20,6 +20,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
     {
         private readonly IPlayerService _player;
         private readonly ICachedStorageService _storage;
+        private PlayState? _previousState;
 
         public PlayerCommand(IPlayerService player, ICachedStorageService storage)
         {
@@ -31,13 +32,18 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         {
             RadHelper.WriteMenu("Stream Player", "There are many paths your stream can take...");
 
-            var choice = string.Empty; ;
+            var choice = string.Empty;
+            PlayState? previousState;
 
             do
             {
-                choice = PromptHelper.ChoicePrompt("Choose wisely", ["Next", "Previous", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Share", "Help", "Back"]);
-
                 var playerSettings = _player.GetPlayerSettings();
+
+                List<string> choices = playerSettings.PlayState == PlayState.Playing
+                    ? ["Next", "Previous", "Stop/Pause", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Share", "Help", "Back"]
+                    : ["Next", "Previous", "Resume", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Share", "Help", "Back"];
+
+                choice = PromptHelper.ChoicePrompt("Choose wisely", choices);
 
                 switch (choice)
                 {
@@ -47,6 +53,14 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
                     case "Previous":
                         _player.PlayPrevious();
+                        break;
+
+                    case "Resume":
+                        _player.TogglePlay();
+                        break;
+
+                    case "Stop/Pause":
+                        _player.TogglePlay();
                         break;
 
                     case "Favorite":

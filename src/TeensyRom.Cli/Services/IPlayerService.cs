@@ -24,5 +24,6 @@ namespace TeensyRom.Cli.Services
         void SetSearchMode(string query);
         void SetDirectoryMode(string path);
         void SetRandomMode(string path);
+        void TogglePlay();
     }
 }

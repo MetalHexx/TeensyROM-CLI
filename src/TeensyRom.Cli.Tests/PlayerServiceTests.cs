@@ -18,6 +18,7 @@ using System.Reactive;
 using System.Threading.Tasks;
 using Microsoft.Reactive.Testing;
 using System;
+using TeensyRom.Core.Commands;
 
 namespace TeensyRom.Cli.Tests
 {
@@ -929,6 +930,98 @@ namespace TeensyRom.Cli.Tests
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
+        }
+
+        [Fact]
+        public async Task Given_SongPlaying_When_Toggled_SongIsPaused() 
+        {
+            //Arrange
+            var playerService = _fixture.Create<PlayerService>();
+            var expectedFile = CreateFile<SongItem>("/music/sid1.sid");
+            var playTimer = SetupTimer();
+            SetupStorageService(expectedFile);
+            SetupMediatorSuccess();
+
+            await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
+
+            //Act
+            playerService.TogglePlay();
+
+            //Assert
+            var settings = playerService.GetPlayerSettings();
+            settings.PlayState.Should().Be(PlayState.Paused);
+            settings.CurrentItem.Should().BeEquivalentTo(expectedFile);
+            _progressTimer.Received(1).PauseTimer();
+            await _mediator.Received(1).Send(Any<ToggleMusicCommand>());
+        }
+
+        [Fact]
+        public async Task Given_SongPaused_When_Toggled_SongResumes()
+        {
+            //Arrange
+            var playerService = _fixture.Create<PlayerService>();
+            var expectedFile = CreateFile<SongItem>("/music/sid1.sid");
+            var playTimer = SetupTimer();
+            SetupStorageService(expectedFile);
+            SetupMediatorSuccess();
+
+            await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
+            playerService.TogglePlay();
+
+            //Act
+            playerService.TogglePlay();
+
+            //Assert
+            var settings = playerService.GetPlayerSettings();
+            settings.CurrentItem.Should().BeEquivalentTo(expectedFile);
+            settings.PlayState.Should().Be(PlayState.Playing);
+            _progressTimer.Received(1).ResumeTimer();
+        }
+
+        [Fact]
+        public async Task Given_NonSongPlaying_When_Toggled_ItemIsPaused()
+        {
+            //Arrange
+            var playerService = _fixture.Create<PlayerService>();
+            var expectedFile = CreateFile<GameItem>("/games/game.crt");
+            var playTimer = SetupTimer();
+            SetupStorageService(expectedFile);
+            SetupMediatorSuccess();
+
+            await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
+
+            //Act
+            playerService.TogglePlay();
+
+            //Assert
+            var settings = playerService.GetPlayerSettings();
+            settings.PlayState.Should().Be(PlayState.Paused);
+            settings.CurrentItem.Should().BeEquivalentTo(expectedFile);
+            _progressTimer.Received(1).PauseTimer();
+            await _mediator.Received(1).Send(Any<ResetCommand>());
+        }
+
+        [Fact]
+        public async Task Given_NonSongPaused_When_Toggled_ItemResumes()
+        {
+            //Arrange
+            var playerService = _fixture.Create<PlayerService>();
+            var expectedFile = CreateFile<SongItem>("/games/game.crt");
+            var playTimer = SetupTimer();
+            SetupStorageService(expectedFile);
+            SetupMediatorSuccess();
+
+            await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
+            playerService.TogglePlay();
+
+            //Act
+            playerService.TogglePlay();
+
+            //Assert
+            var settings = playerService.GetPlayerSettings();
+            settings.CurrentItem.Should().BeEquivalentTo(expectedFile);
+            settings.PlayState.Should().Be(PlayState.Playing);
+            _progressTimer.Received(1).ResumeTimer();
         }
 
         [Fact]
