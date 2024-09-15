@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.VisualBasic;
+using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Runtime;
 using TeensyRom.Core.Common;
@@ -21,7 +22,7 @@ namespace TeensyRom.Core.Settings
         public string Icon { get; set; } = string.Empty;
     }
     /// <summary>
-    /// Used to persist and retrieve user preference from disk.  See: Settings.json in the bin folder
+    /// Used to persist and retrieve user preference from disk.  See: json in the bin folder
     /// </summary>
     public record TeensySettings
     {
@@ -248,5 +249,35 @@ namespace TeensyRom.Core.Settings
                 .Where(ft => ft.FilterType == filterType)
                 .Select(t => t.Type).ToArray();
         }
+
+        public TeensySettings GetClone() => this with
+        {
+            BannedDirectories = BannedDirectories.Select(d => d).ToList(),
+            BannedFiles = BannedFiles.Select(f => f).ToList(),
+            SearchStopWords = SearchStopWords.Select(w => w).ToList(),
+            FileFilters = FileFilters.Select(f => new TeensyFilter
+            {
+                DisplayName = f.DisplayName,
+                Icon = f.Icon,
+                Type = f.Type,
+
+            }).ToList(),
+            FileTargets = FileTargets.Select(t => new TeensyTarget
+            {
+                DisplayName = t.DisplayName,
+                Extension = t.Extension,
+                FilterType = t.FilterType,
+                Type = t.Type
+            }).ToList(),
+            SearchWeights = new SearchWeights
+            {
+                Creator = SearchWeights.Creator,
+                Description = SearchWeights.Description,
+                FileName = SearchWeights.FileName,
+                FilePath = SearchWeights.FilePath,
+                Title = SearchWeights.Title
+            }
+        };
+
     }
 }
