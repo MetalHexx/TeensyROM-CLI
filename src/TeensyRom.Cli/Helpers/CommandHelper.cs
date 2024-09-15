@@ -119,7 +119,7 @@ namespace TeensyRom.Cli.Helpers
             return PromptForPath(value, "Directory:", defaultValue);
         }
 
-        private static string PromptForPath(string value, string title, string defaultValue)
+        public static string PromptForPath(string value, string title, string defaultValue)
         {
             if (string.IsNullOrWhiteSpace(value))
             {

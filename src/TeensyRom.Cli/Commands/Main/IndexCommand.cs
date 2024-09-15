@@ -55,8 +55,9 @@ namespace TeensyRom.Cli.Commands.Main
             RadHelper.WriteMenu("Index Files", "Indexes your storage for enhanced an enhanced experience.",
             [
                "Indexing enables search and randomization features.",
-               "Indexing will increase overall performance and stability.",
+               "Indexing will increase overall performance and stability.",               
                "Index your files when you make changes to storage outside of this app.",
+               "Specifying a directory will refresh the index for that directory and its subdirectories.",
             ]);
 
             var globalSettings = settingsService.GetSettings();
@@ -67,7 +68,7 @@ namespace TeensyRom.Cli.Commands.Main
 
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice, promptAlways: true);
 
-            settings.Path = CommandHelper.PromptForDirectoryPath(settings.Path, "/");
+            settings.Path = CommandHelper.PromptForPath(settings.Path, "Directory to Index:", "/");
 
             storage.SwitchStorage(storageType);
 
