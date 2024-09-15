@@ -41,6 +41,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             Filter = string.Empty;
             PinnedDirectory = string.Empty;
             Timer = string.Empty;
+            SidOverride = null;
         }
 
         public override ValidationResult Validate()
@@ -99,7 +100,12 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
                 if (filterType is TeensyFilterType.All)
                 {
-                    var overrideSid = !settings.SidOverride.HasValue || settings.SidOverride.Value == false ? "Song Length" : "Timer Override";
+                    var overrideSid = settings.SidOverride switch 
+                    {
+                        null => "",
+                        true => "Timer Override",
+                        false => "Song Length"
+                    };
                     var sidTimer = CommandHelper.PromptSidTimer(overrideSid);
                     player.SetSidTimer(sidTimer);
                 }
