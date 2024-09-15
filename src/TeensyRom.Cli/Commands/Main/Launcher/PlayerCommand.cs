@@ -144,7 +144,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 return;
             }
             var directoryPath = playerSettings.CurrentItem is null
-            ? "/"
+                ? "/"
                 : playerSettings.CurrentItem.Path.GetUnixParentPath();
 
             _player.SetDirectoryMode(directoryPath);
