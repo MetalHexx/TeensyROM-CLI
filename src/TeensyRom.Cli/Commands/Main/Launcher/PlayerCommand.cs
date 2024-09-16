@@ -40,8 +40,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 var playerSettings = _player.GetPlayerSettings();
 
                 List<string> choices = playerSettings.PlayState == PlayState.Playing
-                    ? ["Next", "Previous", "Stop/Pause", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Share", "Help", "Back"]
-                    : ["Next", "Previous", "Resume", "Favorite", "Mode", "Filter", "Timer", "Pin Directory", "Share", "Help", "Back"];
+                    ? ["Next", "Previous", "Stop/Pause", "Favorite", "Share", "Stream Settings", "Back"]
+                    : ["Next", "Previous", "Resume", "Favorite", "Share", "Stream Settings", "Back"];
 
                 choice = PromptHelper.ChoicePrompt("Choose wisely", choices);
 
@@ -65,8 +65,48 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
                     case "Favorite":
                         HandleFavorite(playerSettings);
+                        break;                   
+
+                    case "Share":
+                        HandleShare(playerSettings);
                         break;
 
+                    case "Stream Settings":                        
+                        HandleSettings();
+                        break;
+                }
+
+            } while (choice != "Back");
+
+            return 0;
+        }
+
+        private void HandleSettings() 
+        {
+            AnsiConsole.WriteLine();
+
+            var choice = string.Empty;
+
+            RadHelper.WriteMenu("Stream Settings", "Try changing some settings to alter the behavior of the stream.",
+            [
+                "Many games have nice intro music with visuals.",
+                "Multimedia Stream: Set a play timer to stream games, demos and SIDs and discover something new.",
+                "Demo Stream:  Set \"Pinned Directory\" to a folder with demos and add a timer.",
+                "Favorite Stream: Set \"Pinned Directory\" to \\favorites.",
+                "Screensaver: Set \"Filter\" to Images with a timer."
+            ]);
+
+            do
+            {
+                WriteHelp();
+                var playerSettings = _player.GetPlayerSettings();
+
+                List<string> choices = ["Mode", "Filter", "Timer", "Pin Directory", "Help", "Back"];
+
+                choice = PromptHelper.ChoicePrompt("Choose wisely", choices);
+
+                switch (choice)
+                {
                     case "Mode":
                         HandleMode(playerSettings);
                         break;
@@ -83,27 +123,21 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                         HandleTimer();
                         break;
 
-                    case "Share":
-                        HandleShare(playerSettings);
-                        break;
-
-                    case "Help":                        
+                    case "Help":
                         WriteHelp();
                         break;
                 }
 
             } while (choice != "Back");
-
-            return 0;
         }
 
-        private static void HandleShare(Services.PlayerState playerSettings)
+        private static void HandleShare(PlayerState playerSettings)
         {
             if (playerSettings.CurrentItem is not null)
             {
                 RadHelper.WriteLine();
                 ClipboardService.SetText(playerSettings.CurrentItem.ShareUrl);
-                RadHelper.WriteLine("DeepSID share link has been copied to your clipboard.");
+                RadHelper.WriteLine("A DeepSID share link has been copied to your clipboard.");
                 RadHelper.WriteLine();
             }
         }
@@ -154,23 +188,33 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         {
             AnsiConsole.WriteLine(RadHelper.ClearHack);
 
+            var needsToggle = playerSettings.PlayState is PlayState.Playing;
+
             if (playerSettings.CurrentItem is null)
             {
                 RadHelper.WriteLine("No file is currently playing");
                 return;
             }
+            var shouldRemove = false;
+
             if(playerSettings.CurrentItem.IsFavorite)
             {
-                var shouldRemove = PromptHelper.Confirm("Remove Favorite?", false);
+                shouldRemove = PromptHelper.Confirm("Remove Favorite?", false);
 
-                if (shouldRemove)
-                {
-                    RadHelper.WriteLine(RadHelper.ClearHack);
-                    _storage.RemoveFavorite(playerSettings.CurrentItem);
-                }
-                return;
+                if (!shouldRemove) return;
             }
-            _storage.SaveFavorite(playerSettings.CurrentItem);
+
+            if (needsToggle) _player.TogglePlay();
+
+            if (shouldRemove)
+            {
+                _storage.RemoveFavorite(playerSettings.CurrentItem);
+            }
+            else 
+            {
+                _storage.SaveFavorite(playerSettings.CurrentItem);
+            }
+            if (needsToggle) _player.TogglePlay();
         }
 
         private void WriteHelp()
