@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Assets\Music\SidList\SIDlist_80_UTF8.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Update="Assets\Music\SidList\SIDlist_81_UTF8.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
