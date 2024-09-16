@@ -20,12 +20,27 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         [CommandOption("-q|--query")]
         public string Query { get; set; } = string.Empty;
 
-        public static string Example => "launch search -s sd -q \"iron maiden aces high\"";
-        public static string Description => "Search for a file.";
+        [Description("The type of files that will be searched. (all, music, games or images).")]
+        [CommandOption("-f|--filter")]
+        public string Filter { get; set; } = string.Empty;        
+
+        [Description("Timer used for Games, Images and SIDs. (No, 3m, 5m, 15m, 30m, 1h, Turbo)")]
+        [CommandOption("-t|--timer")]
+        public string Timer { get; set; } = string.Empty;
+
+        [Description("Timer should override SID song length")]
+        [CommandOption("--override")]
+        public bool? SidOverride { get; set; }
+
+        public new static string Example => "launch search -s sd -q \"iron maiden aces high\"";
+        public new static string Description => "Search for a file.";
 
         public new void ClearSettings()
         {
             StorageDevice = string.Empty;
+            Filter = string.Empty;
+            Timer = string.Empty;
+            SidOverride = null;
             Query = string.Empty;
         }
 
@@ -71,7 +86,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (string.IsNullOrWhiteSpace(settings.Query))
             {
-                settings.Query = PromptHelper.DefaultValueTextPrompt("Search Terms:", 2, "iron maiden aces high");
+                settings.Query = PromptHelper.DefaultValueTextPrompt("Search Terms:", 2, "iron maiden");
                 RadHelper.WriteLine();
             }
 
@@ -83,12 +98,31 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 return 0;
             }
 
-            var searchResults = storage.Search(settings.Query, []);
+            var filterType = CommandHelper.PromptForFilterType(settings.Filter);
+
+            if (filterType is TeensyFilterType.All or TeensyFilterType.Games or TeensyFilterType.Images)
+            {
+                player.SetStreamTime(CommandHelper.PromptGameTimer(settings.Timer));
+
+                if (filterType is TeensyFilterType.All)
+                {
+                    var overrideSid = settings.SidOverride switch
+                    {
+                        null => "",
+                        true => "Timer Override",
+                        false => "Song Length"
+                    };
+                    var sidTimer = CommandHelper.PromptSidTimer(overrideSid);
+                    player.SetSidTimer(sidTimer);
+                }
+            }
+            var searchResults = storage.Search(settings.Query, globalSettings.GetFileTypes(filterType));
 
             if (!searchResults.Any())
             {
                 RadHelper.WriteError("No files found with the specified search criteria");
                 AnsiConsole.WriteLine();
+                return 0;
             }
 
             var fileName = PromptHelper.FilePrompt("Select File", searchResults
