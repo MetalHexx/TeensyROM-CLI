@@ -22,8 +22,8 @@ namespace TeensyRom.Core.Storage.Services
         private List<string> _bannedFolders = [];
         private List<string> _bannedFiles = [];
 
-        public StorageCache() { }
-        public StorageCache(List<string> bannedFolders, List<string> bannedFiles)
+        public StorageCache() : base(StringComparer.OrdinalIgnoreCase) { }
+        public StorageCache(List<string> bannedFolders, List<string> bannedFiles) : base(StringComparer.OrdinalIgnoreCase)
         {
             _bannedFolders = bannedFolders;
             _bannedFiles = bannedFiles;
@@ -114,7 +114,7 @@ namespace TeensyRom.Core.Storage.Services
         {
             var cleanPath = CleanPath(path);
 
-            if (!TryGetValue(cleanPath, out var item)) return null;
+            if (!TryGetValue(cleanPath,  out var item)) return null;
 
             return item;
         }
