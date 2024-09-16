@@ -102,7 +102,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (filterType is TeensyFilterType.All or TeensyFilterType.Games or TeensyFilterType.Images)
             {
-                player.SetStreamTime(CommandHelper.PromptGameTimer(settings.Timer));
+                player.SetStreamTime(
+                    CommandHelper.PromptGameTimer(settings.Timer));
 
                 if (filterType is TeensyFilterType.All)
                 {
