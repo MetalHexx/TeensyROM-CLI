@@ -76,7 +76,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             [
                "You can limit randomization to a directory and its subdirs. Ex: /demos.",
                "Games, images and demos can be streamed with a timer.",
-               "SIDs will stream continuously on play length or timer.",                              
+               "SIDs can stream continuously on play length or timer.",                              
                "Index your files to fatten your random streams. ;)"
             ]);
             var globalSettings = settingsService.GetSettings();
