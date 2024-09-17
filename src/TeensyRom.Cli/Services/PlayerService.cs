@@ -20,18 +20,8 @@ namespace TeensyRom.Cli.Services
     {
         public IObservable<ILaunchableItem> FileLaunched => _fileLaunched.AsObservable();
         private Subject<ILaunchableItem> _fileLaunched = new();
+        private PlayerState _state;
 
-        private TeensyStorageType _selectedStorage = TeensyStorageType.SD;
-        private StorageScope _selectedScope = StorageScope.DirDeep;
-        private string _scopeDirectory = "/";
-        private string? _searchQuery;
-
-        private ILaunchableItem? _currentFile = null;
-        private PlayState _playState = PlayState.Stopped;
-        private PlayMode _playMode = PlayMode.Random;
-        private TeensyFilterType _filterType = TeensyFilterType.All;
-        private TimeSpan? _streamTimeSpan = null;
-        private SidTimer _sidTimer = SidTimer.SongLength;
 
         private IDisposable? _timerSubscription;
         private readonly IMediator _mediator;
@@ -54,11 +44,15 @@ namespace TeensyRom.Cli.Services
             _alert = alert;
             _log = log;
             var settings = settingsService.GetSettings();
-            _selectedStorage = settings.StorageType;
-            _filterType = settings.StartupFilter;
+
+            _state = new() 
+            {
+                StorageType = settings.StorageType,
+                FilterType = settings.StartupFilter,                
+            };
 
             serial.CurrentState
-                .Where(state => state is SerialConnectionLostState && _playState is PlayState.Playing)
+                .Where(state => state is SerialConnectionLostState && _state.PlayState is PlayState.Playing)
                 .Subscribe(_ => StopStream());
 
             SetupTimerSubscription();
@@ -90,10 +84,12 @@ namespace TeensyRom.Cli.Services
 
         public async Task<bool> LaunchItem(TeensyStorageType storageType, ILaunchableItem item)
         {
-            _currentFile = item;
-            _selectedStorage = storageType;
-            _playState = PlayState.Playing;
-
+            _state = _state with
+            {
+                CurrentItem = item,
+                StorageType = storageType,
+                PlayState = PlayState.Playing
+            };
             if (!item.IsCompatible) 
             {
                 AlertBadFile(item);
@@ -127,16 +123,18 @@ namespace TeensyRom.Cli.Services
 
         public async Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType)
         {
-            _filterType = filterType;
-            _scopeDirectory = scopePath;
-
-            if (_playMode is not PlayMode.Random)
+            _state = _state with
+            {
+                FilterType = filterType,
+                ScopePath = scopePath
+            };
+            if (_state.PlayMode is not PlayMode.Random)
             {
                 _randomHistory.Clear();
             }
-            _playMode = PlayMode.Random;
+            _state.PlayMode = PlayMode.Random;
 
-            var randomItem = _storage.GetRandomFile(_selectedScope, _scopeDirectory, GetFilterFileTypes());
+            var randomItem = _storage.GetRandomFile(_state.Scope, _state.ScopePath, GetFilterFileTypes());
 
             if (randomItem is null)
             {
@@ -155,22 +153,22 @@ namespace TeensyRom.Cli.Services
 
         public async Task PlayPrevious()
         {
-            ILaunchableItem? fileToPlay = _playMode switch
+            ILaunchableItem? fileToPlay = _state.PlayMode switch
             {
                 PlayMode.Random => _randomHistory.GetPrevious(GetFilterFileTypes()),
                 PlayMode.Search => GetPreviousSearchItem(),
                 PlayMode.CurrentDirectory => await GetPreviousDirectoryItem(),
-                _ => _currentFile
+                _ => _state.CurrentItem
             };
             if(fileToPlay is null)
             {
-                if (_currentFile is null) 
+                if (_state.CurrentItem is null) 
                 {
                     return;
                 }
-                fileToPlay = _currentFile;
+                fileToPlay = _state.CurrentItem;
             }
-            var launchSuccessful = await LaunchItem(_selectedStorage, fileToPlay);
+            var launchSuccessful = await LaunchItem(_state.StorageType, fileToPlay);
 
             if (!launchSuccessful) 
             {
@@ -180,13 +178,13 @@ namespace TeensyRom.Cli.Services
 
         public ILaunchableItem? GetPreviousSearchItem()
         {
-            var list = _storage.Search(_searchQuery!, []).ToList();
+            var list = _storage.Search(_state.SearchQuery!, []).ToList();
             return GetPreviousFromList(list);
         }
 
         public async Task<ILaunchableItem?> GetPreviousDirectoryItem()
         {
-            var currentPath = _currentFile!.Path.GetUnixParentPath();
+            var currentPath = _state.CurrentItem!.Path.GetUnixParentPath();
             var currentDirectory = await _storage.GetDirectory(currentPath);
 
             if (currentDirectory is null)
@@ -207,7 +205,7 @@ namespace TeensyRom.Cli.Services
                 _alert.PublishError("Something went wrong.  I couldn't find any files in the target location.");
                 return null;
             }
-            var currentFile = unfilteredFiles.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
+            var currentFile = unfilteredFiles.ToList().FirstOrDefault(f => f.Id == _state.CurrentItem?.Id);
 
             if (currentFile is null)
             {
@@ -274,14 +272,14 @@ namespace TeensyRom.Cli.Services
         {
             ILaunchableItem? fileToPlay = null;
 
-            switch (_playMode) 
+            switch (_state.PlayMode) 
             {
                 case PlayMode.Random:
                     fileToPlay = _randomHistory.GetNext(GetFilterFileTypes());
 
                     if (fileToPlay is null)
                     {
-                        await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
+                        await PlayRandom(_state.StorageType, _state.ScopePath, _state.FilterType);
                         return;
                     }
                     break;
@@ -297,22 +295,25 @@ namespace TeensyRom.Cli.Services
 
             if (fileToPlay is null)
             {
-                fileToPlay = _currentFile;
+                fileToPlay = _state.CurrentItem;
             }
-            var launchSuccessful = await LaunchItem(_selectedStorage, fileToPlay!);
+            var launchSuccessful = await LaunchItem(_state.StorageType, fileToPlay!);
 
             if (!launchSuccessful) await PlayNext();
         }
 
         public ILaunchableItem? GetNextSearchItem()
         {
-            var list = _storage.Search(_searchQuery, []).ToList();
+            if (_state.SearchQuery is null) return null;
+
+            var list = _storage.Search(_state.SearchQuery, []).ToList();
+
             return GetNextListItem(list);
         }
 
         public async Task<ILaunchableItem?> GetNextDirectoryItem()
         {
-            var currentPath = _currentFile!.Path.GetUnixParentPath();
+            var currentPath = _state.CurrentItem!.Path.GetUnixParentPath();
             var currentDirectory = await _storage.GetDirectory(currentPath);
 
             if (currentDirectory is null) return null;
@@ -335,7 +336,7 @@ namespace TeensyRom.Cli.Services
                 return null;
             }
 
-            var currentFile = unfilteredFiles.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
+            var currentFile = unfilteredFiles.ToList().FirstOrDefault(f => f.Id == _state.CurrentItem?.Id);
 
             if (currentFile is null)
             {
@@ -397,20 +398,20 @@ namespace TeensyRom.Cli.Services
 
         private void MaybeStartStream(ILaunchableItem fileItem)
         {
-            if (fileItem is SongItem songItem && _sidTimer is SidTimer.SongLength)
+            if (fileItem is SongItem songItem && _state.SidTimer is SidTimer.SongLength)
             {
                 StartStream(songItem.PlayLength);
                 return;
             }
-            if (_streamTimeSpan is not null)
+            if (_state.PlayTimer is not null)
             {
-                StartStream(_streamTimeSpan.Value);
+                StartStream(_state.PlayTimer.Value);
             }
         }
 
         private void StartStream(TimeSpan length)
         {
-            _playState = PlayState.Playing;
+            _state.PlayState = PlayState.Playing;
             SetupTimerSubscription();
             _timer.StartNewTimer(length);
         }
@@ -431,125 +432,118 @@ namespace TeensyRom.Cli.Services
             {
                 _alert.Publish("Stopping Stream");
             }
-            _playState = PlayState.Stopped;
+            _state.PlayState = PlayState.Stopped;
             _timerSubscription?.Dispose();
             _timerSubscription = null;
         }
 
         public void PauseStream() 
         {
-            _playState = PlayState.Paused;
+            _state.PlayState = PlayState.Paused;
             _timer.PauseTimer();
         }
         public void ResumeStream() 
         {
-            _playState = PlayState.Playing;
+            _state.PlayState = PlayState.Playing;
             _timer.ResumeTimer();
         }
 
-        public PlayerState GetPlayerSettings()
-        {
-            var settings = _settingsService.GetSettings();
-
-            return new PlayerState
-            {
-                StorageType = _selectedStorage,
-                PlayState = _playState,
-                PlayMode = _playMode,
-                FilterType = _filterType,
-                ScopePath = _scopeDirectory,
-                PlayTimer = _streamTimeSpan,
-                SidTimer = _sidTimer,
-                CurrentItem = _currentFile,
-                SearchQuery = _searchQuery
-            };
-        }
+        public PlayerState GetState() => _state with { };
 
         public void SetSearchMode(string query)
         {
-            _playMode = PlayMode.Search;
-
-            _searchQuery = query;
+            _state = _state with
+            {
+                PlayMode = PlayMode.Search,
+                SearchQuery = query
+            };
         }
 
         public void SetDirectoryMode(string directoryPath)
         {
-            _playMode = PlayMode.CurrentDirectory;
+            _state = _state with 
+            {
+                PlayMode = PlayMode.CurrentDirectory,
+                FilterType = TeensyFilterType.All,
+                ScopePath = directoryPath,
+                SearchQuery = null
+            };
             _alert.Publish("Switching filter to \"All\"");
-            _filterType = TeensyFilterType.All;
-            _scopeDirectory = directoryPath;
-            _searchQuery = null;
         }
 
         public void SetRandomMode(string scopePath)
         {
-            if (_playMode is not PlayMode.Random)
+            if (_state.PlayMode is not PlayMode.Random)
             {
                 _randomHistory.Clear();
             }
-            _playMode = PlayMode.Random;
-            _scopeDirectory = scopePath;
-            _searchQuery = null;
+            _state = _state with            
+            {
+                PlayMode = PlayMode.Random,
+                ScopePath = scopePath,
+                SearchQuery = null
+            };
         }
 
-        public void SetFilter(TeensyFilterType filterType) => _filterType = filterType;
-        public void SetDirectoryScope(string path) => _scopeDirectory = path;
+        public void SetFilter(TeensyFilterType filterType) => _state = _state with { FilterType = filterType };
+        public void SetDirectoryScope(string path) => _state = _state with { ScopePath = path };
         public void SetStreamTime(TimeSpan? timespan)
         {
-            _streamTimeSpan = timespan;
+            _state = _state with { PlayTimer = timespan };
 
-            if (_currentFile is SongItem && _sidTimer is SidTimer.SongLength)
+            if (_state.CurrentItem is SongItem && _state.SidTimer is SidTimer.SongLength)
             {
                 return;
             }
 
-            if (_streamTimeSpan is not null)
+            if (_state.PlayTimer is not null)
             {
                 StopStream();
-                StartStream(_streamTimeSpan.Value);
+                StartStream(_state.PlayTimer.Value);
             }
         }
-        public void SetSidTimer(SidTimer value) => _sidTimer = value;
+        public void SetSidTimer(SidTimer value) => _state = _state with { SidTimer = value };
 
         private TeensyFileType[] GetFilterFileTypes()
         {
             var trSettings = _settingsService.GetSettings();
-            return trSettings.GetFileTypes(_filterType);
+            return trSettings.GetFileTypes(_state.FilterType);
         }
 
         public void TogglePlay()
         {
-            if(_playState is PlayState.Playing)
+            if(_state.PlayState is PlayState.Playing)
             {   
                 PauseStream();
                 
-                if(_currentFile is SongItem) 
+                if(_state.CurrentItem is SongItem) 
                 {
                     _mediator.Send(new ToggleMusicCommand());
-                    _alert.Publish($"{_currentFile.Name} has been paused.");
+                    _alert.Publish($"{_state.CurrentItem.Name} has been paused.");
                     return;
                 }
                 _mediator.Send(new ResetCommand());
-                _alert.Publish($"{_currentFile?.Name} has been stopped.");
+                _alert.Publish($"{_state.CurrentItem?.Name} has been stopped.");
                 return;
             }
-            if(_currentFile is null)
+            if(_state.CurrentItem is null)
             {
                 _alert.PublishError("Hit back and try starting a new stream.");
                 return;
             }
             ResumeStream();
 
-            _playState = PlayState.Playing;
-            if (_currentFile is SongItem)
+            _state = _state with { PlayState = PlayState.Playing };
+
+            if (_state.CurrentItem is SongItem)
             {
                 _mediator.Send(new ToggleMusicCommand());
             }
             else 
             {
-                _mediator.Send(new LaunchFileCommand(_selectedStorage, _currentFile));
+                _mediator.Send(new LaunchFileCommand(_state.StorageType, _state.CurrentItem));
             }
-            _alert.Publish($"{_currentFile.Name} has been resumed.");
+            _alert.Publish($"{_state.CurrentItem.Name} has been resumed.");
         }
     }
 }

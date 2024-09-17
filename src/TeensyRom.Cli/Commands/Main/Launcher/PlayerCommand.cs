@@ -33,13 +33,12 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             RadHelper.WriteMenu("Stream Player", "There are many paths your stream can take...");
 
             var choice = string.Empty;
-            PlayState? previousState;
 
             do
             {
-                var playerSettings = _player.GetPlayerSettings();
+                var _playerState = _player.GetState();
 
-                List<string> choices = playerSettings.PlayState == PlayState.Playing
+                List<string> choices = _playerState.PlayState == PlayState.Playing
                     ? ["Next", "Previous", "Stop/Pause", "Favorite", "Share", "Stream Settings", "Back"]
                     : ["Next", "Previous", "Resume", "Favorite", "Share", "Stream Settings", "Back"];
 
@@ -64,11 +63,11 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                         break;
 
                     case "Favorite":
-                        HandleFavorite(playerSettings);
+                        HandleFavorite(_playerState);
                         break;                   
 
                     case "Share":
-                        HandleShare(playerSettings);
+                        HandleShare(_playerState);
                         break;
 
                     case "Stream Settings":                        
@@ -99,7 +98,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             do
             {
                 WriteHelp();
-                var playerSettings = _player.GetPlayerSettings();
+                var playerState = _player.GetState();
 
                 List<string> choices = ["Mode", "Filter", "Timer", "Pin Directory", "Help", "Back"];
 
@@ -108,7 +107,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 switch (choice)
                 {
                     case "Mode":
-                        HandleMode(playerSettings);
+                        HandleMode(playerState);
                         break;
 
                     case "Filter":
@@ -168,36 +167,36 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             _player.SetFilter(filter);
         }
 
-        private void HandleMode(Services.PlayerState playerSettings)
+        private void HandleMode(PlayerState playerState)
         {
             var playMode = PromptHelper.ChoicePrompt("Play Mode", ["Random", "Current Directory"]);
 
             if (playMode == "Random")
             {
-                _player.SetRandomMode(playerSettings.ScopePath);
+                _player.SetRandomMode(playerState.ScopePath);
                 return;
             }
-            var directoryPath = playerSettings.CurrentItem is null
+            var directoryPath = playerState.CurrentItem is null
                 ? "/"
-                : playerSettings.CurrentItem.Path.GetUnixParentPath();
+                : playerState.CurrentItem.Path.GetUnixParentPath();
 
             _player.SetDirectoryMode(directoryPath);
         }
 
-        private void HandleFavorite(Services.PlayerState playerSettings)
+        private void HandleFavorite(PlayerState playerState)
         {
             AnsiConsole.WriteLine(RadHelper.ClearHack);
 
-            var needsToggle = playerSettings.PlayState is PlayState.Playing;
+            var needsToggle = playerState.PlayState is PlayState.Playing;
 
-            if (playerSettings.CurrentItem is null)
+            if (playerState.CurrentItem is null)
             {
                 RadHelper.WriteLine("No file is currently playing");
                 return;
             }
             var shouldRemove = false;
 
-            if(playerSettings.CurrentItem.IsFavorite)
+            if(playerState.CurrentItem.IsFavorite)
             {
                 shouldRemove = PromptHelper.Confirm("Remove Favorite?", false);
 
@@ -208,18 +207,18 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (shouldRemove)
             {
-                _storage.RemoveFavorite(playerSettings.CurrentItem);
+                _storage.RemoveFavorite(playerState.CurrentItem);
             }
             else 
             {
-                _storage.SaveFavorite(playerSettings.CurrentItem);
+                _storage.SaveFavorite(playerState.CurrentItem);
             }
             if (needsToggle) _player.TogglePlay();
         }
 
         private void WriteHelp()
         {
-            var playerSettings = _player.GetPlayerSettings();
+            var playerSettings = _player.GetState();
 
             var mode = playerSettings.PlayMode switch
             {

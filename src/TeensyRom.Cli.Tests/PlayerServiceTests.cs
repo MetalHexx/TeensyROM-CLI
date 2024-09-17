@@ -72,7 +72,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -99,7 +99,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -126,7 +126,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -153,7 +153,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -172,7 +172,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryScope("/images");
             playerService.SetDirectoryScope("/music");
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -193,7 +193,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetSearchMode("this is a query");
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -216,7 +216,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetSearchMode("this is a query");
             playerService.SetDirectoryMode("/music");
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -239,7 +239,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetSearchMode("this is a query");
             playerService.SetRandomMode("/music");
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -262,7 +262,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetSearchMode("this is a query");
             playerService.SetRandomMode("/music");
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -283,7 +283,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetStreamTime(TimeSpan.FromSeconds(1));
             playerService.SetStreamTime(expectedSettings.PlayTimer);
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -302,7 +302,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetSidTimer(SidTimer.SongLength);
             playerService.SetSidTimer(SidTimer.TimerOverride);
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -375,7 +375,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             await playerService.LaunchFromDirectory(storageType, "/music/MUSIC/doesntExist.sid");
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -422,7 +422,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             await playerService.LaunchFromDirectory(storageType, "/music/MUSIC/doesntExist.sid");
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -439,7 +439,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/MUSIC/doesntExist.sid");
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             await _mediator.DidNotReceive().Send(Arg.Any<LaunchFileCommand>());
@@ -455,7 +455,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/MUSIC/doesntExist.sid");
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             _progressTimer.DidNotReceive().StartNewTimer(Arg.Any<TimeSpan>());
@@ -488,7 +488,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             await playerService.LaunchFromDirectory(storageType, existingSong.Path);
-            var playerSettings = playerService.GetPlayerSettings();
+            var playerSettings = playerService.GetState();
 
             //Assert
             playerSettings.Should().BeEquivalentTo(expectedSettings);
@@ -588,7 +588,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             timer.OnNext(Unit.Default);
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -623,7 +623,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             timer.OnNext(Unit.Default);
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -661,7 +661,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             timer.OnNext(Unit.Default);
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -699,7 +699,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetFilter(TeensyFilterType.Music);
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             timer.OnNext(Unit.Default);
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -731,7 +731,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
             playerService.SetDirectoryMode(expectedFile.Path.GetUnixParentPath());
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
         }
@@ -773,7 +773,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetFilter(TeensyFilterType.Music);
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             timer.OnNext(Unit.Default);
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -816,7 +816,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetFilter(TeensyFilterType.Music);
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             timer.OnNext(Unit.Default);
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -851,7 +851,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             await playerService.PlayPrevious();
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -887,7 +887,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             await playerService.PlayPrevious();
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -926,7 +926,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetFilter(TeensyFilterType.Music);
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             await playerService.PlayPrevious();
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -948,7 +948,7 @@ namespace TeensyRom.Cli.Tests
             playerService.TogglePlay();
 
             //Assert
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
             settings.PlayState.Should().Be(PlayState.Paused);
             settings.CurrentItem.Should().BeEquivalentTo(expectedFile);
             _progressTimer.Received(1).PauseTimer();
@@ -972,7 +972,7 @@ namespace TeensyRom.Cli.Tests
             playerService.TogglePlay();
 
             //Assert
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
             settings.CurrentItem.Should().BeEquivalentTo(expectedFile);
             settings.PlayState.Should().Be(PlayState.Playing);
             _progressTimer.Received(1).ResumeTimer();
@@ -994,7 +994,7 @@ namespace TeensyRom.Cli.Tests
             playerService.TogglePlay();
 
             //Assert
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
             settings.PlayState.Should().Be(PlayState.Paused);
             settings.CurrentItem.Should().BeEquivalentTo(expectedFile);
             _progressTimer.Received(1).PauseTimer();
@@ -1018,7 +1018,7 @@ namespace TeensyRom.Cli.Tests
             playerService.TogglePlay();
 
             //Assert
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
             settings.CurrentItem.Should().BeEquivalentTo(expectedFile);
             settings.PlayState.Should().Be(PlayState.Playing);
             _progressTimer.Received(1).ResumeTimer();
@@ -1061,7 +1061,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetFilter(TeensyFilterType.Music);
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             await playerService.PlayPrevious();
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -1104,7 +1104,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetFilter(TeensyFilterType.Music);
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
             await playerService.PlayPrevious();
-            var resultingSettings = playerService.GetPlayerSettings();
+            var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
@@ -1132,7 +1132,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             await playerService.PlayRandom(TeensyStorageType.USB, "/music/", TeensyFilterType.Music);
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
 
             //Assert
             settings.Should().BeEquivalentTo(expectedSettings);
@@ -1156,7 +1156,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             await playerService.PlayPrevious();
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
 
             //Assert
             settings.CurrentItem!.Path.Should().Be("/music/1.sid");
@@ -1179,7 +1179,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             await playerService.PlayPrevious();
             await playerService.PlayNext();
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
 
             //Assert
             settings.CurrentItem!.Path.Should().Be("/music/2.sid");
@@ -1205,7 +1205,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             timer.OnNext(Unit.Default);
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
 
             //Arrange
             settings.CurrentItem!.Path.Should().Be("/music/2.sid");
@@ -1230,7 +1230,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             timer.OnNext(Unit.Default);
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
 
             //Arrange
             settings.CurrentItem!.Path.Should().Be("/music/1.sid");
@@ -1254,7 +1254,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             await playerService.PlayPrevious();
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
 
             //Arrange
             settings.CurrentItem!.Path.Should().Be("/music/1.sid");
@@ -1278,7 +1278,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             await playerService.PlayPrevious();
-            var settings = playerService.GetPlayerSettings();
+            var settings = playerService.GetState();
 
             //Arrange
             settings.CurrentItem!.Path.Should().Be("/music/3.sid");
@@ -1486,7 +1486,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, file3.Path);
             await playerService.PlayPrevious();
-            var finalState = playerService.GetPlayerSettings();
+            var finalState = playerService.GetState();
 
             //Assert
             finalState.CurrentItem.Should().BeEquivalentTo(file1);
@@ -1529,7 +1529,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             await playerService.LaunchFromDirectory(TeensyStorageType.SD, file2.Path);
             await playerService.PlayNext();
-            var finalState = playerService.GetPlayerSettings();
+            var finalState = playerService.GetState();
 
             //Assert
             finalState.CurrentItem.Should().BeEquivalentTo(file1);
