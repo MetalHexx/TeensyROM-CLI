@@ -86,10 +86,11 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 : settings.StorageDevice;
 
             var storageType = CommandHelper.PromptForStorageType(settings.StorageDevice, promptAlways: globalSettings.AlwaysPromptStorage);
+            player.SetStorage(storageType);
 
             if (globalSettings.AlwaysPromptStorage)
             {
-                storage.SwitchStorage(storageType);
+                storage.SwitchStorage(storageType);                
             }
             settings.PinnedDirectory = CommandHelper.PromptForDirectoryPath(settings.PinnedDirectory, "/");
             var filterType = CommandHelper.PromptForFilterType(settings.Filter);
@@ -113,7 +114,11 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (!settings.ValidateSettings()) return -1;
 
-            await player.PlayRandom(storageType, settings.PinnedDirectory, filterType);
+            player.SetStorage(storageType);
+            player.SetDirectoryScope(settings.PinnedDirectory);
+            player.SetFilter(filterType);
+
+            await player.PlayRandom();
 
             if (playerCommand is not null)
             {

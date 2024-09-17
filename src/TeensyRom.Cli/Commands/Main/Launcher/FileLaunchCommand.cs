@@ -72,7 +72,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             if (!settings.ValidateSettings()) return -1;
 
             player.SetDirectoryMode(settings.FilePath);
-            await player.LaunchFromDirectory(storageType, settings.FilePath);
+            player.SetStorage(storageType);
+            await player.LaunchFromDirectory(settings.FilePath);
 
             var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
 

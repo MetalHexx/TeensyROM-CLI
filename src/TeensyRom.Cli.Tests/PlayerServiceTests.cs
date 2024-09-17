@@ -318,7 +318,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
 
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/sid1.sid");
+            await playerService.LaunchFromDirectory("/music/sid1.sid");
             playerService.SetSidTimer(SidTimer.TimerOverride);
             playerService.SetStreamTime(TimeSpan.FromDays(1));
 
@@ -335,7 +335,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
 
             playerService.SetSidTimer(SidTimer.SongLength);
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/sid1.sid");
+            await playerService.LaunchFromDirectory("/music/sid1.sid");
             playerService.SetStreamTime(TimeSpan.FromDays(1));
             _progressTimer.Received(0).StartNewTimer(TimeSpan.FromDays(1));
         }
@@ -353,7 +353,7 @@ namespace TeensyRom.Cli.Tests
             var tcs = new TaskCompletionSource<ILaunchableItem>();
             playerService.FileLaunched.Subscribe(tcs.SetResult);
             
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/sid1.sid");
+            await playerService.LaunchFromDirectory("/music/sid1.sid");
 
             var actualFile = await tcs.Task;
 
@@ -374,7 +374,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(storageType, "/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -386,7 +386,7 @@ namespace TeensyRom.Cli.Tests
         {
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
 
             //Assert
             await _mediator.DidNotReceive().Send(Arg.Any<LaunchFileCommand>());
@@ -397,7 +397,7 @@ namespace TeensyRom.Cli.Tests
         {
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
 
             //Assert
             _progressTimer.DidNotReceive().StartNewTimer(Arg.Any<TimeSpan>());
@@ -421,7 +421,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(storageType, "/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -438,7 +438,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -454,7 +454,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -487,7 +487,8 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(storageType, existingSong.Path);
+            playerService.SetStorage(storageType);
+            await playerService.LaunchFromDirectory(existingSong.Path);
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -504,7 +505,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, existingSong.Path);
+            await playerService.LaunchFromDirectory(existingSong.Path);
 
             //Assert
             _mediator.ReceivedCalls().Should().HaveCount(1);
@@ -532,7 +533,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchItem(TeensyStorageType.SD, existingSong);
+            await playerService.LaunchItem(existingSong);
 
             timer.OnNext(Unit.Default);
 
@@ -586,7 +587,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -621,7 +622,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -659,7 +660,7 @@ namespace TeensyRom.Cli.Tests
             //Act            
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -697,7 +698,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -729,7 +730,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
+            await playerService.LaunchFromDirectory(expectedFile.Path);
             playerService.SetDirectoryMode(expectedFile.Path.GetUnixParentPath());
             var resultingSettings = playerService.GetState();
 
@@ -771,7 +772,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -814,7 +815,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -849,7 +850,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             await playerService.PlayPrevious();
             var resultingSettings = playerService.GetState();
 
@@ -885,7 +886,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             await playerService.PlayPrevious();
             var resultingSettings = playerService.GetState();
 
@@ -924,7 +925,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             await playerService.PlayPrevious();
             var resultingSettings = playerService.GetState();
 
@@ -942,7 +943,7 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(expectedFile);
             SetupMediatorSuccess();
 
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
+            await playerService.LaunchFromDirectory(expectedFile.Path);
 
             //Act
             playerService.TogglePlay();
@@ -965,7 +966,7 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(expectedFile);
             SetupMediatorSuccess();
 
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
+            await playerService.LaunchFromDirectory(expectedFile.Path);
             playerService.TogglePlay();
 
             //Act
@@ -988,7 +989,7 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(expectedFile);
             SetupMediatorSuccess();
 
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
+            await playerService.LaunchFromDirectory(expectedFile.Path);
 
             //Act
             playerService.TogglePlay();
@@ -1011,7 +1012,7 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(expectedFile);
             SetupMediatorSuccess();
 
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, expectedFile.Path);
+            await playerService.LaunchFromDirectory(expectedFile.Path);
             playerService.TogglePlay();
 
             //Act
@@ -1059,7 +1060,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             await playerService.PlayPrevious();
             var resultingSettings = playerService.GetState();
 
@@ -1102,7 +1103,7 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, currentFile.Path);
+            await playerService.LaunchFromDirectory(currentFile.Path);
             await playerService.PlayPrevious();
             var resultingSettings = playerService.GetState();
 
@@ -1120,7 +1121,6 @@ namespace TeensyRom.Cli.Tests
 
             var expectedSettings = new PlayerState
             {
-                StorageType = TeensyStorageType.USB,
                 PlayMode = PlayMode.Random,
                 FilterType = TeensyFilterType.Music,
                 PlayState = PlayState.Playing,
@@ -1131,7 +1131,9 @@ namespace TeensyRom.Cli.Tests
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(expectedFile);
 
             //Act
-            await playerService.PlayRandom(TeensyStorageType.USB, "/music/", TeensyFilterType.Music);
+            playerService.SetDirectoryScope("/music/");
+            playerService.SetFilter(TeensyFilterType.Music);
+            await playerService.PlayRandom();
             var settings = playerService.GetState();
 
             //Assert
@@ -1149,10 +1151,12 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
 
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(CreateFile<SongItem>("/music/1.sid"));
-            await playerService.PlayRandom(TeensyStorageType.SD, "/music/", TeensyFilterType.Music);
+            playerService.SetDirectoryScope("/music/");
+            playerService.SetFilter(TeensyFilterType.Music);
+            await playerService.PlayRandom();
 
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(CreateFile<SongItem>("/music/2.sid"));
-            await playerService.PlayRandom(TeensyStorageType.SD, "/music/", TeensyFilterType.Music);
+            await playerService.PlayRandom();
 
             //Act
             await playerService.PlayPrevious();
@@ -1171,10 +1175,12 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
 
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(CreateFile<SongItem>("/music/1.sid"));
-            await playerService.PlayRandom(TeensyStorageType.SD, "/music/", TeensyFilterType.Music);
+            playerService.SetDirectoryScope("/music/");
+            playerService.SetFilter(TeensyFilterType.Music);
+            await playerService.PlayRandom();
 
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(CreateFile<SongItem>("/music/2.sid"));
-            await playerService.PlayRandom(TeensyStorageType.SD, "/music/", TeensyFilterType.Music);
+            await playerService.PlayRandom();
 
             //Act
             await playerService.PlayPrevious();
@@ -1200,7 +1206,7 @@ namespace TeensyRom.Cli.Tests
             var timer = SetupTimer();
 
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/1.sid");
+            await playerService.LaunchFromDirectory("/music/1.sid");
             playerService.SetSearchMode("search query");
 
             //Act
@@ -1225,7 +1231,7 @@ namespace TeensyRom.Cli.Tests
             var timer = SetupTimer();
 
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/3.sid");
+            await playerService.LaunchFromDirectory("/music/3.sid");
             playerService.SetSearchMode("search query");
 
             //Act
@@ -1249,7 +1255,7 @@ namespace TeensyRom.Cli.Tests
             ]);
 
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/2.sid");
+            await playerService.LaunchFromDirectory("/music/2.sid");
             playerService.SetSearchMode("search query");
 
             //Act
@@ -1273,7 +1279,7 @@ namespace TeensyRom.Cli.Tests
             ]);
 
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, "/music/1.sid");
+            await playerService.LaunchFromDirectory("/music/1.sid");
             playerService.SetSearchMode("search query");
 
             //Act
@@ -1318,7 +1324,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
 
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, file2.Path);
+            await playerService.LaunchFromDirectory(file2.Path);
 
             //Assert
             _storageService.Received(1).MarkIncompatible(file2);
@@ -1359,7 +1365,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
 
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, file2.Path);
+            await playerService.LaunchFromDirectory(file2.Path);
 
             //Assert
             _storageService.Received(1).MarkIncompatible(file2);
@@ -1400,7 +1406,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
 
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, file2.Path);
+            await playerService.LaunchFromDirectory(file2.Path);
 
             //Assert
             _storageService.Received(1).MarkIncompatible(file2);
@@ -1442,7 +1448,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
 
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, file2.Path);
+            await playerService.LaunchFromDirectory(file2.Path);
 
             //Assert
             _storageService.Received(1).MarkIncompatible(file2);
@@ -1484,7 +1490,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetDirectoryMode("/music/");
 
             //Act
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, file3.Path);
+            await playerService.LaunchFromDirectory(file3.Path);
             await playerService.PlayPrevious();
             var finalState = playerService.GetState();
 
@@ -1527,7 +1533,7 @@ namespace TeensyRom.Cli.Tests
             playerService.SetDirectoryMode("/music/");
 
             //Act
-            await playerService.LaunchFromDirectory(TeensyStorageType.SD, file2.Path);
+            await playerService.LaunchFromDirectory(file2.Path);
             await playerService.PlayNext();
             var finalState = playerService.GetState();
 
@@ -1624,490 +1630,3 @@ namespace TeensyRom.Cli.Tests
     }
     
 }
-
-//internal class PlayerService : IPlayerService
-//{
-//    private const string NotApplicable = "---";
-//    private TeensyStorageType _selectedStorage = TeensyStorageType.SD;
-//    private StorageScope _selectedScope = StorageScope.DirDeep;
-//    private string _scopeDirectory = "/";
-//    private string _currentDirectory = "/";
-//    private string _searchQuery = NotApplicable;
-
-//    private ILaunchableItem? _currentFile = null;
-//    private PlayState _playState = PlayState.Stopped;
-//    private PlayMode _playMode = PlayMode.Random;
-//    private TeensyFilterType _filterType = TeensyFilterType.All;
-//    private TimeSpan? _streamTimeSpan = null;
-//    private SidTimer _sidTimer = SidTimer.SongLength;
-
-//    private IDisposable? _progressSubscription;
-//    private readonly IMediator _mediator;
-//    private readonly ICachedStorageService _storage;
-//    private readonly IProgressTimer _progressTimer;
-//    private readonly ISettingsService _settingsService;
-//    private readonly ISerialStateContext _serial;
-//    private readonly ILaunchHistory _history;
-
-//    public PlayerService(IMediator mediator, ICachedStorageService storage, IProgressTimer progressTimer, ISettingsService settingsService, ISerialStateContext serial, ILaunchHistory history)
-//    {
-//        _mediator = mediator;
-//        _storage = storage;
-//        _progressTimer = progressTimer;
-//        _settingsService = settingsService;
-//        _serial = serial;
-//        _history = history;
-
-//        var settings = settingsService.GetSettings();
-//        _selectedStorage = settings.StorageType;
-//        _filterType = settings.StartupFilter;
-
-//        serial.CurrentState
-//            .Where(state => state is SerialConnectionLostState && _playState is PlayState.Playing)
-//            .Subscribe(_ => StopStream());
-//    }
-
-//    public async Task LaunchItem(TeensyStorageType storageType, string path)
-//    {
-//        var directory = await _storage.GetDirectory(path.GetUnixParentPath());
-
-//        if (directory is null)
-//        {
-//            RadHelper.WriteError("File not found.");
-//            AnsiConsole.WriteLine();
-//            return;
-//        }
-//        var fileItem = directory.Files.FirstOrDefault(f => f.Path.Contains(path));
-
-//        if (fileItem is ILaunchableItem launchItem)
-//        {
-//            await LaunchItem(storageType, launchItem);
-//            return;
-//        }
-//        RadHelper.WriteError("File is not launchable.");
-//        AnsiConsole.WriteLine();
-//        return;
-//    }
-
-//    public async Task<LaunchFileResult> LaunchItem(TeensyStorageType storageType, ILaunchableItem item)
-//    {
-//        _currentFile = item;
-//        _selectedStorage = storageType;
-//        _currentDirectory = _currentFile.Path;
-//        _playState = PlayState.Playing;
-
-//        var result = await _mediator.Send(new LaunchFileCommand(storageType, item));
-
-//        if (result.IsSuccess)
-//        {
-//            RadHelper.WriteFileInfo(item);
-//        }
-//        else
-//        {
-//            RadHelper.WriteError($"Error Launching: {item.Path.EscapeBrackets()}");
-//            AnsiConsole.WriteLine(RadHelper.ClearHack);
-//            await PlayNext();
-//        }
-//        AnsiConsole.WriteLine(RadHelper.ClearHack);
-//        MaybeStartStream(item);
-
-//        return result;
-//    }
-
-//    public async Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType)
-//    {
-//        if (_playMode is not PlayMode.Random)
-//        {
-//            _history.Clear();
-//        }
-//        _playMode = PlayMode.Random;
-
-//        var trSettings = await _settingsService.Settings.FirstAsync();
-//        _filterType = filterType;
-//        _scopeDirectory = scopePath;
-
-//        var fileTypes = trSettings.GetFileTypes(_filterType);
-
-//        var randomItem = _storage.GetRandomFile(_selectedScope, _scopeDirectory, fileTypes);
-
-//        if (randomItem is null)
-//        {
-//            AnsiConsole.WriteLine();
-//            RadHelper.WriteError($"No files of that type were found on {storageType}");
-//            AnsiConsole.WriteLine();
-//            return;
-//        }
-
-//        var result = await LaunchItem(storageType, randomItem);
-
-//        if (result.IsSuccess)
-//        {
-//            _history.Add(randomItem);
-//        }
-//    }
-
-//    private void MaybeStartStream(ILaunchableItem fileItem)
-//    {
-//        if (fileItem is SongItem songItem && _sidTimer is SidTimer.SongLength)
-//        {
-//            StartStream(songItem.PlayLength);
-//            return;
-//        }
-//        if (_streamTimeSpan is not null)
-//        {
-//            StartStream(_streamTimeSpan.Value);
-//        }
-//    }
-
-//    private void StartStream(TimeSpan length)
-//    {
-//        _playState = PlayState.Playing;
-//        _progressSubscription?.Dispose();
-
-//        _progressTimer.StartNewTimer(length);
-
-//        _progressSubscription = _progressTimer.TimerComplete.Subscribe(async _ =>
-//        {
-//            await PlayNext();
-//        });
-//    }
-
-//    public async Task PlayPrevious()
-//    {
-//        if (_playMode is PlayMode.Random)
-//        {
-//            var previous = _history.GetPrevious();
-
-//            if (previous is not null)
-//            {
-//                await LaunchItem(_selectedStorage, previous);
-//                return;
-//            }
-//            if (_currentFile is not null)
-//            {
-//                await LaunchItem(_selectedStorage, _currentFile);
-//            }
-//            return;
-//        }
-//        if (_playMode is PlayMode.Search)
-//        {
-//            var searchItem = GetPreviousSearchItem();
-
-//            if (searchItem is not null)
-//            {
-//                await LaunchItem(_selectedStorage, searchItem);
-//                return;
-//            }
-//            if (_currentFile is not null)
-//            {
-//                await LaunchItem(_selectedStorage, _currentFile);
-//            }
-//            return;
-//        }
-//        var previousItem = await GetPreviousDirectoryItem();
-
-//        if (previousItem is not null)
-//        {
-//            await LaunchItem(_selectedStorage, previousItem);
-//            AnsiConsole.WriteLine(RadHelper.ClearHack);
-//            return;
-//        }
-//        if (_currentFile is not null)
-//        {
-//            await LaunchItem(_selectedStorage, _currentFile);
-//        }
-//        return;
-//    }
-
-//    public ILaunchableItem? GetPreviousSearchItem()
-//    {
-//        var list = _storage.Search(_searchQuery, []).ToList();
-//        return GetPreviousFromList(list);
-//    }
-
-//    public async Task<ILaunchableItem?> GetPreviousDirectoryItem()
-//    {
-//        var currentPath = _currentFile!.Path.GetUnixParentPath();
-//        var currentDirectory = await _storage.GetDirectory(currentPath);
-
-//        if (currentDirectory is null)
-//        {
-//            RadHelper.WriteError($"Couldn't find directory {currentPath}.");
-//            return null;
-//        }
-//        var items = currentDirectory.Files.OfType<ILaunchableItem>().ToList();
-//        return GetPreviousFromList(items);
-//    }
-
-//    private ILaunchableItem? GetPreviousFromList(List<ILaunchableItem> list)
-//    {
-//        var unfilteredFiles = list;
-
-//        if (unfilteredFiles.Count == 0)
-//        {
-//            RadHelper.WriteError("Something went wrong.  I couldn't find any files in the target location.");
-//            return null;
-//        }
-//        var currentFile = unfilteredFiles.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
-
-//        if (currentFile is null)
-//        {
-//            RadHelper.WriteError("Something went wrong.  I couldn't find the current file in the target location.");
-//            return null;
-//        }
-
-//        var filteredFiles = unfilteredFiles
-//            .Where(f => GetFilterFileTypes()
-//                .Any(t => f.FileType == t))
-//            .ToList();
-
-//        if (filteredFiles.Count() == 0)
-//        {
-//            RadHelper.WriteError("There were no files matching your filter in the target location");
-//            return null;
-//        }
-
-//        var currentFileUnfilteredIndex = unfilteredFiles.IndexOf(currentFile);
-
-//        var currentFileComesAfterLastItemInFilteredList = unfilteredFiles.IndexOf(filteredFiles.Last()) < currentFileUnfilteredIndex;
-
-//        if (currentFileComesAfterLastItemInFilteredList)
-//        {
-//            return filteredFiles.Last();
-//        }
-//        var filteredIndex = filteredFiles.IndexOf(currentFile);
-
-//        if (filteredIndex != -1)
-//        {
-//            ///music/MUSICIANS/A/A-Man/Zack_Theme.sid  last sid in the directory
-//            var index = filteredIndex == 0
-//                ? filteredFiles.Count - 1
-//                : filteredIndex - 1;
-
-//            return filteredFiles[index];
-//        }
-
-//        ILaunchableItem? candidate = null;
-
-//        for (int x = 0; x < filteredFiles.Count; x++)
-//        {
-//            var f = filteredFiles[x];
-
-//            var fIndex = unfilteredFiles.IndexOf(f);
-
-//            if (fIndex < currentFileUnfilteredIndex)
-//            {
-//                candidate = f;
-//                continue;
-//            }
-//            else if (fIndex > currentFileUnfilteredIndex)
-//            {
-//                break;
-//            }
-//        }
-//        if (candidate is null)
-//        {
-//            return filteredFiles.First();
-//        }
-//        return candidate;
-//    }
-
-//    public async Task PlayNext()
-//    {
-//        if (_playMode is PlayMode.Random)
-//        {
-//            var nextHistory = _history.GetNext(GetFilterFileTypes());
-
-//            if (nextHistory is not null)
-//            {
-//                await LaunchItem(_selectedStorage, nextHistory);
-//                return;
-//            }
-//            await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
-//            return;
-//        }
-//        if (_playMode is PlayMode.Search)
-//        {
-//            var searchItem = GetNextSearchItem();
-
-//            if (searchItem is not null)
-//            {
-//                await LaunchItem(_selectedStorage, searchItem);
-//                return;
-//            }
-//            RadHelper.WriteError("Couldn't find search result. Launching random.");
-//            await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
-
-//            return;
-//        }
-//        var nextItem = await GetNextDirectoryItem();
-
-//        if (nextItem is not null)
-//        {
-//            var result = await LaunchItem(_selectedStorage, nextItem);
-//            AnsiConsole.WriteLine(RadHelper.ClearHack);
-//            return;
-//        }
-//        await PlayRandom(_selectedStorage, _scopeDirectory, _filterType);
-//    }
-
-//    public ILaunchableItem? GetNextSearchItem()
-//    {
-//        var list = _storage.Search(_searchQuery, []).ToList();
-//        return GetNextListItem(list);
-//    }
-
-//    public async Task<ILaunchableItem?> GetNextDirectoryItem()
-//    {
-//        var currentPath = _currentFile!.Path.GetUnixParentPath();
-//        var currentDirectory = await _storage.GetDirectory(currentPath);
-
-//        if (currentDirectory is null)
-//        {
-//            return null;
-//        }
-//        var list = currentDirectory.Files.OfType<ILaunchableItem>().ToList();
-//        return GetNextListItem(list);
-//    }
-
-//    public ILaunchableItem? GetNextListItem(List<ILaunchableItem> list)
-//    {
-//        var unfilteredFiles = list;
-
-//        if (unfilteredFiles.Count == 0)
-//        {
-//            RadHelper.WriteError("Something went wrong.  I coudln't find any files in the target location.");
-//            return null;
-//        }
-
-//        var currentFile = unfilteredFiles.ToList().FirstOrDefault(f => f.Id == _currentFile?.Id);
-
-//        if (currentFile is null)
-//        {
-//            RadHelper.WriteError("Something went wrong.  I coudln't find the current file in the target location.");
-//            return null;
-//        }
-
-//        var unfilteredIndex = unfilteredFiles.IndexOf(currentFile);
-
-//        var filteredFiles = unfilteredFiles
-//            .Where(f => GetFilterFileTypes()
-//                .Any(t => f.FileType == t))
-//            .ToList();
-
-//        if (filteredFiles.Count() == 0)
-//        {
-//            RadHelper.WriteError("There were no files matching your filter in the target location");
-//            return null;
-//        }
-//        if (unfilteredIndex > filteredFiles.Count - 1)
-//        {
-//            return filteredFiles.First();
-//        }
-//        var filteredIndex = filteredFiles.IndexOf(currentFile);
-
-//        if (filteredIndex >= 0)
-//        {
-//            var index = filteredIndex < filteredFiles.Count - 1
-//            ? filteredIndex + 1
-//            : 0;
-
-//            return filteredFiles[index];
-//        }
-
-//        for (int x = 0; x < unfilteredFiles.Count; x++)
-//        {
-//            var f = filteredFiles[x];
-//            var fIndex = unfilteredFiles.IndexOf(f);
-
-//            if (fIndex < unfilteredIndex)
-//            {
-//                continue;
-//            }
-//            return f;
-//        }
-//        return filteredFiles.First();
-//    }
-
-//    private TeensyFileType[] GetFilterFileTypes()
-//    {
-//        var trSettings = _settingsService.GetSettings();
-//        return trSettings.GetFileTypes(_filterType);
-//    }
-
-//    public void StopStream()
-//    {
-//        if (_progressSubscription is not null)
-//        {
-//            RadHelper.WriteTitle("Stopping Stream");
-//            AnsiConsole.WriteLine(RadHelper.ClearHack);
-//        }
-//        _playState = PlayState.Stopped;
-//        _progressSubscription?.Dispose();
-//        _progressSubscription = null;
-//    }
-
-//    public PlayerSettings GetPlayerSettings()
-//    {
-//        var settings = _settingsService.GetSettings();
-
-//        //TODO: Need to make storage settings more accessible from player.
-
-//        return new PlayerSettings
-//        {
-//            StorageType = settings.StorageType,
-//            PlayState = _playState,
-//            PlayMode = _playMode,
-//            FilterType = _filterType,
-//            ScopePath = _scopeDirectory,
-//            PlayTimer = _streamTimeSpan,
-//            SidTimer = _sidTimer,
-//            CurrentItem = _currentFile,
-//            ScopeDirectory = _scopeDirectory,
-//            SearchQuery = _searchQuery
-//        };
-//    }
-
-//    public void SetSearchMode(string query)
-//    {
-//        _playMode = PlayMode.Search;
-//        _searchQuery = query;
-//    }
-
-//    public void SetDirectoryMode(string directoryPath)
-//    {
-//        _playMode = PlayMode.CurrentDirectory;
-//        _currentDirectory = directoryPath;
-//        _searchQuery = NotApplicable;
-//    }
-
-//    public void SetRandomMode(string scopePath)
-//    {
-//        if (_playMode is not PlayMode.Random)
-//        {
-//            _history.Clear();
-//        }
-//        _playMode = PlayMode.Random;
-//        _scopeDirectory = scopePath;
-//        _searchQuery = NotApplicable;
-//    }
-
-//    public void SetFilter(TeensyFilterType filterType) => _filterType = filterType;
-//    public void SetScope(string path) => _scopeDirectory = path;
-//    public void SetStreamTime(TimeSpan? timespan)
-//    {
-//        _streamTimeSpan = timespan;
-
-//        if (_currentFile is SongItem && _sidTimer is SidTimer.SongLength)
-//        {
-//            return;
-//        }
-
-//        if (_streamTimeSpan is not null)
-//        {
-//            StopStream();
-//            StartStream(_streamTimeSpan.Value);
-//        }
-//    }
-//    public void SetSidTimer(SidTimer value) => _sidTimer = value;
-//}

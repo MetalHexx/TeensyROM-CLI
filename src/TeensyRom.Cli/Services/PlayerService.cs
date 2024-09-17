@@ -58,7 +58,7 @@ namespace TeensyRom.Cli.Services
             SetupTimerSubscription();
         }
 
-        public async Task LaunchFromDirectory(TeensyStorageType storageType, string path)
+        public async Task LaunchFromDirectory(string path)
         {
             var directory = await _storage.GetDirectory(path.GetUnixParentPath());
 
@@ -74,7 +74,7 @@ namespace TeensyRom.Cli.Services
                 _alert.PublishError("File is not launchable.");
                 return;
             }
-            var launchSuccessful = await LaunchItem(storageType, launchItem);
+            var launchSuccessful = await LaunchItem(launchItem);
 
             if (!launchSuccessful) 
             {
@@ -82,12 +82,12 @@ namespace TeensyRom.Cli.Services
             }
         }
 
-        public async Task<bool> LaunchItem(TeensyStorageType storageType, ILaunchableItem item)
+        public async Task<bool> LaunchItem(ILaunchableItem item)
+
         {
             _state = _state with
             {
                 CurrentItem = item,
-                StorageType = storageType,
                 PlayState = PlayState.Playing
             };
             if (!item.IsCompatible) 
@@ -95,7 +95,7 @@ namespace TeensyRom.Cli.Services
                 AlertBadFile(item);
                 return false;
             }
-            var result = await _mediator.Send(new LaunchFileCommand(storageType, item));
+            var result = await _mediator.Send(new LaunchFileCommand(_state.StorageType, item));
 
             if (result.IsSuccess)
             {
@@ -121,13 +121,8 @@ namespace TeensyRom.Cli.Services
             _alert.PublishError($"{item.Name} is currently unsupported (see logs).  Skipping file.");
         }
 
-        public async Task PlayRandom(TeensyStorageType storageType, string scopePath, TeensyFilterType filterType)
+        public async Task PlayRandom()
         {
-            _state = _state with
-            {
-                FilterType = filterType,
-                ScopePath = scopePath
-            };
             if (_state.PlayMode is not PlayMode.Random)
             {
                 _randomHistory.Clear();
@@ -138,10 +133,10 @@ namespace TeensyRom.Cli.Services
 
             if (randomItem is null)
             {
-                _alert.PublishError($"No files for the filter \"{filterType}\" were found on the {storageType} in {scopePath}.");
+                _alert.PublishError($"No files for the filter \"{_state.FilterType}\" were found on the {_state.StorageType} in {_state.ScopePath}.");
                 return;
             }
-            var launchSuccessful = await LaunchItem(storageType, randomItem);
+            var launchSuccessful = await LaunchItem(randomItem);
 
             if (launchSuccessful) 
             {
@@ -168,7 +163,7 @@ namespace TeensyRom.Cli.Services
                 }
                 fileToPlay = _state.CurrentItem;
             }
-            var launchSuccessful = await LaunchItem(_state.StorageType, fileToPlay);
+            var launchSuccessful = await LaunchItem(fileToPlay);
 
             if (!launchSuccessful) 
             {
@@ -279,7 +274,7 @@ namespace TeensyRom.Cli.Services
 
                     if (fileToPlay is null)
                     {
-                        await PlayRandom(_state.StorageType, _state.ScopePath, _state.FilterType);
+                        await PlayRandom();
                         return;
                     }
                     break;
@@ -297,7 +292,7 @@ namespace TeensyRom.Cli.Services
             {
                 fileToPlay = _state.CurrentItem;
             }
-            var launchSuccessful = await LaunchItem(_state.StorageType, fileToPlay!);
+            var launchSuccessful = await LaunchItem(fileToPlay!);
 
             if (!launchSuccessful) await PlayNext();
         }
@@ -503,6 +498,12 @@ namespace TeensyRom.Cli.Services
             }
         }
         public void SetSidTimer(SidTimer value) => _state = _state with { SidTimer = value };
+
+        public void SetStorage(TeensyStorageType storageType)
+        {
+            _state = _state with { StorageType = storageType };
+            _storage.SwitchStorage(storageType);
+        }
 
         private TeensyFileType[] GetFilterFileTypes()
         {

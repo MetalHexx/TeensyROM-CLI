@@ -134,7 +134,9 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             var file = searchResults.First(f => f.Name == fileName);
             player.SetSearchMode(settings.Query);
-            await player.LaunchFromDirectory(storageType, file.Path);
+            player.SetStorage(storageType);
+
+            await player.LaunchFromDirectory(file.Path);
 
             if (playerCommand is not null)
             {
