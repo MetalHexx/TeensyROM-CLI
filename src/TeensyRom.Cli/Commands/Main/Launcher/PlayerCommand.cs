@@ -187,7 +187,9 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         {
             AnsiConsole.WriteLine(RadHelper.ClearHack);
 
-            var needsToggle = playerState.PlayState is PlayState.Playing;
+            var needsToggle = 
+                playerState.PlayState is PlayState.Playing 
+                && playerState.CurrentItem is GameItem;
 
             if (playerState.CurrentItem is null)
             {
