@@ -2,7 +2,7 @@
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 
-namespace TeensyRom.Cli.Services
+namespace TeensyRom.Cli.Services.Player
 {
     internal record PlayerState
     {

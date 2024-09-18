@@ -5,6 +5,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
+using TeensyRom.Cli.Services.Player;
 
 namespace TeensyRom.Cli.Commands.Main.Asid
 {

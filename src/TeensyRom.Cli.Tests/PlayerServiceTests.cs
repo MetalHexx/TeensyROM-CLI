@@ -13,12 +13,9 @@ using TeensyRom.Core.Player;
 using System.Reactive.Subjects;
 using Unit = System.Reactive.Unit;
 using TeensyRom.Core.Common;
-using TeensyRom.Cli.Services;
-using System.Reactive;
-using System.Threading.Tasks;
-using Microsoft.Reactive.Testing;
-using System;
 using TeensyRom.Core.Commands;
+using Spectre.Console;
+using TeensyRom.Cli.Services.Player;
 
 namespace TeensyRom.Cli.Tests
 {
@@ -200,13 +197,13 @@ namespace TeensyRom.Cli.Tests
         }
 
         [Fact]
-        public void Given_PlayerFirstInitialization_And_SetDirectoryMode_Then_SettingsCorrect()
+        public async Task Given_PlayerFirstInitialization_And_SetDirectoryMode_Then_SettingsCorrect()
         {
+            SetupStorageService(CreateFile<SongItem>("/files/test.sid"));
             //Arrange
             var expectedSettings = new PlayerState
             {
                 PlayMode = PlayMode.CurrentDirectory,
-                ScopePath = "/music",
                 SidTimer = SidTimer.SongLength,
                 PlayTimer = null,
                 SearchQuery = null
@@ -215,7 +212,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetSearchMode("this is a query");
-            playerService.SetDirectoryMode("/music");
+            await playerService.SetDirectoryMode("/music");
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -318,7 +315,7 @@ namespace TeensyRom.Cli.Tests
             //Act
             var playerService = _fixture.Create<PlayerService>();
 
-            await playerService.LaunchFromDirectory("/music/sid1.sid");
+            await playerService.LaunchFile("/music/sid1.sid");
             playerService.SetSidTimer(SidTimer.TimerOverride);
             playerService.SetStreamTime(TimeSpan.FromDays(1));
 
@@ -329,14 +326,18 @@ namespace TeensyRom.Cli.Tests
         public async Task Given_SidTimeSongLength_When_SetStreamTime_Then_PlayTimerNotReset()
         {
             //Arrange
-            SetupStorageService(CreateFile<SongItem>("/music/sid1.sid"));
+            var file = CreateFile<SongItem>("/music/sid1.sid");
+            SetupStorageService(file);
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
 
             playerService.SetSidTimer(SidTimer.SongLength);
-            await playerService.LaunchFromDirectory("/music/sid1.sid");
+            await playerService.SetDirectoryMode(file.Path.GetUnixParentPath());
+            await playerService.LaunchFile(file);
             playerService.SetStreamTime(TimeSpan.FromDays(1));
+
+            //Assert
             _progressTimer.Received(0).StartNewTimer(TimeSpan.FromDays(1));
         }
 
@@ -352,8 +353,9 @@ namespace TeensyRom.Cli.Tests
             //Act
             var tcs = new TaskCompletionSource<ILaunchableItem>();
             playerService.FileLaunched.Subscribe(tcs.SetResult);
-            
-            await playerService.LaunchFromDirectory("/music/sid1.sid");
+
+            await playerService.SetDirectoryMode(expectedFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(expectedFile);
 
             var actualFile = await tcs.Task;
 
@@ -374,7 +376,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFile("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -386,7 +388,7 @@ namespace TeensyRom.Cli.Tests
         {
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFile("/music/MUSIC/doesntExist.sid");
 
             //Assert
             await _mediator.DidNotReceive().Send(Arg.Any<LaunchFileCommand>());
@@ -397,7 +399,7 @@ namespace TeensyRom.Cli.Tests
         {
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFile("/music/MUSIC/doesntExist.sid");
 
             //Assert
             _progressTimer.DidNotReceive().StartNewTimer(Arg.Any<TimeSpan>());
@@ -421,7 +423,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFile("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -438,7 +440,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFile("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -454,7 +456,7 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
+            await playerService.LaunchFile("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -479,16 +481,20 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(existingSong);
             SetupMediatorSuccess();
 
-            PlayerState expectedSettings = new();
-            expectedSettings.FilterType = TeensyFilterType.All;
-            expectedSettings.CurrentItem = existingSong;
-            expectedSettings.StorageType = storageType;
-            expectedSettings.PlayState = PlayState.Playing;
+            PlayerState expectedSettings = new()
+            {
+                FilterType = TeensyFilterType.All,
+                CurrentItem = existingSong,
+                StorageType = storageType,
+                PlayState = PlayState.Playing,
+                PlayMode = PlayMode.CurrentDirectory
+            };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetStorage(storageType);
-            await playerService.LaunchFromDirectory(existingSong.Path);
+            await playerService.SetDirectoryMode(existingSong.Path.GetUnixParentPath());
+            await playerService.LaunchFile(existingSong.Path);
             var playerSettings = playerService.GetState();
 
             //Assert
@@ -505,7 +511,8 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(existingSong.Path);
+            await playerService.SetDirectoryMode(existingSong.Path.GetUnixParentPath());
+            await playerService.LaunchFile(existingSong.Path);
 
             //Assert
             _mediator.ReceivedCalls().Should().HaveCount(1);
@@ -533,12 +540,13 @@ namespace TeensyRom.Cli.Tests
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchItem(existingSong);
+            playerService.SetRandomMode("/");
+            await playerService.LaunchRandom();
 
             timer.OnNext(Unit.Default);
 
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
-            _storageService.Received(1).GetRandomFile(Any<StorageScope>(), Any<string>(), expectedFileTypes);
+            _storageService.Received(2).GetRandomFile(Any<StorageScope>(), Any<string>(), expectedFileTypes);
         }
 
         [Fact]
@@ -580,14 +588,13 @@ namespace TeensyRom.Cli.Tests
             {
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(currentFile.Path);
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -615,14 +622,13 @@ namespace TeensyRom.Cli.Tests
             {
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(currentFile.Path);
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -653,14 +659,13 @@ namespace TeensyRom.Cli.Tests
                 FilterType = TeensyFilterType.All,
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory                
             };
 
             //Act            
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(currentFile.Path);
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -669,7 +674,7 @@ namespace TeensyRom.Cli.Tests
         }
 
         [Fact]
-        public async Task Given_DirectoryMode_And_FilterIsMusic_When_FilePlayEnds_Then_NextFilePlayed()
+        public async Task Given_DirectoryMode_And_FilterIsMusic_When_FilePlayEnds_Then_NextSongPlayed()
         {
             //Arrange            
             SetupSettingsWithFilter(TeensyFilterType.All);
@@ -690,15 +695,15 @@ namespace TeensyRom.Cli.Tests
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act            
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(currentFile.Path);
+            
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -724,14 +729,14 @@ namespace TeensyRom.Cli.Tests
                 FilterType = TeensyFilterType.All,
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory(expectedFile.Path);
-            playerService.SetDirectoryMode(expectedFile.Path.GetUnixParentPath());
+            await playerService.SetDirectoryMode(expectedFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(expectedFile);
+            
             var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
@@ -764,18 +769,18 @@ namespace TeensyRom.Cli.Tests
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(currentFile.Path);
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
+            //Assert
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
         }
@@ -807,15 +812,14 @@ namespace TeensyRom.Cli.Tests
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(currentFile.Path);
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
+            playerService.SetFilter(TeensyFilterType.Music);            
             timer.OnNext(Unit.Default);
             var resultingSettings = playerService.GetState();
 
@@ -843,15 +847,14 @@ namespace TeensyRom.Cli.Tests
             {
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(currentFile.Path);
-            await playerService.PlayPrevious();
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
+            await playerService.LaunchPrevious();
             var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
@@ -879,15 +882,14 @@ namespace TeensyRom.Cli.Tests
             {
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
-            await playerService.LaunchFromDirectory(currentFile.Path);
-            await playerService.PlayPrevious();
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
+            await playerService.LaunchPrevious();
             var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
@@ -917,16 +919,15 @@ namespace TeensyRom.Cli.Tests
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
-            var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            var playerService = _fixture.Create<PlayerService>();   
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(currentFile.Path);
-            await playerService.PlayPrevious();
+            await playerService.LaunchPrevious();
             var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
@@ -943,7 +944,8 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(expectedFile);
             SetupMediatorSuccess();
 
-            await playerService.LaunchFromDirectory(expectedFile.Path);
+            await playerService.SetDirectoryMode(expectedFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(expectedFile);
 
             //Act
             playerService.TogglePlay();
@@ -966,7 +968,8 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(expectedFile);
             SetupMediatorSuccess();
 
-            await playerService.LaunchFromDirectory(expectedFile.Path);
+            await playerService.SetDirectoryMode(expectedFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(expectedFile);
             playerService.TogglePlay();
 
             //Act
@@ -989,7 +992,8 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(expectedFile);
             SetupMediatorSuccess();
 
-            await playerService.LaunchFromDirectory(expectedFile.Path);
+            await playerService.SetDirectoryMode(expectedFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(expectedFile);
 
             //Act
             playerService.TogglePlay();
@@ -1012,7 +1016,8 @@ namespace TeensyRom.Cli.Tests
             SetupStorageService(expectedFile);
             SetupMediatorSuccess();
 
-            await playerService.LaunchFromDirectory(expectedFile.Path);
+            await playerService.SetDirectoryMode(expectedFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(expectedFile);
             playerService.TogglePlay();
 
             //Act
@@ -1052,16 +1057,15 @@ namespace TeensyRom.Cli.Tests
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(currentFile.Path);
-            await playerService.PlayPrevious();
+            await playerService.LaunchPrevious();
             var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
@@ -1095,16 +1099,15 @@ namespace TeensyRom.Cli.Tests
                 FilterType = TeensyFilterType.Music,
                 CurrentItem = expectedFile,
                 PlayState = PlayState.Playing,
-                ScopePath = expectedFile.Path.GetUnixParentPath(),
                 PlayMode = PlayMode.CurrentDirectory
             };
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.SetDirectoryMode(currentFile.Path.GetUnixParentPath());
+            await playerService.LaunchFile(currentFile);
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.LaunchFromDirectory(currentFile.Path);
-            await playerService.PlayPrevious();
+            await playerService.LaunchPrevious();
             var resultingSettings = playerService.GetState();
 
             resultingSettings.Should().BeEquivalentTo(expectedSettings);
@@ -1130,10 +1133,11 @@ namespace TeensyRom.Cli.Tests
             var playerService = _fixture.Create<PlayerService>();
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(expectedFile);
 
-            //Act
-            playerService.SetDirectoryScope("/music/");
+            //Act            
+            await playerService.SetDirectoryMode("/music/");
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.PlayRandom();
+            playerService.SetDirectoryScope("/music/");
+            await playerService.LaunchRandom();
             var settings = playerService.GetState();
 
             //Assert
@@ -1153,13 +1157,13 @@ namespace TeensyRom.Cli.Tests
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(CreateFile<SongItem>("/music/1.sid"));
             playerService.SetDirectoryScope("/music/");
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.PlayRandom();
+            await playerService.LaunchRandom();
 
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(CreateFile<SongItem>("/music/2.sid"));
-            await playerService.PlayRandom();
+            await playerService.LaunchRandom();
 
             //Act
-            await playerService.PlayPrevious();
+            await playerService.LaunchPrevious();
             var settings = playerService.GetState();
 
             //Assert
@@ -1177,14 +1181,14 @@ namespace TeensyRom.Cli.Tests
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(CreateFile<SongItem>("/music/1.sid"));
             playerService.SetDirectoryScope("/music/");
             playerService.SetFilter(TeensyFilterType.Music);
-            await playerService.PlayRandom();
+            await playerService.LaunchRandom();
 
             _storageService.GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>()).Returns(CreateFile<SongItem>("/music/2.sid"));
-            await playerService.PlayRandom();
+            await playerService.LaunchRandom();
 
             //Act
-            await playerService.PlayPrevious();
-            await playerService.PlayNext();
+            await playerService.LaunchPrevious();
+            await playerService.LaunchNext();
             var settings = playerService.GetState();
 
             //Assert
@@ -1193,21 +1197,22 @@ namespace TeensyRom.Cli.Tests
         }
 
         [Fact]
-        public async Task Given_SearchMode_When_FileComples_Then_And_NextSearchSongPlayed()
+        public async Task Given_SearchMode_When_FileCompletes_Then_And_NextSearchSongPlayed()
         {
             //Arrange
             SetupMediatorSuccess();
+            var currentFile = CreateFile<SongItem>("/music/1.sid");
             SetupSearchStorageService(
             [
-                CreateFile<SongItem>("/music/1.sid"),
+                currentFile,
                 CreateFile<SongItem>("/music/2.sid"),
                 CreateFile<SongItem>("/music/3.sid"),
             ]);
             var timer = SetupTimer();
 
-            var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/1.sid");
+            var playerService = _fixture.Create<PlayerService>();            
             playerService.SetSearchMode("search query");
+            await playerService.LaunchFile(currentFile);
 
             //Act
             timer.OnNext(Unit.Default);
@@ -1222,17 +1227,18 @@ namespace TeensyRom.Cli.Tests
         {
             //Arrange
             SetupMediatorSuccess();
+            var currentFile = CreateFile<SongItem>("/music/3.sid");
             SetupSearchStorageService(
             [
                 CreateFile<SongItem>("/music/1.sid"),
                 CreateFile<SongItem>("/music/2.sid"),
-                CreateFile<SongItem>("/music/3.sid"),
+                currentFile,
             ]);
             var timer = SetupTimer();
 
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/3.sid");
             playerService.SetSearchMode("search query");
+            await playerService.LaunchFile(currentFile);            
 
             //Act
             timer.OnNext(Unit.Default);
@@ -1247,19 +1253,21 @@ namespace TeensyRom.Cli.Tests
         {
             //Arrange
             SetupMediatorSuccess();
+            var currentFile = CreateFile<SongItem>("/music/2.sid");
+
             SetupSearchStorageService(
             [
                 CreateFile<SongItem>("/music/1.sid"),
-                CreateFile<SongItem>("/music/2.sid"),
+                currentFile,
                 CreateFile<SongItem>("/music/3.sid"),
             ]);
 
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/2.sid");
             playerService.SetSearchMode("search query");
+            await playerService.LaunchFile(currentFile);            
 
             //Act
-            await playerService.PlayPrevious();
+            await playerService.LaunchPrevious();
             var settings = playerService.GetState();
 
             //Arrange
@@ -1271,19 +1279,20 @@ namespace TeensyRom.Cli.Tests
         {
             //Arrange
             SetupMediatorSuccess();
+            var currentFile = CreateFile<SongItem>("/music/1.sid");
             SetupSearchStorageService(
             [
-                CreateFile<SongItem>("/music/1.sid"),
+                currentFile,
                 CreateFile<SongItem>("/music/2.sid"),
                 CreateFile<SongItem>("/music/3.sid"),
             ]);
 
             var playerService = _fixture.Create<PlayerService>();
-            await playerService.LaunchFromDirectory("/music/1.sid");
             playerService.SetSearchMode("search query");
+            await playerService.LaunchFile(currentFile);            
 
             //Act
-            await playerService.PlayPrevious();
+            await playerService.LaunchPrevious();
             var settings = playerService.GetState();
 
             //Arrange
@@ -1301,33 +1310,34 @@ namespace TeensyRom.Cli.Tests
             SetupStorageServiceRandom(file1);
             SetupStorageService(file1, file2);
 
-            _mediator.Send(Any<LaunchFileCommand>()).Returns(callInfo => 
-            {
-                var launchCommand = callInfo.Arg<LaunchFileCommand>();
+            var firstCall = true;
 
-                if (launchCommand.Path == file1.Path)
+            _mediator.Send(Any<LaunchFileCommand>()).Returns(callInfo =>
+            {
+                if (firstCall)
                 {
+                    firstCall = false;
+
                     return new LaunchFileResult
                     {
-                        IsSuccess = true,
-                        LaunchResult = LaunchFileResultType.Success
+                        IsSuccess = false,
+                        LaunchResult = launchResult
                     };
                 }
-                return new LaunchFileResult 
+                return new LaunchFileResult
                 {
-                    IsSuccess = false,
-                    LaunchResult = launchResult
-                };                    
+                    IsSuccess = true,
+                    LaunchResult = LaunchFileResultType.Success
+                };
             });
             var playerService = _fixture.Create<PlayerService>();
             playerService.SetRandomMode("/music/");
 
             //Act
-
-            await playerService.LaunchFromDirectory(file2.Path);
+            await playerService.LaunchRandom();
 
             //Assert
-            _storageService.Received(1).MarkIncompatible(file2);
+            _storageService.Received(1).MarkIncompatible(file1);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
         }
 
@@ -1337,38 +1347,38 @@ namespace TeensyRom.Cli.Tests
         public async Task When_Launched_And_ModeDirectory_And_FileBad_Then_FileMarkedIncompatible(LaunchFileResultType launchResult)
         {
             //Arrange
-            var file1 = CreateFile<SongItem>("/music/sid1.sid");
-            var file2 = CreateFile<SongItem>("/music/sid2.sid");
-            SetupStorageServiceRandom(file1);
-            SetupStorageService(file1, file2);
+            var file = CreateFile<SongItem>("/music/sid2.sid");
+            SetupStorageServiceRandom(file);
+            SetupStorageService(file);
+
+            var firstCall = true;
 
             _mediator.Send(Any<LaunchFileCommand>()).Returns(callInfo =>
             {
-                var launchCommand = callInfo.Arg<LaunchFileCommand>();
-
-                if (launchCommand.Path == file1.Path)
+                if (firstCall)
                 {
+                    firstCall = false;
+
                     return new LaunchFileResult
                     {
-                        IsSuccess = true,
-                        LaunchResult = LaunchFileResultType.Success
+                        IsSuccess = false,
+                        LaunchResult = launchResult
                     };
                 }
                 return new LaunchFileResult
                 {
-                    IsSuccess = false,
-                    LaunchResult = launchResult
+                    IsSuccess = true,
+                    LaunchResult = LaunchFileResultType.Success
                 };
             });
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode("/music/");
+            await playerService.SetDirectoryMode("/music/");
 
             //Act
-
-            await playerService.LaunchFromDirectory(file2.Path);
+            await playerService.LaunchFile(file);
 
             //Assert
-            _storageService.Received(1).MarkIncompatible(file2);
+            _storageService.Received(1).MarkIncompatible(file);
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
         }
 
@@ -1383,34 +1393,34 @@ namespace TeensyRom.Cli.Tests
             SetupStorageServiceRandom(file1, file2);
             SetupStorageService(file1, file2);
 
+            var firstCall = true;
+
             _mediator.Send(Any<LaunchFileCommand>()).Returns(callInfo =>
             {
-                var launchCommand = callInfo.Arg<LaunchFileCommand>();
-
-                if (launchCommand.Path == file1.Path)
+                if (firstCall)
                 {
+                    firstCall = false;
+
                     return new LaunchFileResult
                     {
-                        IsSuccess = true,
-                        LaunchResult = LaunchFileResultType.Success
+                        IsSuccess = false,
+                        LaunchResult = launchResult
                     };
                 }
                 return new LaunchFileResult
                 {
-                    IsSuccess = false,
-                    LaunchResult = launchResult
+                    IsSuccess = true,
+                    LaunchResult = LaunchFileResultType.Success
                 };
             });
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode("/music/");
+            await playerService.SetDirectoryMode("/music/");
 
             //Act
-
-            await playerService.LaunchFromDirectory(file2.Path);
+            await playerService.LaunchFile(file2);
 
             //Assert
             _storageService.Received(1).MarkIncompatible(file2);
-            await _storageService.Received(2).GetDirectory(Any<string>());
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());
         }
 
@@ -1425,35 +1435,34 @@ namespace TeensyRom.Cli.Tests
             SetupStorageServiceRandom(file1, file2);
             SetupStorageService(file1, file2);
 
+            var firstCall = true;
+
             _mediator.Send(Any<LaunchFileCommand>()).Returns(callInfo =>
             {
-                var launchCommand = callInfo.Arg<LaunchFileCommand>();
-
-                if (launchCommand.Path == file1.Path)
+                if (firstCall)
                 {
+                    firstCall = false;
+
                     return new LaunchFileResult
                     {
-                        IsSuccess = true,
-                        LaunchResult = LaunchFileResultType.Success
+                        IsSuccess = false,
+                        LaunchResult = launchResult
                     };
                 }
                 return new LaunchFileResult
                 {
-                    IsSuccess = false,
-                    LaunchResult = launchResult
+                    IsSuccess = true,
+                    LaunchResult = LaunchFileResultType.Success
                 };
             });
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetRandomMode("/");
 
             //Act
-
-            await playerService.LaunchFromDirectory(file2.Path);
+            await playerService.LaunchRandom();
 
             //Assert
-            _storageService.Received(1).MarkIncompatible(file2);
-            _storageService.Received(1).GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>());
-            await _storageService.Received(1).GetDirectory(Any<string>());
+            _storageService.Received(1).MarkIncompatible(file1);
+            _storageService.Received(2).GetRandomFile(Any<StorageScope>(), Any<string>(), Any<TeensyFileType[]>());
             await _mediator.Received(2).Send(Any<LaunchFileCommand>());            
         }
 
@@ -1468,30 +1477,33 @@ namespace TeensyRom.Cli.Tests
             var file3 = CreateFile<SongItem>("/music/sid3.sid");
             SetupStorageService(file1, file2, file3);
 
+            var callCount = 0;
+
             _mediator.Send(Any<LaunchFileCommand>()).Returns(callInfo =>
             {
-                var launchCommand = callInfo.Arg<LaunchFileCommand>();
+                callCount++;
 
-                if (launchCommand.Path == file2.Path)
+                if (callCount is 1 or 3)
                 {
                     return new LaunchFileResult
                     {
-                        IsSuccess = false,
-                        LaunchResult = launchResult
+                        IsSuccess = true,
+                        LaunchResult = LaunchFileResultType.Success
                     };
                 }
                 return new LaunchFileResult
                 {
-                    IsSuccess = true,
-                    LaunchResult = LaunchFileResultType.Success
+                    IsSuccess = false,
+                    LaunchResult = launchResult
                 };
+
             });
             var playerService = _fixture.Create<PlayerService>();
-            playerService.SetDirectoryMode("/music/");
 
             //Act
-            await playerService.LaunchFromDirectory(file3.Path);
-            await playerService.PlayPrevious();
+            await playerService.SetDirectoryMode("/music/");
+            await playerService.LaunchFile(file3.Path);
+            await playerService.LaunchPrevious();
             var finalState = playerService.GetState();
 
             //Assert
@@ -1533,8 +1545,8 @@ namespace TeensyRom.Cli.Tests
             playerService.SetDirectoryMode("/music/");
 
             //Act
-            await playerService.LaunchFromDirectory(file2.Path);
-            await playerService.PlayNext();
+            await playerService.LaunchFile(file2.Path);
+            await playerService.LaunchNext();
             var finalState = playerService.GetState();
 
             //Assert

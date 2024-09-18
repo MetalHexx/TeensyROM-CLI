@@ -4,6 +4,7 @@ using Spectre.Console.Cli;
 using System.ComponentModel;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
+using TeensyRom.Cli.Services.Player;
 using TeensyRom.Core.Commands;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Serial.State;

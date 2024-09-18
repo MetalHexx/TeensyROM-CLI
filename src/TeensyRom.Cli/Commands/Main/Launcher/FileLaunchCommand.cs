@@ -2,7 +2,7 @@
 using Spectre.Console.Cli;
 using System.ComponentModel;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Cli.Services;
+using TeensyRom.Cli.Services.Player;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Services;
@@ -19,8 +19,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         [CommandOption("-p|--path")]
         public string FilePath { get; set; } = string.Empty;
 
-        public static string Example => "launch file -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid";
-        public static string Description => "Launch a specific file.";
+        public new static string Example => "launch file -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid";
+        public new static string Description => "Launch a specific file.";
 
         public new void ClearSettings()
         {
@@ -71,16 +71,13 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (!settings.ValidateSettings()) return -1;
 
-            player.SetDirectoryMode(settings.FilePath);
+            await player.SetDirectoryMode(settings.FilePath.GetUnixParentPath());
             player.SetStorage(storageType);
-            await player.LaunchFromDirectory(settings.FilePath);
+            await player.LaunchFile(settings.FilePath);
 
             var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
+            playerCommand?.Execute(context, new());
 
-            if (playerCommand is not null)
-            {
-                playerCommand.Execute(context, new());
-            }
             return 0;
         }
     }

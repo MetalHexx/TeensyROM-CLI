@@ -2,7 +2,7 @@
 using Spectre.Console.Cli;
 using System.ComponentModel;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Cli.Services;
+using TeensyRom.Cli.Services.Player;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
@@ -118,7 +118,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             player.SetDirectoryScope(settings.PinnedDirectory);
             player.SetFilter(filterType);
 
-            await player.PlayRandom();
+            await player.LaunchRandom();
 
             if (playerCommand is not null)
             {

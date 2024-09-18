@@ -3,7 +3,7 @@ using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Cli.Services;
+using TeensyRom.Cli.Services.Player;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
@@ -98,9 +98,9 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             }
             AnsiConsole.WriteLine();
 
-            player.SetDirectoryMode(selectedFile.Path);
             player.SetStorage(storageType);
-            await player.LaunchFromDirectory(selectedFile.Path);
+            await player.SetDirectoryMode(selectedFile.Path.GetUnixParentPath());
+            await player.LaunchFile(selectedFile.Path);
 
             if (playerCommand is not null)
             {

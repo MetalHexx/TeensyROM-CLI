@@ -2,7 +2,7 @@
 using Spectre.Console.Cli;
 using System;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Cli.Services;
+using TeensyRom.Cli.Services.Player;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Storage.Entities;
@@ -47,11 +47,11 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 switch (choice)
                 {
                     case "Next":
-                        _player.PlayNext();
+                        _player.LaunchNext();
                         break;
 
                     case "Previous":
-                        _player.PlayPrevious();
+                        _player.LaunchPrevious();
                         break;
 
                     case "Resume":
@@ -243,7 +243,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 ["Timer", playerSettings.PlayTimer?.ToString() ?? "---", "Continuous play timer for Games, Images and SIDs." ],
                 ["SID Timer", sidTimer, "SIDs play time based on song length or overriden w/timer."],
                 ["Pinned Directory", playerSettings.ScopePath, "Random mode will launch from this directory and subdirs."],
-                ["Search Query", playerSettings.SearchQuery ?? "---", "The current search query your  is using."],     
+                ["Search Query", playerSettings.SearchQuery ?? "---", "The active search query."],     
             ]);
         }
 

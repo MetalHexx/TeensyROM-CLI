@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Transactions;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
+using TeensyRom.Cli.Services.Player;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 

@@ -3,7 +3,7 @@ using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.Reactive.Linq;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Cli.Services;
+using TeensyRom.Cli.Services.Player;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Services;
@@ -46,10 +46,17 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
         public override ValidationResult Validate()
         {
-            if (!StorageDevice.Equals(string.Empty) && !StorageDevice.IsValueValid(["sd", "usb"]))
-            {
-                return ValidationResult.Error($"Storage device must be 'sd' or 'usb'.");
-            }
+            var timerValidation = Timer.ValidateTimer();
+            if (!timerValidation.Successful) return timerValidation;
+
+            var storageValidation = StorageDevice.ValidateStorageDevice();
+
+            if (!storageValidation.Successful) return storageValidation;
+
+            var filterValidation = Filter.ValidateFilter();
+
+            if (!filterValidation.Successful) return filterValidation;
+
             return base.Validate();
         }
     }
@@ -90,15 +97,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 RadHelper.WriteLine();
             }
 
-            var validation = settings.Validate();
-
-            if (!validation.Successful)
-            {
-                RadHelper.WriteError(validation?.Message ?? "Validation error");
-                return 0;
-            }
-
             var filterType = CommandHelper.PromptForFilterType(settings.Filter);
+            player.SetFilter(filterType);
 
             if (filterType is TeensyFilterType.All or TeensyFilterType.Games or TeensyFilterType.Images)
             {
@@ -113,8 +113,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                         true => "Timer Override",
                         false => "Song Length"
                     };
-                    var sidTimer = CommandHelper.PromptSidTimer(overrideSid);
-                    player.SetSidTimer(sidTimer);
+                    player.SetSidTimer(
+                        CommandHelper.PromptSidTimer(overrideSid));
                 }
             }
             var searchResults = storage.Search(settings.Query, globalSettings.GetFileTypes(filterType));
@@ -136,12 +136,10 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             player.SetSearchMode(settings.Query);
             player.SetStorage(storageType);
 
-            await player.LaunchFromDirectory(file.Path);
+            await player.LaunchFile(file);
 
-            if (playerCommand is not null)
-            {
-                playerCommand.Execute(context, new());
-            }
+            playerCommand?.Execute(context, new());
+
             return 0;
         }
     }

@@ -10,6 +10,7 @@ using TeensyRom.Cli.Commands.Main.Launcher;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
+using TeensyRom.Cli.Services.Player;
 using TeensyRom.Core;
 using TeensyRom.Core.Assets;
 using TeensyRom.Core.Common;
@@ -55,7 +56,7 @@ public class Program
         services.AddSingleton<IPlayerService, PlayerService>();
         services.AddSingleton<ITypeResolver, TypeResolver>();
         services.AddSingleton<IProgressTimer, ProgressTimer>();
-        services.AddSingleton<ILaunchHistory, LaunchHistory>();
+        services.AddSingleton<IPlayerFileContext, PlayerFileContext>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CoreAssemblyMarker>());
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
