@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace TeensyRom.Core.Common
 {
@@ -17,6 +12,14 @@ namespace TeensyRom.Core.Common
         {                         
             var location = assembly.Location;
             return Path.GetDirectoryName(location) ?? string.Empty;
+        }
+
+        public static string GetVersion(this Assembly assembly)
+        {
+            string version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "Unknown version";
+            var plusIndex = version.IndexOf('+');
+            version = plusIndex > -1 ? version.Substring(0, plusIndex) : version;
+            return version;
         }
     }
 }

@@ -4,6 +4,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using TeensyRom.Cli.Commands.Main;
 using TeensyRom.Cli.Commands.Main.Asid;
 using TeensyRom.Cli.Commands.Main.Launcher;
@@ -22,6 +23,7 @@ using TeensyRom.Core.Serial;
 using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Services;
+using AssemblyExtensions = TeensyRom.Core.Common.AssemblyExtensions;
 public class Program
 {
     private static int Main(string[] args)
@@ -72,8 +74,8 @@ public class Program
 
             config.PropagateExceptions();
 
-            config.SetApplicationName("TeensyROM.Cli");
-            config.SetApplicationVersion("1.0.0");
+            config.SetApplicationName("TeensyROM.Cli".GetOsFriendlyPath());
+            config.SetApplicationVersion($"Version: {AssemblyExtensions.GetVersion(Assembly.GetExecutingAssembly())}\r\nOS: {RuntimeInformation.OSDescription}\r\nArchitecture: { RuntimeInformation.OSArchitecture }");
 
             config.AddBranch<LaunchSettings>("launch", launch =>
             {
@@ -131,6 +133,12 @@ public class Program
             config.AddCommand<SettingsCommand>("settings")
                   .IsHidden();
 
+            config.AddExample(CreditsSettings.Example);
+            config.AddCommand<CreditsCommand>("credits")
+                  .WithAlias("c")
+                  .WithDescription(CreditsSettings.Description)
+                  .WithExample(CreditsSettings.Example);
+
             var help = config.Settings.HelpProviderStyles;
             help!.Arguments!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
             help!.Description!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
@@ -167,7 +175,7 @@ public class Program
                     args = [];
                 }
 
-                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch", "Settings", "Index Files", "List Ports", "Generate ASID Patches", "Leave"]);
+                var menuChoice = PromptHelper.ChoicePrompt("Choose wisely", ["Launch", "Settings", "Index Files", "List Ports", "Generate ASID Patches", "Credits", "Leave"]);
 
                 AnsiConsole.WriteLine();
 
@@ -180,6 +188,7 @@ public class Program
                     "Settings" => ["settings"],
                     "List Ports" => ["ports"],
                     "Generate ASID Patches" => ["chipsynth"],
+                    "Credits" => ["credits"],
                     _ => []
                 };
                 app.Run(args);
