@@ -11,6 +11,8 @@ class TeensyromCli < Formula
     (bin/"TeensyRom.Cli").write <<~EOS
       exec "#{libexec}/TeensyRom.Cli" "$@"
     EOS
+
+    chmod "+x", bin/"TeensyRom.Cli"
   end
 
   test do
