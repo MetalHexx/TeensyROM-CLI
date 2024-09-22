@@ -10,6 +10,6 @@ class TeensyromCli < Formula
   end
 
   test do
-    system "#{bin}/tr-cli", "--version"
+    system "#{bin}/TeensyRom.Cli", "--version"
   end
 end
