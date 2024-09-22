@@ -39,8 +39,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 var _playerState = _player.GetState();
 
                 List<string> choices = _playerState.PlayState == PlayState.Playing
-                    ? ["Next", "Previous", "Stop/Pause", "Favorite", "Share", "Stream Settings", "Back"]
-                    : ["Next", "Previous", "Resume", "Favorite", "Share", "Stream Settings", "Back"];
+                    ? ["Next", "Previous", "Stop/Pause", "Favorite", "Ban", "Share", "Stream Settings", "Back"]
+                    : ["Next", "Previous", "Resume", "Favorite", "Ban", "Share", "Stream Settings", "Back"];
 
                 choice = PromptHelper.ChoicePrompt("Choose wisely", choices);
 
@@ -64,7 +64,11 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
                     case "Favorite":
                         HandleFavorite(_playerState);
-                        break;                   
+                        break;
+
+                    case "Ban":
+                        HandleBan(_playerState);
+                        break;
 
                     case "Share":
                         HandleShare(_playerState);
@@ -214,6 +218,30 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 _storage.SaveFavorite(playerState.CurrentItem);
             }
             if (needsToggle) _player.TogglePlay();
+        }
+
+        private void HandleBan(PlayerState playerState)
+        {
+            AnsiConsole.WriteLine(RadHelper.ClearHack);
+
+            var needsToggle = playerState.PlayState is PlayState.Playing;
+
+            if (playerState.CurrentItem is null)
+            {
+                RadHelper.WriteLine("No file is currently playing");
+                return;
+            }
+
+            var shouldBan = PromptHelper.Confirm($"Are you sure you want to ban {playerState.CurrentItem.Name}?", false);
+
+            if (!shouldBan) return;
+
+            if (needsToggle) _player.TogglePlay();
+
+            if (shouldBan)
+            {
+                _storage.BanFile(playerState.CurrentItem);
+            }
         }
 
         private void WriteHelp()

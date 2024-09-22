@@ -548,5 +548,18 @@ namespace TeensyRom.Core.Storage.Services
             var newSettings = _settings with { StorageType = storageType };
             _settingsService.SaveSettings(newSettings);
         }
+
+        public void BanFile(ILaunchableItem file)
+        {
+            var settings = _settings;
+
+            if (!_settings.BannedFiles.Contains(file.Name)) 
+            {
+                settings = _settings with { BannedFiles = [.. _settings.BannedFiles, file.Name] };
+                _settingsService.SaveSettings(settings);
+            }
+            _storageCache.DeleteFile(file.Path);
+            _alert.Publish($"{file.Name} has been banned and will no longer show up in the application.");            
+        }
     }
 }
