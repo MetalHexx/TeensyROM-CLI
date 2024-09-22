@@ -64,6 +64,30 @@ jobs:
     - name: Publish Application
       run: dotnet publish ${{ env.Project_Path }}${{ env.Project_Name }} -c ${{ matrix.configuration }} --self-contained true -r ${{ matrix.rid }} -o ${{ github.workspace }}/published/${{ matrix.rid }}/
 
+    - name: Generate SHA256 for macOS build
+      if: matrix.os == 'macos-latest'
+      run: |
+        shasum -a 256 ${{ steps.extract_version.outputs.FILENAME }} > mac-sha256.txt
+
+    - name: Update Homebrew Formula in Existing Repo
+      if: matrix.os == 'macos-latest'
+      run: |
+        FORMULA_PATH=".github/formula/teensyrom-cli.rb"
+        SHA256=$(cat mac-sha256.txt | awk '{print $1}')
+        sed -i '' 's/^  sha256.*/  sha256 "'$SHA256'"/' $FORMULA_PATH
+        sed -i '' 's/^  url.*/  url "https:\/\/github.com\/MetalHexx\/TeensyROM-CLI\/releases\/download\/v${{ steps.extract_version.outputs.VERSION }}\/${{ steps.extract_version.outputs.FILENAME }}"/' $FORMULA_PATH
+        sed -i '' 's/^  version.*/  version "${{ steps.extract_version.outputs.VERSION }}"/' $FORMULA_PATH
+
+    - name: Commit Homebrew Changes
+      if: matrix.os == 'macos-latest'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .github/formula/teensyrom-cli.rb
+        git commit -m "Update Homebrew formula for version ${{ steps.extract_version.outputs.VERSION }}"
+        git push
+
+
     - name: Archive Build Artifacts
       run: 7z a ${{ steps.extract_version.outputs.FILENAME }} ${{ github.workspace }}/published/${{ matrix.rid }}/*
       shell: pwsh
