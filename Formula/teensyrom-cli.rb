@@ -6,7 +6,11 @@ class TeensyromCli < Formula
   version "1.0.0-alpha.23"
 
   def install
-    bin.install "TeensyRom.Cli"
+    libexec.install Dir["*"]
+
+    (bin/"TeensyRom.Cli").write <<~EOS
+      exec "#{libexec}/TeensyRom.Cli" "$@"
+    EOS
   end
 
   test do
