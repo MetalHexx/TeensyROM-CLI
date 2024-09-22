@@ -6,7 +6,7 @@ class TeensyromCli < Formula
   version "1.0.0-alpha.23"
 
   def install
-    bin.install "tr-cli"
+    bin.install "TeensyRom.Cli"
   end
 
   test do
