@@ -63,6 +63,10 @@ jobs:
 
     - name: Publish Application
       run: dotnet publish ${{ env.Project_Path }}${{ env.Project_Name }} -c ${{ matrix.configuration }} --self-contained true -r ${{ matrix.rid }} -o ${{ github.workspace }}/published/${{ matrix.rid }}/
+      
+    - name: Archive Build Artifacts
+      run: 7z a ${{ steps.extract_version.outputs.FILENAME }} ${{ github.workspace }}/published/${{ matrix.rid }}/*
+      shell: pwsh
 
     - name: Generate SHA256 for macOS build
       if: matrix.os == 'macos-latest'
@@ -86,11 +90,6 @@ jobs:
         git add .github/formula/teensyrom-cli.rb
         git commit -m "Update Homebrew formula for version ${{ steps.extract_version.outputs.VERSION }}"
         git push
-
-
-    - name: Archive Build Artifacts
-      run: 7z a ${{ steps.extract_version.outputs.FILENAME }} ${{ github.workspace }}/published/${{ matrix.rid }}/*
-      shell: pwsh
 
     - name: Create and Upload Release
       uses: softprops/action-gh-release@v1
