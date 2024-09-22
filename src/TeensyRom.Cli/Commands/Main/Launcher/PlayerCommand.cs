@@ -241,6 +241,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             if (shouldBan)
             {
                 _storage.BanFile(playerState.CurrentItem);
+                _player.PlayNext();
             }
         }
 
