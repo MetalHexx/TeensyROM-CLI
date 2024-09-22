@@ -12,7 +12,7 @@ namespace TeensyRom.Core.Settings
         public IObservable<TeensySettings> Settings => _settings.AsObservable();
 
         private BehaviorSubject<TeensySettings> _settings;
-        private string _settingsFilePath => Path.Combine(Assembly.GetExecutingAssembly().GetPath(), SettingsConstants.SettingsPath);
+        private string _settingsFilePath => Path.Combine(Assembly.GetExecutingAssembly().GetPath(), SettingsConstants.SettingsPath).GetOsFriendlyPath();
 
         public SettingsService()
         {
@@ -28,7 +28,7 @@ namespace TeensyRom.Core.Settings
                 return settings.GetClone();
             }
 
-            var path = _settingsFilePath.GetOsFriendlyPath();
+            var path = _settingsFilePath;
 
             if (File.Exists(path))
             {

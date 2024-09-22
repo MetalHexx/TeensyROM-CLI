@@ -31,8 +31,8 @@ namespace TeensyRom.Core.Storage.Services
         private string _usbCacheFileName => Path.Combine(Assembly.GetExecutingAssembly().GetPath(), StorageConstants.Usb_Cache_File_Path);
         private string _sdCacheFileName => Path.Combine(Assembly.GetExecutingAssembly().GetPath(), StorageConstants.Sd_Cache_File_Path);
         private string CacheFilePath => _settings.StorageType is TeensyStorageType.SD
-            ? _sdCacheFileName
-            : _usbCacheFileName;
+            ? _sdCacheFileName.GetOsFriendlyPath()
+            : _usbCacheFileName.GetOsFriendlyPath();
 
         private StorageCache _storageCache = null!;
         
