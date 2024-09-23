@@ -19,11 +19,11 @@ namespace TeensyRom.Cli.Commands.Main
                 "Wife -> Support -> Listening to my nonstop chatter about TeensyROM",
                 "Son -> Support -> UI Feedback -> Feature Inspiration",
                 "Travis Smith -> Inventor of TeensyROM -> Support -> Testing",
-                "Richard -> Desktop UI Testing",
+                "DivertigO -> Testing: Desktop UI and CLI",
+                "Avrilcadabra -> Testing: Desktop UI and CLI",                
+                "Richard -> Testing: Desktop UI",
                 "jcook793 -> Testing: CLI (MacOS)",
-                "mad -> Testing: CLI (MacOS)",
-                "Avrilcadabra -> Testing: Desktop UI and CLI",
-                "DivertigO -> Testing: Desktop UI and CLI"
+                "mad -> Testing: CLI (MacOS)",                
             ]);
             return 0;
         }
