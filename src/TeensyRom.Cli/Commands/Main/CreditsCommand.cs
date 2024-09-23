@@ -21,7 +21,9 @@ namespace TeensyRom.Cli.Commands.Main
                 "Travis Smith -> Inventor of TeensyROM -> Support -> Testing",
                 "Richard -> Desktop UI Testing",
                 "jcook793 -> CLI Testing: MacOS -> CLI Feature Inspiration: Ban File",
-                "mad -> CLI Testing: MacOS"
+                "mad -> CLI Testing: MacOS",
+                "avrilcadabra -> Windows Desktop and CLI Testing",
+                "divertigo -> Windows Desktop and CLI Testing"
             ]);
             return 0;
         }
