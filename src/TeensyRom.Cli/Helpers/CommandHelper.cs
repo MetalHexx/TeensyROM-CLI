@@ -35,7 +35,7 @@ namespace TeensyRom.Cli.Helpers
         {
             if (value.Equals(string.Empty))
             {
-                value = PromptHelper.ChoicePrompt("Game/Image Timer", ["No", "3m", "5m", "15m", "30m", "1h", "Turbo Mode"]);
+                value = PromptHelper.ChoicePrompt("Game/Image Timer", ["None", "3m", "5m", "15m", "30m", "1h", "1m", "30s","15s", "5s"]);
                 RadHelper.WriteLine();
             }
             return value switch
@@ -45,7 +45,10 @@ namespace TeensyRom.Cli.Helpers
                 "15m" => TimeSpan.FromMinutes(15),
                 "30m" => TimeSpan.FromMinutes(30),
                 "1h" => TimeSpan.FromHours(1),
-                "Turbo Mode" => TimeSpan.FromSeconds(3),
+                "1m" => TimeSpan.FromMinutes(1),
+                "30s" => TimeSpan.FromSeconds(30),
+                "15s" => TimeSpan.FromSeconds(15),
+                "5s" => TimeSpan.FromSeconds(5),
                 _ => null
             };
         }
