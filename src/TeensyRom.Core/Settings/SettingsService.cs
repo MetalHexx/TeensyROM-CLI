@@ -110,11 +110,13 @@ namespace TeensyRom.Core.Settings
 
         public bool ValidateAndLogSettings(TeensySettings settings)
         {
-            if (!Directory.Exists(settings.WatchDirectoryLocation))
-            {
-                //_log.InternalError($"The watch directory '{settings.WatchDirectoryLocation}' was not found.  Please go create it.");
-                return false;
-            }
+            //TODO: This is causing validation failures in Linux.  Bring this back later.
+
+            //if (!Directory.Exists(settings.WatchDirectoryLocation))
+            //{
+            //    //_log.InternalError($"The watch directory '{settings.WatchDirectoryLocation}' was not found.  Please go create it.");
+            //    return false;
+            //}
             return true;
         }
     }
