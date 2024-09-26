@@ -100,8 +100,11 @@ namespace TeensyRom.Cli.Commands.Main
                 await storage.CacheAll(settings.Path);
             }
             logService.Enabled = loggingEnabled;
+            AnsiConsole.WriteLine("Setting globalSettings.HasIndexed to true");
             globalSettings.HasIndexed = true;
+            AnsiConsole.WriteLine("Calling SaveSettings");
             settingsService.SaveSettings(globalSettings);
+            AnsiConsole.WriteLine("Completed SaveSettings");
 
             return 0;
         }

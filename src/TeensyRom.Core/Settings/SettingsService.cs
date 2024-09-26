@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
 using TeensyRom.Core.Common;
+using TeensyRom.Core.Logging;
 using Formatting = Newtonsoft.Json.Formatting;
 
 namespace TeensyRom.Core.Settings
@@ -12,11 +13,14 @@ namespace TeensyRom.Core.Settings
         public IObservable<TeensySettings> Settings => _settings.AsObservable();
 
         private BehaviorSubject<TeensySettings> _settings;
+        private readonly ILoggingService _logger;
+
         private string _settingsFilePath => Path.Combine(Assembly.GetExecutingAssembly().GetPath(), SettingsConstants.SettingsPath).GetOsFriendlyPath();
 
-        public SettingsService()
+        public SettingsService(ILoggingService logger)
         {
             _settings = new BehaviorSubject<TeensySettings>(GetSettings());
+            _logger = logger;
         }
 
         public TeensySettings GetSettings()
@@ -60,11 +64,34 @@ namespace TeensyRom.Core.Settings
         }
         public bool SaveSettings(TeensySettings settings)
         {
-            if (!ValidateAndLogSettings(settings)) return false;
+            _logger.Internal($"Start Save Settings.");
+            _logger.Internal($"Settings file path: {_settingsFilePath}");
 
-            //_log.InternalSuccess($"Settings saved successfully.");
-            _settings.OnNext(settings with { });
-            WriteSettings(settings);
+            if (!ValidateAndLogSettings(settings)) 
+            {
+                _logger.InternalError($"Settings failed validation.  Please correct the errors and try again.");
+                _logger.InternalError("Writing Settings value");
+                var settingsString = JsonConvert.SerializeObject(settings, Formatting.Indented, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto,
+                    Formatting = Formatting.Indented
+                });                
+                _logger.InternalError(settingsString);
+                return false;
+            }
+            try
+            {
+                _logger.Internal($"Writing Settings to disk");
+                WriteSettings(settings);
+                _logger.Internal($"Successfully saved settings to disk");
+                _settings.OnNext(settings with { });
+            }
+            catch (Exception ex)
+            {
+                _logger.InternalError("An error ocurred writing settings to disk");
+                _logger.InternalError(ex.ToString());
+            }
+            _logger.Internal($"Exiting SaveSettings");
             return true;
         }
 

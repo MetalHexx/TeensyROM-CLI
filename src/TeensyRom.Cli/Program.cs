@@ -36,7 +36,7 @@ public class Program
         var alertService = new CliAlertService();        
         var serial = new ObservableSerialPort(logService, alertService);
         var serialState = new SerialStateContext(serial);
-        var settingsService = new SettingsService();        
+        var settingsService = new SettingsService(logService);        
         var gameService = new GameMetadataService(logService);
         var sidService = new SidMetadataService(settingsService);        
 
