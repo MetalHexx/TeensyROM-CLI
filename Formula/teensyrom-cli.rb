@@ -2,7 +2,7 @@ class TeensyromCli < Formula
   desc "TeensyROM CLI tool"
   homepage "https://github.com/MetalHexx/TeensyROM-CLI"
   url "https://github.com/MetalHexx/TeensyROM-CLI/releases/download/1.0.0-alpha.26/tr-cli-1.0.0-alpha.26-osx-x64.zip"
-  sha256 "9587ee83f981a098b77918a719a112b65440401461ead70b4b6c52a463131aee"
+  sha256 "0b4fa05f948b676c2270d4872f943b7cb3712241d315d6ac835a83159d2daa17"
   version "1.0.0-alpha.26"
 
   def install
