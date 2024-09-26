@@ -12,7 +12,7 @@ class TeensyromCli < Formula
       exec "#{libexec}/TeensyRom.Cli" "$@"
     EOS
 
-    chmod "+x", bin/"TeensyRom.Cli"
+    chmod "a+x", bin/"TeensyRom.Cli"
   end
 
   test do
