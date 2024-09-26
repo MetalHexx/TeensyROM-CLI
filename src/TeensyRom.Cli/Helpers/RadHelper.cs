@@ -154,7 +154,7 @@ namespace TeensyRom.Cli.Helpers
         /// <param name="message"></param>
         public static void WriteError(string message)
         {
-            AnsiConsole.MarkupLine($"[red]{message.EscapeBrackets()}[/]");
+            AnsiConsole.MarkupLine($"[#cc666c]{message.EscapeBrackets()}[/]");
         }
 
         /// <summary>
