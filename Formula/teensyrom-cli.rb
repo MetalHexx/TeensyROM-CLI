@@ -9,10 +9,11 @@ class TeensyromCli < Formula
     libexec.install Dir["*"]
 
     (bin/"TeensyRom.Cli").write <<~EOS
+      #!/bin/zsh
       exec "#{libexec}/TeensyRom.Cli" "$@"
     EOS
 
-    chmod "a+x", bin/"TeensyRom.Cli"
+    chmod 0755, bin/"TeensyRom.Cli"
   end
 
   test do
