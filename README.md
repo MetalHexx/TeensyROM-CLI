@@ -4,7 +4,7 @@ A cross-platform CLI Tool for TeensyROM Emulator, Fast Loader, MIDI and Internet
 ## Demo
 General demonstration of the available features.
 
-https://github.com/user-attachments/assets/afb24d12-de9b-4689-83d5-a7955bb701ef
+https://github.com/user-attachments/assets/6a31d4cc-4a22-4253-9710-897ae6cff277
 
 ## Features
 
