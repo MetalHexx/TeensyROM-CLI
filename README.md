@@ -23,6 +23,8 @@ Chipsynth has terrific functionality to support ASID MIDI streaming to external 
 
 [Chipsynth Pain Points Demo](https://youtu.be/n4f4rqjOvIc)
 
+[Plogue Forum Discussion on the issues](https://www.plogue.com/plgfrms/viewtopic.php?p=51755) --- Come support the thread for improve the integration! 
+
 #### Solution
 This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynth presets with the following defaults:
 - Sets VOLUME to 0 (to silence the emulated SID)
