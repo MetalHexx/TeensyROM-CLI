@@ -23,13 +23,16 @@ Chipsynth has terrific functionality to support ASID MIDI streaming to external 
 
 [Chipsynth Pain Points Demo](https://youtu.be/n4f4rqjOvIc)
 
-[Plogue Forum Discussion on the issues](https://www.plogue.com/plgfrms/viewtopic.php?p=51755) --- Come support the thread for improve the integration! 
+[Plogue Forum Discussion on the issues](https://www.plogue.com/plgfrms/viewtopic.php?p=51755) --- Come support the thread and chime in if you'd like to see the integration improved! 
 
 #### Solution
 This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynth presets with the following defaults:
 - Sets VOLUME to 0 (to silence the emulated SID)
 - Sets POLY to 1 (Only mono is supported from Chipsynth)
 - Sets the SID CLOCK to your preference
+- **Note: You must still re-select "SYNTH V1" when switching between ASID patches.**
+  - This is a known issue that is still unresolved by Plogue.  
+  - See the Plogue forum thread mentioned above for more details.
 - New presets are generated in a new folder
 
 #### Generating Presets
