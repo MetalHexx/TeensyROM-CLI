@@ -23,7 +23,9 @@ Chipsynth has terrific functionality to support ASID MIDI streaming to external 
 
 [Chipsynth Pain Points Demo](https://youtu.be/n4f4rqjOvIc)
 
-[Plogue Forum Discussion on the issues](https://www.plogue.com/plgfrms/viewtopic.php?p=51755) --- Come support the thread and chime in if you'd like to see the integration improved! 
+[Plogue Forum Discussion on the issues](https://www.plogue.com/plgfrms/viewtopic.php?p=51755) <-- Come support the thread and chime in if you'd like to see the integration improved! 
+
+[TeensyROM Hardware ASID Player Documentation](https://github.com/SensoriumEmbedded/TeensyROM/blob/main/docs/ASID_Player.md) <-- Read more about the TeensyROM ASID functionality here!
 
 #### Solution
 This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynth presets with the following defaults:
