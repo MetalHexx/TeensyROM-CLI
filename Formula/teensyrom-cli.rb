@@ -1,9 +1,9 @@
 class TeensyromCli < Formula
   desc "TeensyROM CLI tool"
   homepage "https://github.com/MetalHexx/TeensyROM-CLI"
-  url "https://github.com/MetalHexx/TeensyROM-CLI/releases/download/1.0.0-alpha.29/tr-cli-1.0.0-alpha.29-osx-x64.zip"
-  sha256 "eff85cf6786d58281a2bf930e3107fbe793da501628698b4db0aa18674452bad"
-  version "1.0.0-alpha.29"
+  url "https://github.com/MetalHexx/TeensyROM-CLI/releases/download/1.0.0-alpha.30/tr-cli-1.0.0-alpha.30-osx-x64.zip"
+  sha256 "b867917e9943879682738e6100790b642d2dd7ea05a4d9af7d15959c0fc492b4"
+  version "1.0.0-alpha.30"
 
   def install
     libexec.install Dir["*"]
