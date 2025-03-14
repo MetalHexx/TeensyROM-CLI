@@ -24,7 +24,7 @@ https://github.com/user-attachments/assets/6a31d4cc-4a22-4253-9710-897ae6cff277
 - ### Linux
   - You all know what to do.
 - ### Mac
-  -  I don't have a Mac Developer license, so you'll need to install using [Homebrew](https://brew.sh/):
+  -  I don't have a Mac Developer license, so you'll need to install using [Homebrew](https://brew.sh/).
     - To add the repostory: `brew tap MetalHexx/TeensyROM-CLI https://github.com/MetalHexx/TeensyROM-CLI`
     - To install: `brew install MetalHexx/TeensyROM-CLI/teensyrom-cli`
 
