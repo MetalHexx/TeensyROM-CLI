@@ -11,10 +11,35 @@ https://github.com/user-attachments/assets/6a31d4cc-4a22-4253-9710-897ae6cff277
 - Cross platform support for Windows, MacOS, and Linux
 - Guided / BBS style interface
 - Remote File Launching
+- Auto-play of SIDs, games and images like a streaming service.
+- Tag favorites
+- Ban stinkers
 - Remote Directory Listing
 - Single Line Command Support
 
 ![image](https://github.com/user-attachments/assets/9ea2de1c-0ce7-4d54-a8ef-bfecfc1f75d0)
+
+## Installation
+- ### Windows
+  - Unzip and run `TeensyRom.Cli.exe`
+- ### Linux
+  - You all know what to do.
+- ### Mac
+  -  I don't have a Mac Developer license, so you'll need to use Homebrew:
+    - `brew tap MetalHexx/TeensyROM-CLI https://github.com/MetalHexx/TeensyROM-CLI`
+    - `brew install MetalHexx/TeensyROM-CLI/teensyrom-cli`
+
+## BBS Style Menu System    
+  - Run the command: `teensyrom.cli cs`
+  - Follow the prompts
+  - Launch menu is the star of the show.  Start a stream and enjoy!
+ <img src="https://github.com/user-attachments/assets/a6f57fde-ac6a-4733-8803-756988dd66a8" width="60%" height="60%"/>
+  
+## Using Command Line Parameters
+*You can specify everything by a command prompt for things like automation or whatever you can think up*
+  - Type `teensyrom.cli cs -h` for help
+  - Example command w/ options:  `teensyrom.cli cs --source c:\your\patch\directory --target ASID --clock ntsc`
+  <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/de7206d8-92ea-4b21-b280-e2ab7530939a" width="60%" height="60%"/>      
 
 ## Chipsynth C64 ASID Preset Generator
 Chipsynth has terrific functionality to support ASID MIDI streaming to external hardware. However, the feature is a bit experimental and has a few pain points when switching between presets.  See videos below.
@@ -49,17 +74,7 @@ This tool aims to fix 3/4 of the issues by creating a clone of all your Chipsynt
   - Copy the path for the preset folder. 
   - You will use this as the "source" directory in the tool
   - Backup your factory presets as a best practice
-    
-##### Using the Wizard    
-  - Run the command: `teensyrom.cli cs`
-  - Follow the prompts
-  <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/ec96037e-eedd-4b3c-a9ab-8823d2a06cab" width="60%" height="60%"/>
-  
-##### Using Command Line Parameters
-*You can specify everything by a command prompt as well if you wish*
-  - Type `teensyrom.cli cs -h` for help
-  - Example command w/ options:  `teensyrom.cli cs --source c:\your\patch\directory --target ASID --clock ntsc`
-  <img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/de7206d8-92ea-4b21-b280-e2ab7530939a" width="60%" height="60%"/>    
+<img src="https://github.com/MetalHexx/TeensyROM-CLI/assets/9291740/ec96037e-eedd-4b3c-a9ab-8823d2a06cab" width="60%" height="60%"/>
 
 #### New Patches in Chipsynth
 *Your patches are generated in a new sub-directory as seen below.  Enjoy!*
