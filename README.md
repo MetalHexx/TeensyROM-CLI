@@ -2,7 +2,7 @@
 A cross-platform CLI Tool for TeensyROM Emulator, Fast Loader, MIDI and Internet cartridge for Commodore 64/128.
 
 ## Demo
-General demonstration of the various streaming / file launching capabilities.
+Demonstration of the various streaming / file launching capabilities.
 
 https://github.com/user-attachments/assets/6a31d4cc-4a22-4253-9710-897ae6cff277
 
