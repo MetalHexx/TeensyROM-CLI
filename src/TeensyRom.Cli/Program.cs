@@ -33,10 +33,10 @@ public class Program
 
         var services = new ServiceCollection();
         var logService = new CliLoggingService();
-        var alertService = new CliAlertService();        
-        var serial = new ObservableSerialPort(logService, alertService);
+        var alertService = new CliAlertService();                
+        var settingsService = new SettingsService(logService);
+        var serial = new ObservableSerialPort(logService, alertService, settingsService);
         var serialState = new SerialStateContext(serial);
-        var settingsService = new SettingsService(logService);        
         var gameService = new GameMetadataService(logService);
         var sidService = new SidMetadataService(settingsService);        
 

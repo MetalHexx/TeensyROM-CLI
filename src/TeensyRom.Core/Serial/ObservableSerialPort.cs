@@ -7,6 +7,7 @@ using System.Text;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial.State;
+using TeensyRom.Core.Settings;
 
 namespace TeensyRom.Core.Serial
 {
@@ -15,7 +16,7 @@ namespace TeensyRom.Core.Serial
     /// Provides observables that can be used to monitor serial activity. 
     /// Resiliency routines are employed to recover from a disconnection.
     /// </summary>
-    public class ObservableSerialPort(ILoggingService _log, IAlertService _alert) : IObservableSerialPort
+    public class ObservableSerialPort(ILoggingService _log, IAlertService _alert, ISettingsService settingsService) : IObservableSerialPort
     {
         public IObservable<Type> State => _state.AsObservable();
         public IObservable<string[]> Ports => _ports.AsObservable();       
@@ -43,6 +44,34 @@ namespace TeensyRom.Core.Serial
             return Unit.Default;
         }
 
+        /// <summary>
+        /// Sorts the available ports by the last known used port to increase the chance of connecting to the correct port on the first try.
+        /// </summary>
+        private IEnumerable<string> GetSortedPorts()
+        {
+            var settings = settingsService.GetSettings();
+            var ports = SerialPort.GetPortNames().Distinct();
+
+            if (settings.DefaultComPort is not null)
+            {
+                return ports
+                    .OrderByDescending(port => settings.DefaultComPort == port)
+                    .ThenBy(port => port);
+            }
+            return ports;
+        }
+
+        private void SaveDefaultComPort(string comPort)
+        {
+            var settings = settingsService.GetSettings();
+
+            if (settings.DefaultComPort != comPort)
+            {
+                settings.DefaultComPort = comPort;
+                settingsService.SaveSettings(settings);
+            }
+        }
+
         public void EnsureConnection()
         {            
             if (_serialPort.IsOpen) return;
@@ -52,7 +81,7 @@ namespace TeensyRom.Core.Serial
             _alert.Publish("Scanning COM ports to find TeensyROM...");
 
 
-            var ports = SerialPort.GetPortNames().Distinct();
+            var ports = GetSortedPorts();
 
             foreach (var port in ports)
             {
@@ -111,6 +140,7 @@ namespace TeensyRom.Core.Serial
                 }
                 else
                 {
+                    SaveDefaultComPort(port);
                     _alert.Publish($"Connected to TeensyROM on {_serialPort.PortName}!");
                 }
                 _log.Internal($"ObservableSerialPort.EnsureConnection: PING succeeded");

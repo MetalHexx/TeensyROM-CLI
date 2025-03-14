@@ -42,6 +42,7 @@ namespace TeensyRom.Core.Settings
         public bool SaveMusicCacheEnabled { get; set; } = true;  
         public bool NavToDirOnLaunch { get; set; } = true;
         public bool FirstTimeSetup { get; set; } = true;
+        public string? DefaultComPort { get; set; }
         public List<string> BannedDirectories = [];
         public List<string> BannedFiles = [];
         public SearchWeights SearchWeights { get; set; } = new();
