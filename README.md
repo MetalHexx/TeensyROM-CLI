@@ -10,11 +10,12 @@ https://github.com/user-attachments/assets/6a31d4cc-4a22-4253-9710-897ae6cff277
 
 - Cross platform support for Windows, MacOS, and Linux
 - Guided / BBS style interface
-- Remote File Launching
+- Remote File Launching 
 - Auto-play of SIDs, games and images like a streaming service.
 - Tag favorites
 - Ban stinkers
-- Remote Directory Listing
+- Search your collection by name, artist, STIL descriptions and more.
+- Navigate your SD/USB storage manually
 - Single Line Command Support
 
 ![image](https://github.com/user-attachments/assets/9ea2de1c-0ce7-4d54-a8ef-bfecfc1f75d0)
