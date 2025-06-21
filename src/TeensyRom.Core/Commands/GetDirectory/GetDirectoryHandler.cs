@@ -1,7 +1,8 @@
 ﻿using MediatR;
-using Newtonsoft.Json;
 using System.Reactive.Linq;
 using System.Text;
+using System.Text.Json;
+using TeensyRom.Core.Commands.Common;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Serial;
 using TeensyRom.Core.Serial.State;
@@ -12,12 +13,10 @@ namespace TeensyRom.Core.Commands
 {
     public class GetDirectoryHandler : IRequestHandler<GetDirectoryCommand, GetDirectoryResult>
     {
-        private TeensySettings _settings = null!;
         private readonly ISerialStateContext _serialState;
 
         public GetDirectoryHandler(ISerialStateContext serialState, ISettingsService settings)
         {
-            settings.Settings.Take(1).Subscribe(s => _settings = s);
             _serialState = serialState;
         }
 
@@ -30,10 +29,25 @@ namespace TeensyRom.Core.Commands
                 _serialState.SendIntBytes(TeensyToken.ListDirectory, 2);
 
                 _serialState.HandleAck();
-                _serialState.SendIntBytes(_settings.StorageType.GetStorageToken(), 1);
+                _serialState.SendIntBytes(r.StorageType.GetStorageToken(), 1);
                 _serialState.SendIntBytes(0, 2);
                 _serialState.SendIntBytes(9999, 2);
                 _serialState.Write($"{r.Path}\0");
+
+                try
+                {
+                    _serialState.HandleAck();
+                }
+                catch (Exception ex)
+                {
+                    GetDirectoryErrorCodeType errorCode = ex.Message.GetDirectoryErrorCode();
+                    return new GetDirectoryResult
+                    {
+                        IsSuccess = false,
+                        Error = ex.Message,
+                        ErrorCode = errorCode
+                    };
+                }
 
                 if (WaitForDirectoryStartToken() != TeensyToken.StartDirectoryList)
                 {
@@ -55,7 +69,6 @@ namespace TeensyRom.Core.Commands
                 };
             }, x);
         }
-
         public List<byte> GetRawDirectoryData()
         {
             var receivedBytes = new List<byte>();
@@ -123,7 +136,7 @@ namespace TeensyRom.Core.Commands
                 {
                     case var item when item.StartsWith(dirToken):
                         var dirJson = item.Substring(5);
-                        var dirItem = JsonConvert.DeserializeObject<DirectoryItem>(dirJson);
+                        var dirItem = JsonSerializer.Deserialize<DirectoryItem>(dirJson);
                         if (dirItem is null) continue;
 
                         dirItem.Path = dirItem.Path.Replace("//", "/"); //workaround to save mem on teensy
@@ -132,8 +145,8 @@ namespace TeensyRom.Core.Commands
 
                     case var item when item.StartsWith(fileToken):
                         var fileJson = item.Substring(6);
-                        var fileItem = JsonConvert.DeserializeObject<FileItem>(fileJson);
-                        if(fileItem is null) continue;
+                        var fileItem = JsonSerializer.Deserialize<FileItem>(fileJson);
+                        if (fileItem is null) continue;
 
                         fileItem.Path = fileItem.Path.Replace("//", "/"); //workaround to save mem on teensy
                         directoryContent.Files.Add(fileItem);

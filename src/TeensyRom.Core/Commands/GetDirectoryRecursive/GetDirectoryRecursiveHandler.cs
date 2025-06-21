@@ -1,7 +1,7 @@
 ﻿using MediatR;
-using Newtonsoft.Json;
-using System.Reactive.Linq;
 using System.Text;
+using System.Text.Json;
+using TeensyRom.Core.Commands.Common;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Serial;
@@ -27,14 +27,51 @@ namespace TeensyRom.Core.Commands
             {
                 var result = new GetDirectoryRecursiveResult();
                 StringBuilder sb = new();
-                GetDirectoryContent(r.Path, r.StorageType, result, sb);                
+
+                try
+                {
+                    try
+                    {
+                        GetDirectoryContent(r.Path, r.StorageType, result, sb);
+                    }
+                    catch (Exception ex)
+                    {
+                        GetDirectoryErrorCodeType errorCode = ex.Message.GetDirectoryErrorCode();
+
+                        return new GetDirectoryRecursiveResult
+                        {
+                            IsSuccess = false,
+                            Error = ex.Message,
+                            ErrorCode = errorCode
+                        };
+                    }
+                }
+                catch (TimeoutException)
+                {
+                    result.IsSuccess = false;
+                    result.Error = "There was a timeout when trying to fetch file data.  This can be caused when the storage device is not installed on the TeensyROM device.";
+                    return result;
+                }
+                var count = 0;
+
+                foreach (var directory in result.DirectoryContent)
+                {
+                    count += directory?.Files.Count ?? 0;
+                    count += directory?.Directories.Count ?? 0;
+                }
+
+                if (count == 0)
+                {
+                    result.IsSuccess = false;
+                    result.Error = "No data was returned from the TR.";
+                }
                 return result;
             }, x);
         }
 
         private void GetDirectoryContent(string path, TeensyStorageType storageType, GetDirectoryRecursiveResult result, StringBuilder directoryLogs)
-        {            
-            _log.Internal($"=> Indexing: {path}", false);
+        {
+            _log.Internal($"=> Indexing: {path}");
 
             DirectoryContent? directoryContent;
 
@@ -45,6 +82,7 @@ namespace TeensyRom.Core.Commands
             _serialState.SendIntBytes(0, 2); //skip
             _serialState.SendIntBytes(9999, 2); //take
             _serialState.Write($"{path}\0");
+            _serialState.HandleAck();
 
             if (WaitForDirectoryStartToken() != TeensyToken.StartDirectoryList)
             {
@@ -60,7 +98,7 @@ namespace TeensyRom.Core.Commands
             }
             directoryContent.Path = path;
 
-            result.DirectoryContent.Add(directoryContent);                        
+            result.DirectoryContent.Add(directoryContent);
 
             foreach (var directory in directoryContent.Directories)
             {
@@ -135,7 +173,8 @@ namespace TeensyRom.Core.Commands
                 {
                     case var item when item.StartsWith(dirToken):
                         var dirJson = item.Substring(5);
-                        var dirItem = JsonConvert.DeserializeObject<DirectoryItem>(dirJson);
+                        var dirItem = JsonSerializer.Deserialize<DirectoryItem>(dirJson);
+
 
                         if (dirItem is null) continue;
 
@@ -145,7 +184,7 @@ namespace TeensyRom.Core.Commands
 
                     case var item when item.StartsWith(fileToken):
                         var fileJson = item.Substring(6);
-                        var fileItem = JsonConvert.DeserializeObject<FileItem>(fileJson);
+                        var fileItem = JsonSerializer.Deserialize<FileItem>(fileJson);
 
                         if (fileItem is null) continue;
 
