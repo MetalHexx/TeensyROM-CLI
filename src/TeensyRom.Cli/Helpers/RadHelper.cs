@@ -259,8 +259,29 @@ namespace TeensyRom.Cli.Helpers
             return table;
         }
 
-        public static string EscapeBrackets(this string message) => message.Replace("[", "[[").Replace("]", "]]");
-        public static string UnescapeBrackets(this string message) => message.Replace("[[", "[").Replace("]]", "]");
+        /// <summary>
+        /// Escapes Spectre.Console markup brackets and normalizes the string to Form C (composed) to avoid invalid UTF-8 sequences.
+        /// </summary>
+        public static string EscapeBrackets(this string message)
+        {
+            if (string.IsNullOrEmpty(message))
+                return string.Empty;
+
+            var normalized = message.Normalize(NormalizationForm.FormC);
+
+            return normalized.Replace("[", "[[").Replace("]", "]]");
+        }
+
+        /// <summary>
+        /// Unescapes Spectre.Console markup brackets back to plain text.
+        /// </summary>
+        public static string UnescapeBrackets(this string message)
+        {
+            if (string.IsNullOrEmpty(message))
+                return string.Empty;
+
+            return message.Replace("[[", "[").Replace("]]", "]");
+        }
         public const string ClearHack = "                                                                          ";
     }
 }

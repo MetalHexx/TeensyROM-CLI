@@ -1,4 +1,5 @@
 ﻿using Spectre.Console;
+using System.Text;
 
 namespace TeensyRom.Cli.Helpers
 {
@@ -121,19 +122,19 @@ namespace TeensyRom.Cli.Helpers
         {
             var theme = RadHelper.Theme;
 
-            var sanitizedChoices = choices.Select(f => f.EscapeBrackets()).ToList();
+            var sanitizedChoices = choices.Select(c => Markup.Escape(c.Normalize(NormalizationForm.FormC))).ToList();
 
             var selection = AnsiConsole.Prompt
             (
                 new SelectionPrompt<string>()
-                    .Title($"[{theme.Primary}]{message}: [/]")
+                    .Title($"[{theme.Primary}]{Markup.Escape(message)}: [/]")
                     .HighlightStyle(theme.Secondary.ToString())
                     .AddChoices(sanitizedChoices)
             );
+            AnsiConsole.MarkupLine($"[{theme.Primary}]{Markup.Escape(message)}: [/][{theme.Secondary}]{Markup.Escape(selection)}[/]");
 
-            AnsiConsole.MarkupLine($"[{theme.Primary}]{message}: [/][{theme.Secondary}]{selection}[/]");
 
-            return selection.UnescapeBrackets();
+            return choices.First(original => Markup.Escape(original.Normalize(NormalizationForm.FormC)) == selection);
         }
     }
 }
