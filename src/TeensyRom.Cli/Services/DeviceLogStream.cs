@@ -9,6 +9,11 @@ namespace TeensyRom.Cli.Services;
 /// <summary>
 /// Follows tr-web's log over its SignalR hub, which broadcasts every device's lines to every listener.
 /// </summary>
+/// <remarks>
+/// tr-web has one log stream for the whole API: starting and stopping it are not counted per listener. Stopping it
+/// when this follow ends therefore also ends it for anyone else following, such as an open web log viewer, until they
+/// start it again. Following only spans an index, and counting listeners would be a change in tr-web.
+/// </remarks>
 internal sealed class DeviceLogStream(ITeensyRomApiClient api, IDeviceService devices, ILoggingService log, Uri apiAddress) : IDeviceLogStream
 {
     private const string HubPath = "/api/logHub";
