@@ -422,11 +422,12 @@ namespace TeensyRom.Cli.Tests
             //Arrange
             PlayerState expectedSettings = new();
             expectedSettings.CurrentItem = null;
-            expectedSettings.StorageType = TeensyStorageType.SD;
+            expectedSettings.StorageType = storageType;
             expectedSettings.PlayState = PlayState.Stopped;
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
+            playerService.SetStorage(storageType);
             await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
@@ -469,11 +470,12 @@ namespace TeensyRom.Cli.Tests
             //Arrange
             PlayerState expectedSettings = new();
             expectedSettings.CurrentItem = null;
-            expectedSettings.StorageType = TeensyStorageType.SD;
+            expectedSettings.StorageType = storageType;
             expectedSettings.PlayState = PlayState.Stopped;
 
             //Act
             var playerService = _fixture.Create<PlayerService>();
+            playerService.SetStorage(storageType);
             await playerService.LaunchFromDirectory("/music/MUSIC/doesntExist.sid");
             var playerSettings = playerService.GetState();
 
@@ -1084,7 +1086,7 @@ namespace TeensyRom.Cli.Tests
             //Arrange
             var playerService = _fixture.Create<PlayerService>();
             var expectedFile = CreateFile<GameItem>("/games/game.crt");
-            SetupTimer();
+            _ = SetupTimer();
             SetupStorageService(expectedFile);
 
             await playerService.LaunchFromDirectory(expectedFile.Path);
@@ -1108,7 +1110,7 @@ namespace TeensyRom.Cli.Tests
             //Arrange
             var playerService = _fixture.Create<PlayerService>();
             var expectedFile = CreateFile<SongItem>("/music/sid1.sid");
-            SetupTimer();
+            _ = SetupTimer();
             SetupStorageService(expectedFile);
             await playerService.LaunchFromDirectory(expectedFile.Path);
 
@@ -1548,7 +1550,7 @@ namespace TeensyRom.Cli.Tests
             var file1 = CreateFile<SongItem>("/music/sid1.sid");
             var file2 = CreateFile<SongItem>("/music/sid2.sid");
             SetupStorageService(file1, file2);
-            SetupTimer();
+            _ = SetupTimer();
             _launchService
                 .LaunchFile(Any<TeensyStorageType>(), file2)
                 .Returns(Outcome(Enum.Parse<LaunchStatus>(status), null, apiMessage));
@@ -1575,7 +1577,7 @@ namespace TeensyRom.Cli.Tests
             var file2 = CreateFile<SongItem>("/music/sid2.sid");
             var file3 = CreateFile<SongItem>("/music/sid3.sid");
             SetupStorageService(file1, file2, file3);
-            SetupTimer();
+            _ = SetupTimer();
             _launchService
                 .LaunchFile(Any<TeensyStorageType>(), file3)
                 .Returns(Outcome(LaunchStatus.Failed, null, "There was an error launching /music/sid3.sid."));

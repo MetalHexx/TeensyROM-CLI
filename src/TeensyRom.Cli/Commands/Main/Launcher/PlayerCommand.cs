@@ -20,7 +20,6 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
     {
         private readonly IPlayerService _player;
         private readonly IStorageService _storage;
-        private PlayState? _previousState;
 
         public PlayerCommand(IPlayerService player, IStorageService storage)
         {

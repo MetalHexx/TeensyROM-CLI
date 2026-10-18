@@ -18,8 +18,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         [CommandOption("-p|--path")]
         public string FilePath { get; set; } = string.Empty;
 
-        public static string Example => "launch file -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid";
-        public static string Description => "Launch a specific file.";
+        public new static string Example => "launch file -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid";
+        public new static string Description => "Launch a specific file.";
 
         public new void ClearSettings()
         {

@@ -20,7 +20,7 @@ namespace TeensyRom.Cli.Storage.Entities
 
         
 
-        public virtual FileItem Clone()
+        public new virtual FileItem Clone()
         {
             return new FileItem
             {

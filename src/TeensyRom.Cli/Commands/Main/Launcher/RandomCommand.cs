@@ -3,7 +3,6 @@ using Spectre.Console.Cli;
 using System.ComponentModel;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Cli.Logging;
 using TeensyRom.Cli.Settings;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
@@ -62,7 +61,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             return base.Validate();
         }
     }
-    internal class RandomCommand(IStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService player, ITypeResolver resolver) : AsyncCommand<RandomSettings>
+    internal class RandomCommand(IStorageService storage, ISettingsService settingsService, IPlayerService player, ITypeResolver resolver) : AsyncCommand<RandomSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, RandomSettings settings)
         {

@@ -5,7 +5,7 @@ namespace TeensyRom.Cli.Storage.Entities
 {
     public class DirectoryItem : StorageItem 
     {
-        public DirectoryItem Clone() => new DirectoryItem
+        public new DirectoryItem Clone() => new DirectoryItem
         {
             IsCompatible = IsCompatible,
             IsFavorite = IsFavorite,
