@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 using Spectre.Console.Testing;
 using TeensyRom.Cli.Api.Generated;
 using TeensyRom.Cli.Services;
-using TeensyStorageType = TeensyRom.Core.Storage.Entities.TeensyStorageType;
+using TeensyStorageType = TeensyRom.Cli.Storage.Entities.TeensyStorageType;
 
 namespace TeensyRom.Cli.Tests.Integration;
 

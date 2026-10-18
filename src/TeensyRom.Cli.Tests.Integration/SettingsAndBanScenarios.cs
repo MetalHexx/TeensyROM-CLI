@@ -1,7 +1,7 @@
 using System.Text.Json;
 using TeensyRom.Cli.Api.Generated;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Cli.Storage.Entities;
 
 namespace TeensyRom.Cli.Tests.Integration;
 

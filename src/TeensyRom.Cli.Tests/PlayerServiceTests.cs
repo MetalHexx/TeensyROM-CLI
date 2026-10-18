@@ -2,19 +2,19 @@
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using TeensyRom.Cli.Api;
-using TeensyRom.Core.Storage.Entities;
-using TeensyRom.Core.Storage.Services;
-using TeensyRom.Core.Progress;
-using TeensyRom.Core.Settings;
+using TeensyRom.Cli.Storage.Entities;
+using TeensyRom.Cli.Storage.Services;
+using TeensyRom.Cli.Progress;
+using TeensyRom.Cli.Settings;
 using System.Reactive.Linq;
-using TeensyRom.Core.Player;
+using TeensyRom.Cli.Player;
 using System.Reactive.Subjects;
-using TeensyRom.Core.Common;
+using TeensyRom.Cli.Common;
 using TeensyRom.Cli.Services;
 using System.Reactive;
 using System.Threading.Tasks;
 using System;
-using TeensyRom.Core.Logging;
+using TeensyRom.Cli.Logging;
 
 namespace TeensyRom.Cli.Tests
 {

@@ -3,8 +3,8 @@ using Spectre.Console.Cli;
 using System.ComponentModel;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Logging;
-using TeensyRom.Core.Settings;
+using TeensyRom.Cli.Logging;
+using TeensyRom.Cli.Settings;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {

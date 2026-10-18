@@ -1,5 +1,5 @@
-using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Cli.Settings;
+using TeensyRom.Cli.Storage.Entities;
 
 namespace TeensyRom.Cli.Services;
 

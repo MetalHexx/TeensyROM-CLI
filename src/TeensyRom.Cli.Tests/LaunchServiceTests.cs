@@ -3,12 +3,12 @@ using NSubstitute;
 using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Api.Generated;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Cli.Settings;
+using TeensyRom.Cli.Storage.Entities;
 using static TeensyRom.Cli.Tests.ApiTestSupport;
 using ApiStorageType = TeensyRom.Cli.Api.Generated.TeensyStorageType;
-using TeensyFilterType = TeensyRom.Core.Settings.TeensyFilterType;
-using TeensyStorageType = TeensyRom.Core.Storage.Entities.TeensyStorageType;
+using TeensyFilterType = TeensyRom.Cli.Settings.TeensyFilterType;
+using TeensyStorageType = TeensyRom.Cli.Storage.Entities.TeensyStorageType;
 
 namespace TeensyRom.Cli.Tests;
 

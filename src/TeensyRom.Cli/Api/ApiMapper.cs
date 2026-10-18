@@ -1,10 +1,10 @@
 using System.Globalization;
 using TeensyRom.Cli.Api.Generated;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Cli.Storage.Entities;
 using ApiStorageType = TeensyRom.Cli.Api.Generated.TeensyStorageType;
-using CliFilterType = TeensyRom.Core.Settings.TeensyFilterType;
-using CliStorageType = TeensyRom.Core.Storage.Entities.TeensyStorageType;
+using CliFilterType = TeensyRom.Cli.Settings.TeensyFilterType;
+using CliStorageType = TeensyRom.Cli.Storage.Entities.TeensyStorageType;
 
 namespace TeensyRom.Cli.Api;
 

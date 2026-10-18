@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using TeensyRom.Core.Logging;
+using TeensyRom.Cli.Logging;
 
 namespace TeensyRom.Cli.Api;
 

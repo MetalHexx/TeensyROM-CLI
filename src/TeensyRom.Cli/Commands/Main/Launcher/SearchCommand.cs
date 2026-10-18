@@ -5,8 +5,8 @@ using System.Reactive.Linq;
 using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Cli.Settings;
+using TeensyRom.Cli.Storage.Entities;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {

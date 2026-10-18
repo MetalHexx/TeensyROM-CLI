@@ -4,9 +4,9 @@ using System;
 using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Common;
-using TeensyRom.Core.Player;
-using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Cli.Common;
+using TeensyRom.Cli.Player;
+using TeensyRom.Cli.Storage.Entities;
 using TextCopy;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher

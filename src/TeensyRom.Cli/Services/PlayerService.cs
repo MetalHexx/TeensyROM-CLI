@@ -3,13 +3,13 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Core.Common;
-using TeensyRom.Core.Logging;
-using TeensyRom.Core.Player;
-using TeensyRom.Core.Progress;
-using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Entities;
-using TeensyRom.Core.Storage.Services;
+using TeensyRom.Cli.Common;
+using TeensyRom.Cli.Logging;
+using TeensyRom.Cli.Player;
+using TeensyRom.Cli.Progress;
+using TeensyRom.Cli.Settings;
+using TeensyRom.Cli.Storage.Entities;
+using TeensyRom.Cli.Storage.Services;
 
 namespace TeensyRom.Cli.Services
 {

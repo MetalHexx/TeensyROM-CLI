@@ -1,9 +1,9 @@
 using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Api.Generated;
-using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Entities;
-using TeensyFilterType = TeensyRom.Core.Settings.TeensyFilterType;
-using TeensyStorageType = TeensyRom.Core.Storage.Entities.TeensyStorageType;
+using TeensyRom.Cli.Settings;
+using TeensyRom.Cli.Storage.Entities;
+using TeensyFilterType = TeensyRom.Cli.Settings.TeensyFilterType;
+using TeensyStorageType = TeensyRom.Cli.Storage.Entities.TeensyStorageType;
 
 namespace TeensyRom.Cli.Services;
 

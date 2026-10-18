@@ -9,12 +9,12 @@ using TeensyRom.Cli.Commands.Main;
 using TeensyRom.Cli.Commands.Main.Asid;
 using TeensyRom.Cli.Commands.Main.Launcher;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Core.Common;
-using TeensyRom.Core.Logging;
-using TeensyRom.Core.Progress;
-using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Services;
-using AssemblyExtensions = TeensyRom.Core.Common.AssemblyExtensions;
+using TeensyRom.Cli.Common;
+using TeensyRom.Cli.Logging;
+using TeensyRom.Cli.Progress;
+using TeensyRom.Cli.Settings;
+using TeensyRom.Cli.Storage.Services;
+using AssemblyExtensions = TeensyRom.Cli.Common.AssemblyExtensions;
 
 namespace TeensyRom.Cli.Services;
 

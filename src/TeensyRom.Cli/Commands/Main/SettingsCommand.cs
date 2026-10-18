@@ -4,7 +4,7 @@ using System.Reactive.Linq;
 using System.Transactions;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Settings;
+using TeensyRom.Cli.Settings;
 
 namespace TeensyRom.Cli.Commands.Main
 {

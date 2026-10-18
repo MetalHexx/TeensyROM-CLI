@@ -3,14 +3,10 @@ using Spectre.Console.Cli;
 using System.Diagnostics;
 using System.Reflection;
 using TeensyRom.Cli.Api;
+using TeensyRom.Cli.Common;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Assets;
-using TeensyRom.Core.Common;
-using TeensyRom.Core.Games;
-using TeensyRom.Core.Music;
-using TeensyRom.Core.Serial;
 public class Program
 {
     private static async Task<int> Main(string[] args)
@@ -20,8 +16,6 @@ public class Program
 
         var host = CliHost.Create();
         var app = CliHost.CreateApp(new TypeRegistrar(host.Services));
-
-        //UnpackAssets();
 
         if (!IsHelpOrVersion(args) && !await host.Startup.RunAsync())
         {
@@ -105,14 +99,6 @@ public class Program
 
     private static bool IsHelpOrVersion(string[] args) =>
         args.Contains("-h") || args.Contains("--help") || args.Contains("-v") || args.Contains("--version");
-
-    private static void UnpackAssets()
-    {
-
-        AssetHelper.UnpackAssets(GameConstants.Game_Image_Local_Path, "OneLoad64.zip");
-        AssetHelper.UnpackAssets(MusicConstants.Musician_Image_Local_Path, "Composers.zip");
-        AssetHelper.UnpackAssets(AssetConstants.VicePath, "vice-bins.zip");
-    }
 
     private static readonly object _logFileLock = new object();
 
