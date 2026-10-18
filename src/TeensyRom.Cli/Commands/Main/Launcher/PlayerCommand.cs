@@ -11,7 +11,7 @@ using TextCopy;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class PlayerSettings : LaunchSettings, IClearableSettings, IRequiresConnection
+    internal class PlayerSettings : LaunchSettings, IClearableSettings
     {
         public new void ClearSettings() { }
     }
@@ -207,7 +207,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 if (!shouldRemove) return;
             }
 
-            if (needsToggle) _player.TogglePlay();
+            if (needsToggle) _player.TogglePlay().GetAwaiter().GetResult();
 
             try
             {
@@ -224,7 +224,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             {
                 RadHelper.WriteError(ex.Message);
             }
-            if (needsToggle) _player.TogglePlay();
+            if (needsToggle) _player.TogglePlay().GetAwaiter().GetResult();
         }
 
         private void HandleBan(PlayerState playerState)
@@ -243,7 +243,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (!shouldBan) return;
 
-            if (needsToggle) _player.TogglePlay();
+            if (needsToggle) _player.TogglePlay().GetAwaiter().GetResult();
 
             if (shouldBan)
             {

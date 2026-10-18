@@ -8,7 +8,7 @@ using TeensyRom.Core.Settings;
 
 namespace TeensyRom.Cli.Commands.Main
 {
-    internal class IndexSettings : CommandSettings, IClearableSettings, IRequiresConnection
+    internal class IndexSettings : CommandSettings, IClearableSettings
     {
         [Description("Storage files to index. (sd or usb)")]
         [CommandOption("-s|--storage")]

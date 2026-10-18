@@ -14,6 +14,7 @@ The CLI talks to tr-web through a client generated from tr-web's own OpenAPI spe
 
 1. Bump `ApiPin.Version` to the new tr-web version.
 2. Check out that version of tr-web and run `pwsh scripts/regenerate-api-client.ps1 [-WebRepo <path>]`. It copies the spec and regenerates the client (needs the .NET SDK; no Java or Node).
-3. Build and test.
+3. Check that `LaunchOutcome.NoFilesFoundMessage` still equals the sentence tr-web's LaunchRandom endpoint sends when it finds no file; the CLI matches it by exact text.
+4. Build and test.
 
 Never hand-edit `Generated/`; change `nswag.json` or the hand-written partial instead and regenerate.

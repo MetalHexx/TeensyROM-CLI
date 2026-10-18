@@ -128,6 +128,27 @@ public class StorageServiceTests
     }
 
     [Fact]
+    public async Task Search_WhenTheApiHasMoreResults_KeepsPagingAndKeepsTheChosenStoragesFilesFromEveryPage()
+    {
+        _sut.SwitchStorage(TeensyStorageType.USB);
+        _api.SearchAsync(DeviceId, "sid", 0, 1000, Arg.Any<NullableOfTeensyFilterType?>(), Arg.Any<CancellationToken>()).Returns(new SearchResponse
+        {
+            Files = [File("/music/sd-a.sid", storage: ApiStorageType.SD), File("/music/usb-a.sid", storage: ApiStorageType.USB)],
+            HasMore = true
+        });
+        _api.SearchAsync(DeviceId, "sid", 1000, 1000, Arg.Any<NullableOfTeensyFilterType?>(), Arg.Any<CancellationToken>()).Returns(new SearchResponse
+        {
+            Files = [File("/music/usb-b.sid", storage: ApiStorageType.USB)],
+            HasMore = false
+        });
+
+        var results = await _sut.Search("sid", TeensyFilterType.All);
+
+        results.Select(r => r.Path).Should().Equal("/music/usb-a.sid", "/music/usb-b.sid");
+        await _api.Received(2).SearchAsync(DeviceId, "sid", Arg.Any<int>(), 1000, Arg.Any<NullableOfTeensyFilterType?>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Index_SendsTheChosenDeviceStorageAndPath()
     {
         _sut.SwitchStorage(TeensyStorageType.USB);

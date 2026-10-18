@@ -10,7 +10,7 @@ using TeensyRom.Core.Storage.Entities;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class SearchSettings : LaunchSettings, IClearableSettings, IRequiresConnection
+    internal class SearchSettings : LaunchSettings, IClearableSettings
     {
         [Description("Storage device to search. (sd or usb)")]
         [CommandOption("-s|--storage")]

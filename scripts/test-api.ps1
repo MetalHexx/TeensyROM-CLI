@@ -241,33 +241,44 @@ function Restart-Api {
     $dataDir = Join-Path $StateDir ('data-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
     New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
 
+    # Started through the shell so the API inherits none of the caller's handles. A Start-Process with redirected
+    # output hands it the caller's stdout pipe, and a caller reading that pipe (| tail, a fixture's Process) would
+    # then wait for the API to exit. The shell wrapper's own redirection keeps the logs.
     $previousDataDir = $env:TEENSYROM_DATA_DIR
     $env:TEENSYROM_DATA_DIR = $dataDir
     try {
-        $proc = Start-Process -FilePath (Get-Command dotnet).Source -ArgumentList @("`"$dll`"") `
-            -WorkingDirectory $workingDir -RedirectStandardOutput $ApiLog -RedirectStandardError $ApiErrLog `
-            -WindowStyle Hidden -PassThru
+        $startInfo = [Diagnostics.ProcessStartInfo]::new('cmd.exe')
+        $startInfo.Arguments = "/d /c `"`"$((Get-Command dotnet).Source)`" `"$dll`" > `"$ApiLog`" 2> `"$ApiErrLog`"`""
+        $startInfo.WorkingDirectory = $workingDir
+        $startInfo.UseShellExecute = $true
+        $startInfo.WindowStyle = [Diagnostics.ProcessWindowStyle]::Hidden
+        $shell = [Diagnostics.Process]::Start($startInfo)
     }
     finally { $env:TEENSYROM_DATA_DIR = $previousDataDir }
 
     # A refused loopback connection costs ~2 s on Windows, so only probe HTTP once the port is listening.
     $deadline = (Get-Date).AddSeconds($StartTimeoutSeconds)
+    $apiPid = $null
     $version = $null
     while ($null -eq $version) {
-        if ($proc.HasExited) { Fail "API exited during startup (exit $($proc.ExitCode)) - see $ApiLog and $ApiErrLog" }
-        if ($proc.Id -in (Get-PortListeners)) {
+        if ($shell.HasExited) { Fail "API exited during startup (exit $($shell.ExitCode)) - see $ApiLog and $ApiErrLog" }
+        if (-not $apiPid) {
+            $apiPid = Get-CimInstance Win32_Process -Filter "ParentProcessId = $($shell.Id) AND Name = 'dotnet.exe'" |
+                Select-Object -First 1 -ExpandProperty ProcessId
+        }
+        if ($apiPid -and $apiPid -in (Get-PortListeners)) {
             $version = Get-ApiVersion
             if ($null -ne $version) { break }
         }
         if ((Get-Date) -gt $deadline) {
-            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            Stop-Process -Id @($apiPid, $shell.Id | Where-Object { $_ }) -Force -ErrorAction SilentlyContinue
             Fail "API did not answer $VersionUrl within $StartTimeoutSeconds s - see $ApiLog and $ApiErrLog"
         }
         Start-Sleep -Milliseconds 500
     }
 
     [ordered]@{
-        pid          = $proc.Id
+        pid          = $apiPid
         webRepo      = $repo
         fingerprint  = $fingerprint
         dataDir      = $dataDir
@@ -285,7 +296,7 @@ function Restart-Api {
         try { $isHtml = "$((Invoke-WebRequest -Uri $RootUrl -TimeoutSec 10).Headers['Content-Type'])" -match 'text/html' } catch { }
         if (-not $isHtml) { Write-Warning "GET $RootUrl did not return HTML - the frontend may not be served from wwwroot" }
     }
-    Write-Host "test-api: API started (pid $($proc.Id), version $version) at http://localhost:$Port"
+    Write-Host "test-api: API started (pid $apiPid, version $version) at http://localhost:$Port"
 }
 
 function Invoke-Ensure {

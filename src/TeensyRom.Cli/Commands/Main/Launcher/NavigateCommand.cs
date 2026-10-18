@@ -11,7 +11,7 @@ using TeensyRom.Core.Storage.Entities;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class NavigateSettings : LaunchSettings, IClearableSettings, IRequiresConnection
+    internal class NavigateSettings : LaunchSettings, IClearableSettings
     {
         [Description("Storage device of file to launch. (sd or usb)")]
         [CommandOption("-s|--storage")]

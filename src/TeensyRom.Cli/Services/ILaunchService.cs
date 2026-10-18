@@ -34,6 +34,9 @@ internal enum LaunchStatus
 /// </summary>
 internal sealed record LaunchOutcome(LaunchStatus Status, ILaunchableItem? Item, string? Message)
 {
-    /// <summary>What tr-web answers when a random launch has no file to pick.</summary>
+    /// <summary>
+    /// What tr-web answers when a random launch has no file to pick. Matched by exact text, so re-check it against
+    /// tr-web's LaunchRandom endpoint whenever <see cref="Api.ApiPin.Version"/> moves.
+    /// </summary>
     public const string NoFilesFoundMessage = "No files were found.";
 }

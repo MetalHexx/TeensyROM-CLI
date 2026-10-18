@@ -10,7 +10,8 @@ namespace TeensyRom.Cli.Services;
 
 internal sealed class StorageService(ITeensyRomApiClient api, IDeviceService devices, ISettingsService settingsService, IAlertService alert) : IStorageService
 {
-    // The most tr-web's search validator accepts. It searches both storages, so a smaller page could crowd the chosen one out.
+    // The most tr-web's search validator accepts. It ranks both storages together, so a search keeps paging until
+    // tr-web has no more and only then drops the other storage's files.
     private const int SearchPageSize = 1000;
 
     public TeensyStorageType StorageType { get; private set; } = settingsService.GetSettings().StorageType;
@@ -38,10 +39,23 @@ internal sealed class StorageService(ITeensyRomApiClient api, IDeviceService dev
         var deviceId = devices.RequireDeviceId();
         var storage = StorageType.ToApi();
 
-        var response = await ApiErrors.Call(() => api.SearchAsync(deviceId, query, 0, SearchPageSize, filter.ToApi()));
+        var apiFilter = filter.ToApi();
 
-        return response.Files
-            .Where(file => file.StorageType == storage)
+        var files = new List<FileItemDto>();
+        var skip = 0;
+        bool hasMore;
+        do
+        {
+            var pageStart = skip;
+            var response = await ApiErrors.Call(() => api.SearchAsync(deviceId, query, pageStart, SearchPageSize, apiFilter));
+
+            files.AddRange(response.Files.Where(file => file.StorageType == storage));
+            hasMore = response.HasMore;
+            skip += SearchPageSize;
+        }
+        while (hasMore);
+
+        return files
             .Select(ApiMapper.ToLaunchable)
             .OfType<ILaunchableItem>()
             .ToList();
