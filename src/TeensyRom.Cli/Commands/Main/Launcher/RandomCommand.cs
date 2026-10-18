@@ -4,9 +4,7 @@ using System.ComponentModel;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
 using TeensyRom.Core.Logging;
-using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
@@ -64,7 +62,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             return base.Validate();
         }
     }
-    internal class RandomCommand(ISerialStateContext serial, ICachedStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService player, ITypeResolver resolver) : AsyncCommand<RandomSettings>
+    internal class RandomCommand(IStorageService storage, ILoggingService logService, ISettingsService settingsService, IPlayerService player, ITypeResolver resolver) : AsyncCommand<RandomSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, RandomSettings settings)
         {
@@ -119,6 +117,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             player.SetFilter(filterType);
 
             await player.PlayRandom();
+
+            if (!player.IsPlaying()) return 0;
 
             if (playerCommand is not null)
             {

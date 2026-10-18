@@ -53,6 +53,18 @@ internal sealed class DeviceService(ITeensyRomApiClient api) : IDeviceService
     public string RequireDeviceId() =>
         SelectedDevice?.Id ?? throw new TeensyApiException("No TeensyROM is selected.");
 
+    public async Task ToggleMusicAsync()
+    {
+        var deviceId = RequireDeviceId();
+        await ApiErrors.Call(() => api.ToggleMusicAsync(deviceId));
+    }
+
+    public async Task ResetAsync()
+    {
+        var deviceId = RequireDeviceId();
+        await ApiErrors.Call(() => api.ResetDeviceAsync(deviceId));
+    }
+
     private static DeviceSummary ToSummary(CartDto cart) => new(
         cart.DeviceId,
         cart.Name,

@@ -1,72 +1,67 @@
-﻿using MediatR;
-using Spectre.Console;
+﻿using Spectre.Console;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Core.Commands;
-using TeensyRom.Core.Commands.File.LaunchFile;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Logging;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Progress;
-using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Entities;
 using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Services
 {
+    /// <summary>
+    /// Sequences what plays next, previous or at random, and keeps the play timer. Failures talking to tr-web never
+    /// escape its operations: they are published as alerts and the stream stops.
+    /// </summary>
     internal class PlayerService : IPlayerService
     {
         public IObservable<ILaunchableItem> FileLaunched => _fileLaunched.AsObservable();
         private Subject<ILaunchableItem> _fileLaunched = new();
         private PlayerState _state;
 
+        /// <summary>What a launch attempt means for the next move: carry on, skip to another file, or stop where we are.</summary>
+        private enum Step { Launched, Skipped, Stopped }
 
         private IDisposable? _timerSubscription;
-        private readonly IMediator _mediator;
-        private readonly ICachedStorageService _storage;
+        private readonly IStorageService _storage;
+        private readonly ILaunchService _launch;
+        private readonly IDeviceService _devices;
         private readonly IProgressTimer _timer;
         private readonly ISettingsService _settingsService;
-        private readonly ISerialStateContext _serial;
         private readonly ILaunchHistory _randomHistory;
         private readonly IAlertService _alert;
         private readonly ILoggingService _log;
 
-        public PlayerService(IMediator mediator, ICachedStorageService storage, IProgressTimer progressTimer, ISettingsService settingsService, ISerialStateContext serial, ILaunchHistory history, IAlertService alert, ILoggingService log)
+        public PlayerService(IStorageService storage, ILaunchService launch, IDeviceService devices, IProgressTimer progressTimer, ISettingsService settingsService, ILaunchHistory history, IAlertService alert, ILoggingService log)
         {
-            _mediator = mediator;
             _storage = storage;
+            _launch = launch;
+            _devices = devices;
             _timer = progressTimer;
             _settingsService = settingsService;
-            _serial = serial;
             _randomHistory = history;
             _alert = alert;
             _log = log;
             var settings = settingsService.GetSettings();
 
-            _state = new() 
+            _state = new()
             {
                 StorageType = settings.StorageType,
-                FilterType = settings.StartupFilter,                
+                FilterType = settings.StartupFilter,
             };
-
-            serial.CurrentState
-                .Where(state => state is SerialConnectionLostState && _state.PlayState is PlayState.Playing)
-                .Subscribe(_ => StopStream());
 
             SetupTimerSubscription();
         }
 
-        public async Task LaunchFromDirectory(string path)
+        public Task LaunchFromDirectory(string path) => Guarded(() => LaunchFromDirectoryCore(path));
+
+        private async Task LaunchFromDirectoryCore(string path)
         {
             var directory = await _storage.GetDirectory(path.GetUnixParentPath());
-
-            if (directory is null)
-            {
-                _alert.PublishError("Directory not found.");
-                return;
-            }
             var fileItem = directory.Files.FirstOrDefault(f => f.Path.Contains(path));
 
             if (fileItem is not ILaunchableItem launchItem)
@@ -74,54 +69,89 @@ namespace TeensyRom.Cli.Services
                 _alert.PublishError("File is not launchable.");
                 return;
             }
-            var launchSuccessful = await LaunchItem(launchItem);
-
-            if (!launchSuccessful) 
+            if (await Launch(launchItem) is Step.Skipped)
             {
-                await PlayNext();
+                await PlayNextCore();
             }
         }
 
         public async Task<bool> LaunchItem(ILaunchableItem item)
+        {
+            var launched = false;
+            await Guarded(async () => launched = await Launch(item) is Step.Launched);
+            return launched;
+        }
 
+        private async Task<Step> Launch(ILaunchableItem item)
         {
             _state = _state with
             {
                 CurrentItem = item,
                 PlayState = PlayState.Playing
             };
-            if (!item.IsCompatible) 
+            if (!item.IsCompatible)
             {
                 AlertBadFile(item);
-                return false;
+                return Step.Skipped;
             }
-            var result = await _mediator.Send(new LaunchFileCommand(_state.StorageType, item));
+            var outcome = await _launch.LaunchFile(_state.StorageType, item);
 
-            if (result.IsSuccess)
+            return outcome.Status switch
             {
-                _fileLaunched.OnNext(item);
-                _alert.Publish(RadHelper.ClearHack);
-                MaybeStartStream(item);
-                return true;
-            }          
-            if (result.LaunchResult is LaunchFileResultType.SidError or LaunchFileResultType.ProgramError)
-            {
-                _storage.MarkIncompatible(item);
-                _randomHistory.Remove(item);
-                AlertBadFile(item);
-                return false;
-            }
-            _alert.PublishError($"Failed to launch {item.Name}.");
-            return false;
+                LaunchStatus.Launched => OnLaunched(item),
+                LaunchStatus.Incompatible => SkipIncompatible(item),
+                _ => Refused(outcome.Message, $"Failed to launch {item.Name}.")
+            };
         }
 
-        private void AlertBadFile(ILaunchableItem item) 
+        private Step OnLaunched(ILaunchableItem item)
+        {
+            _fileLaunched.OnNext(item);
+            _alert.Publish(RadHelper.ClearHack);
+            MaybeStartStream(item);
+            return Step.Launched;
+        }
+
+        private Step SkipIncompatible(ILaunchableItem item)
+        {
+            item.IsCompatible = false;
+            _randomHistory.Remove(item);
+            AlertBadFile(item);
+            return Step.Skipped;
+        }
+
+        /// <summary>
+        /// tr-web said it can't launch the file. Moving on to another file would only repeat the request, so the player stops here.
+        /// </summary>
+        private Step Refused(string? message, string fallback)
+        {
+            _alert.PublishError(string.IsNullOrWhiteSpace(message) ? fallback : message);
+            _state = _state with { PlayState = PlayState.Stopped };
+            return Step.Stopped;
+        }
+
+        private void AlertBadFile(ILaunchableItem item)
         {
             AnsiConsole.WriteLine();
             _alert.PublishError($"{item.Name} is currently unsupported (see logs).  Skipping file.");
         }
 
-        public async Task PlayRandom()
+        private async Task Guarded(Func<Task> operation)
+        {
+            try
+            {
+                await operation();
+            }
+            catch (TeensyApiException ex)
+            {
+                _alert.PublishError(ex.Message);
+                StopStream();
+            }
+        }
+
+        public Task PlayRandom() => Guarded(PlayRandomCore);
+
+        private async Task PlayRandomCore()
         {
             if (_state.PlayMode is not PlayMode.Random)
             {
@@ -129,64 +159,67 @@ namespace TeensyRom.Cli.Services
             }
             _state.PlayMode = PlayMode.Random;
 
-            var randomItem = _storage.GetRandomFile(_state.Scope, _state.ScopePath, GetFilterFileTypes());
+            var outcome = await _launch.LaunchRandom(_state.StorageType, _state.Scope, _state.ScopePath, _state.FilterType);
 
-            if (randomItem is null)
+            switch (outcome)
             {
-                _alert.PublishError($"No files for the filter \"{_state.FilterType}\" were found on the {_state.StorageType} in {_state.ScopePath}.");
-                return;
-            }
-            var launchSuccessful = await LaunchItem(randomItem);
+                case { Status: LaunchStatus.Launched, Item: { } randomItem }:
+                    _state = _state with { CurrentItem = randomItem, PlayState = PlayState.Playing };
+                    OnLaunched(randomItem);
+                    _randomHistory.Add(randomItem);
+                    return;
 
-            if (launchSuccessful) 
-            {
-                _randomHistory.Add(randomItem);
-                return;
+                case { Status: LaunchStatus.Incompatible, Item: { } badItem }:
+                    _state = _state with { CurrentItem = badItem, PlayState = PlayState.Playing };
+                    SkipIncompatible(badItem);
+                    await PlayNextCore();
+                    return;
+
+                case { Status: LaunchStatus.NotFound, Message: LaunchOutcome.NoFilesFoundMessage }:
+                    _alert.PublishError($"No files for the filter \"{_state.FilterType}\" were found on the {_state.StorageType} in {_state.ScopePath}.");
+                    return;
+
+                default:
+                    Refused(outcome.Message, "Failed to launch a random file.");
+                    return;
             }
-            await PlayNext();
         }
 
-        public async Task PlayPrevious()
+        public Task PlayPrevious() => Guarded(PlayPreviousCore);
+
+        private async Task PlayPreviousCore()
         {
             ILaunchableItem? fileToPlay = _state.PlayMode switch
             {
                 PlayMode.Random => _randomHistory.GetPrevious(GetFilterFileTypes()),
-                PlayMode.Search => GetPreviousSearchItem(),
+                PlayMode.Search => await GetPreviousSearchItem(),
                 PlayMode.CurrentDirectory => await GetPreviousDirectoryItem(),
                 _ => _state.CurrentItem
             };
             if(fileToPlay is null)
             {
-                if (_state.CurrentItem is null) 
+                if (_state.CurrentItem is null)
                 {
                     return;
                 }
                 fileToPlay = _state.CurrentItem;
             }
-            var launchSuccessful = await LaunchItem(fileToPlay);
-
-            if (!launchSuccessful) 
+            if (await Launch(fileToPlay) is Step.Skipped)
             {
-                await PlayPrevious();
+                await PlayPreviousCore();
             }
         }
 
-        public ILaunchableItem? GetPreviousSearchItem()
+        private async Task<ILaunchableItem?> GetPreviousSearchItem()
         {
-            var list = _storage.Search(_state.SearchQuery!, []).ToList();
+            var list = (await _storage.Search(_state.SearchQuery!, TeensyFilterType.All)).ToList();
             return GetPreviousFromList(list);
         }
 
-        public async Task<ILaunchableItem?> GetPreviousDirectoryItem()
+        private async Task<ILaunchableItem?> GetPreviousDirectoryItem()
         {
             var currentPath = _state.CurrentItem!.Path.GetUnixParentPath();
             var currentDirectory = await _storage.GetDirectory(currentPath);
-
-            if (currentDirectory is null)
-            {
-                _alert.PublishError($"Couldn't find directory {currentPath}.");
-                return null;
-            }
             var files = currentDirectory.Files.OfType<ILaunchableItem>().ToList();
             return GetPreviousFromList(files);
         }
@@ -263,24 +296,26 @@ namespace TeensyRom.Cli.Services
             return candidate;
         }
 
-        public async Task PlayNext()
+        public Task PlayNext() => Guarded(PlayNextCore);
+
+        private async Task PlayNextCore()
         {
             ILaunchableItem? fileToPlay = null;
 
-            switch (_state.PlayMode) 
+            switch (_state.PlayMode)
             {
                 case PlayMode.Random:
                     fileToPlay = _randomHistory.GetNext(GetFilterFileTypes());
 
                     if (fileToPlay is null)
                     {
-                        await PlayRandom();
+                        await PlayRandomCore();
                         return;
                     }
                     break;
 
                 case PlayMode.Search:
-                    fileToPlay = GetNextSearchItem();
+                    fileToPlay = await GetNextSearchItem();
                     break;
 
                 case PlayMode.CurrentDirectory:
@@ -292,26 +327,24 @@ namespace TeensyRom.Cli.Services
             {
                 fileToPlay = _state.CurrentItem;
             }
-            var launchSuccessful = await LaunchItem(fileToPlay!);
+            if (fileToPlay is null) return;
 
-            if (!launchSuccessful) await PlayNext();
+            if (await Launch(fileToPlay) is Step.Skipped) await PlayNextCore();
         }
 
-        public ILaunchableItem? GetNextSearchItem()
+        private async Task<ILaunchableItem?> GetNextSearchItem()
         {
             if (_state.SearchQuery is null) return null;
 
-            var list = _storage.Search(_state.SearchQuery, []).ToList();
+            var list = (await _storage.Search(_state.SearchQuery, TeensyFilterType.All)).ToList();
 
             return GetNextListItem(list);
         }
 
-        public async Task<ILaunchableItem?> GetNextDirectoryItem()
+        private async Task<ILaunchableItem?> GetNextDirectoryItem()
         {
             var currentPath = _state.CurrentItem!.Path.GetUnixParentPath();
             var currentDirectory = await _storage.GetDirectory(currentPath);
-
-            if (currentDirectory is null) return null;
 
             var compatibleFiles = currentDirectory.Files.Any(f => f.IsCompatible);
 
@@ -511,23 +544,27 @@ namespace TeensyRom.Cli.Services
             return trSettings.GetFileTypes(_state.FilterType);
         }
 
-        public void TogglePlay()
+        public Task TogglePlay() => Guarded(TogglePlayCore);
+
+        private async Task TogglePlayCore()
         {
+            var current = _state.CurrentItem;
+
             if(_state.PlayState is PlayState.Playing)
-            {   
+            {
                 PauseStream();
-                
-                if(_state.CurrentItem is SongItem) 
+
+                if(current is SongItem)
                 {
-                    _mediator.Send(new ToggleMusicCommand());
-                    _alert.Publish($"{_state.CurrentItem.Name} has been paused.");
+                    await _devices.ToggleMusicAsync();
+                    _alert.Publish($"{current.Name} has been paused.");
                     return;
                 }
-                _mediator.Send(new ResetCommand());
-                _alert.Publish($"{_state.CurrentItem?.Name} has been stopped.");
+                await _devices.ResetAsync();
+                _alert.Publish($"{current?.Name} has been stopped.");
                 return;
             }
-            if(_state.CurrentItem is null)
+            if(current is null)
             {
                 _alert.PublishError("Hit back and try starting a new stream.");
                 return;
@@ -536,15 +573,21 @@ namespace TeensyRom.Cli.Services
 
             _state = _state with { PlayState = PlayState.Playing };
 
-            if (_state.CurrentItem is SongItem)
+            if (current is SongItem)
             {
-                _mediator.Send(new ToggleMusicCommand());
+                await _devices.ToggleMusicAsync();
             }
-            else 
+            else
             {
-                _mediator.Send(new LaunchFileCommand(_state.StorageType, _state.CurrentItem));
+                var outcome = await _launch.LaunchFile(_state.StorageType, current);
+
+                if (outcome.Status is not LaunchStatus.Launched)
+                {
+                    Refused(outcome.Message, $"Failed to launch {current.Name}.");
+                    return;
+                }
             }
-            _alert.Publish($"{_state.CurrentItem.Name} has been resumed.");
+            _alert.Publish($"{current.Name} has been resumed.");
         }
     }
 }

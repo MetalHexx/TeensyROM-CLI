@@ -5,7 +5,6 @@ using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
@@ -42,7 +41,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         }
     }
 
-    internal class FileLaunchCommand(IPlayerService player, ICachedStorageService storage, ISettingsService settingsService, ITypeResolver resolver) : AsyncCommand<FileLaunchSettings>
+    internal class FileLaunchCommand(IPlayerService player, IStorageService storage, ISettingsService settingsService, ITypeResolver resolver) : AsyncCommand<FileLaunchSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, FileLaunchSettings settings)
         {
@@ -74,6 +73,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             player.SetDirectoryMode(settings.FilePath);
             player.SetStorage(storageType);
             await player.LaunchFromDirectory(settings.FilePath);
+
+            if (!player.IsPlaying()) return 0;
 
             var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
 

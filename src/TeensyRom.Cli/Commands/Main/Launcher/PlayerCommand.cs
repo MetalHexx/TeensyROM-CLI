@@ -1,12 +1,12 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
+using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Player;
 using TeensyRom.Core.Storage.Entities;
-using TeensyRom.Core.Storage.Services;
 using TextCopy;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
@@ -19,10 +19,10 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
     internal class PlayerCommand : Command<PlayerSettings>
     {
         private readonly IPlayerService _player;
-        private readonly ICachedStorageService _storage;
+        private readonly IStorageService _storage;
         private PlayState? _previousState;
 
-        public PlayerCommand(IPlayerService player, ICachedStorageService storage)
+        public PlayerCommand(IPlayerService player, IStorageService storage)
         {
             _player = player;
             _storage = storage;
@@ -209,13 +209,20 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (needsToggle) _player.TogglePlay();
 
-            if (shouldRemove)
+            try
             {
-                _storage.RemoveFavorite(playerState.CurrentItem);
+                if (shouldRemove)
+                {
+                    _storage.RemoveFavorite(playerState.CurrentItem).GetAwaiter().GetResult();
+                }
+                else
+                {
+                    _storage.SaveFavorite(playerState.CurrentItem).GetAwaiter().GetResult();
+                }
             }
-            else 
+            catch (TeensyApiException ex)
             {
-                _storage.SaveFavorite(playerState.CurrentItem);
+                RadHelper.WriteError(ex.Message);
             }
             if (needsToggle) _player.TogglePlay();
         }
@@ -240,7 +247,15 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (shouldBan)
             {
-                _storage.BanFile(playerState.CurrentItem);
+                try
+                {
+                    _storage.BanFile(playerState.CurrentItem).GetAwaiter().GetResult();
+                }
+                catch (TeensyApiException ex)
+                {
+                    RadHelper.WriteError(ex.Message);
+                    return;
+                }
                 _player.PlayNext();
             }
         }

@@ -4,12 +4,11 @@ using System.Reactive.Linq;
 using System.Transactions;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 
 namespace TeensyRom.Cli.Commands.Main
 {
-    internal class SettingsCommand(ISerialStateContext serial, IPlayerService player, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<SettingsCommandSettings>
+    internal class SettingsCommand(IPlayerService player, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<SettingsCommandSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, SettingsCommandSettings _)
         {

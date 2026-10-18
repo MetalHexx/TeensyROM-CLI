@@ -1,4 +1,3 @@
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -10,15 +9,9 @@ using TeensyRom.Cli.Commands.Main;
 using TeensyRom.Cli.Commands.Main.Asid;
 using TeensyRom.Cli.Commands.Main.Launcher;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Core;
 using TeensyRom.Core.Common;
-using TeensyRom.Core.Games;
 using TeensyRom.Core.Logging;
-using TeensyRom.Core.Music;
-using TeensyRom.Core.Music.Sid;
 using TeensyRom.Core.Progress;
-using TeensyRom.Core.Serial;
-using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
 using TeensyRom.Core.Storage.Services;
 using AssemblyExtensions = TeensyRom.Core.Common.AssemblyExtensions;
@@ -47,10 +40,6 @@ internal static class CliHost
         var logService = new CliLoggingService();
         var alertService = new CliAlertService();
         var settingsService = new SettingsService(logService);
-        var serial = new ObservableSerialPort(logService, alertService, settingsService);
-        var serialState = new SerialStateContext(serial);
-        var gameService = new GameMetadataService(logService);
-        var sidService = new SidMetadataService(settingsService);
 
         var settings = settingsService.GetSettings();
         logService.Enabled = settings.EnableDebugLogs;
@@ -68,23 +57,16 @@ internal static class CliHost
         services.AddSingleton<IDeviceService>(deviceService);
         services.AddSingleton(startup);
 
-        services.AddSingleton<IObservableSerialPort>(serial);
-        services.AddSingleton<ISerialStateContext>(serialState);
         services.AddSingleton<ILoggingService>(logService);
         services.AddSingleton<ICliLoggingService>(logService);
         services.AddSingleton<IAlertService>(alertService);
         services.AddSingleton<ISettingsService>(settingsService);
-        services.AddSingleton<IGameMetadataService>(gameService);
-        services.AddSingleton<ISidMetadataService>(sidService);
-        services.AddSingleton<ICachedStorageService, CachedStorageService>();
+        services.AddSingleton<IStorageService, StorageService>();
+        services.AddSingleton<ILaunchService, LaunchService>();
         services.AddSingleton<IPlayerService, PlayerService>();
         services.AddSingleton<ITypeResolver, TypeResolver>();
         services.AddSingleton<IProgressTimer, ProgressTimer>();
         services.AddSingleton<ILaunchHistory, LaunchHistory>();
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CoreAssemblyMarker>());
-        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
-        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(SerialBehavior<,>));
 
         return new CliComposition(services, startup);
     }

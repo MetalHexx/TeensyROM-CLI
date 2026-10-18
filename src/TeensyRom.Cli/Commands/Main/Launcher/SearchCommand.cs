@@ -2,11 +2,11 @@
 using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.Reactive.Linq;
+using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Services;
+using TeensyRom.Core.Storage.Entities;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
@@ -54,7 +54,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         }
     }
 
-    internal class SearchCommand(ISerialStateContext serial, ICachedStorageService storage, ITypeResolver resolver, IPlayerService player, ISettingsService settingsService) : AsyncCommand<SearchSettings>
+    internal class SearchCommand(IStorageService storage, ITypeResolver resolver, IPlayerService player, ISettingsService settingsService) : AsyncCommand<SearchSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, SearchSettings settings)
         {
@@ -117,7 +117,18 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                     player.SetSidTimer(sidTimer);
                 }
             }
-            var searchResults = storage.Search(settings.Query, globalSettings.GetFileTypes(filterType));
+            IReadOnlyList<ILaunchableItem> searchResults;
+
+            try
+            {
+                searchResults = await storage.Search(settings.Query, filterType);
+            }
+            catch (TeensyApiException ex)
+            {
+                RadHelper.WriteError(ex.Message);
+                AnsiConsole.WriteLine();
+                return 0;
+            }
 
             if (!searchResults.Any())
             {
@@ -137,6 +148,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             player.SetStorage(storageType);
 
             await player.LaunchFromDirectory(file.Path);
+
+            if (!player.IsPlaying()) return 0;
 
             if (playerCommand is not null)
             {

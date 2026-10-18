@@ -19,6 +19,14 @@ internal interface IDeviceService
     /// <summary>The selected device's id.</summary>
     /// <exception cref="TeensyApiException">No device has been selected.</exception>
     string RequireDeviceId();
+
+    /// <summary>Pauses or resumes the music playing on the selected device.</summary>
+    /// <exception cref="TeensyApiException">No device is selected, or tr-web couldn't toggle the music.</exception>
+    Task ToggleMusicAsync();
+
+    /// <summary>Resets the selected device, which stops whatever it is running.</summary>
+    /// <exception cref="TeensyApiException">No device is selected, or tr-web couldn't reset it.</exception>
+    Task ResetAsync();
 }
 
 internal sealed record DeviceSummary(string Id, string Name, bool IsOnline, string Connection, string State);

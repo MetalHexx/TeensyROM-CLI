@@ -1,14 +1,10 @@
-﻿using MediatR;
-using Spectre.Console;
+﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Commands;
 using TeensyRom.Core.Common;
-using TeensyRom.Core.Serial.State;
 using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main
 {
@@ -46,7 +42,7 @@ namespace TeensyRom.Cli.Commands.Main
     }
 
 
-    internal class IndexCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<IndexSettings>
+    internal class IndexCommand(IStorageService storage, IPlayerService player, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<IndexSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, IndexSettings settings)
         {
@@ -74,11 +70,6 @@ namespace TeensyRom.Cli.Commands.Main
 
             if (!settings.ValidateSettings()) return -1;
 
-            RadHelper.WriteTitle("Resetting TR before caching.  Don't mess with your C64 until caching completed.");
-            AnsiConsole.WriteLine();
-
-            await mediator.Send(new ResetCommand());
-
             RadHelper.WriteLine($"Caching files for {storageType}...");
             AnsiConsole.WriteLine();
 
@@ -88,18 +79,12 @@ namespace TeensyRom.Cli.Commands.Main
 
             try
             {
-                await storage.CacheAll(settings.Path);
+                await storage.Index(settings.Path);
             }
-            catch (TeensyException ex)
+            finally
             {
-                RadHelper.WriteError(ex.Message);
-                AnsiConsole.WriteLine();
-                RadHelper.WriteLine("Problem Caching: Waiting 10 seconds for TeensyROM to reset");
-                AnsiConsole.WriteLine();
-                await Task.Delay(10000);
-                await storage.CacheAll(settings.Path);
+                logService.Enabled = loggingEnabled;
             }
-            logService.Enabled = loggingEnabled;
             AnsiConsole.WriteLine("Setting globalSettings.HasIndexed to true");
             globalSettings.HasIndexed = true;
             AnsiConsole.WriteLine("Calling SaveSettings");
