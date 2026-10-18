@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
 
@@ -69,21 +70,21 @@ jobs:
       shell: pwsh
 
     - name: Generate SHA256 for macOS build
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-latest' && github.event_name == 'workflow_dispatch'
       run: |
         shasum -a 256 ${{ steps.extract_version.outputs.FILENAME }} > mac-sha256.txt
 
     - name: Update Homebrew Formula in Existing Repo
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-latest' && github.event_name == 'workflow_dispatch'
       run: |
         FORMULA_PATH="Formula/teensyrom-cli.rb"
         SHA256=$(cat mac-sha256.txt | awk '{print $1}')
         sed -i '' 's/^  sha256.*/  sha256 "'$SHA256'"/' $FORMULA_PATH
-        sed -i '' 's/^  url.*/  url "https:\/\/github.com\/MetalHexx\/TeensyROM-CLI\/releases\/download\/${{ steps.extract_version.outputs.VERSION }}\/${{ steps.extract_version.outputs.FILENAME }}"/' $FORMULA_PATH
+        sed -i '' 's/^  url.*/  url "https:\/\/github.com\/MetalHexx\/TeensyROM-CLI\/releases\/download\/v${{ steps.extract_version.outputs.VERSION }}\/${{ steps.extract_version.outputs.FILENAME }}"/' $FORMULA_PATH
         sed -i '' 's/^  version.*/  version "${{ steps.extract_version.outputs.VERSION }}"/' $FORMULA_PATH
 
     - name: Commit Homebrew Changes
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-latest' && github.event_name == 'workflow_dispatch'
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -92,9 +93,10 @@ jobs:
         git push
 
     - name: Create and Upload Release
+      if: github.event_name == 'workflow_dispatch'
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.extract_version.outputs.VERSION }}
+        tag_name: v${{ steps.extract_version.outputs.VERSION }}
         files: ${{ steps.extract_version.outputs.FILENAME }}

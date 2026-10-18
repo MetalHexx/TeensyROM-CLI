@@ -18,6 +18,11 @@ https://github.com/user-attachments/assets/6a31d4cc-4a22-4253-9710-897ae6cff277
 - Navigate your SD/USB storage manually
 - Single Line Command Support
 
+## Requirements
+- Version 2.0 drives TeensyROM through tr-web. Run tr-web 1.0.0-alpha.9 on this machine; it must be listening at `http://localhost:10213`.
+- At start, the CLI asks which TeensyROM to use.
+- `ports` lists the devices tr-web knows about.
+
 ## Installation
 - ### Windows
   - Unzip and run `TeensyRom.Cli.exe`
