@@ -61,6 +61,7 @@ internal static class CliHost
         services.AddSingleton<ICliLoggingService>(logService);
         services.AddSingleton<IAlertService>(alertService);
         services.AddSingleton<ISettingsService>(settingsService);
+        services.AddSingleton<IDeviceLogStream>(new DeviceLogStream(apiClient, deviceService, logService, httpClient.BaseAddress!));
         services.AddSingleton<IStorageService, StorageService>();
         services.AddSingleton<ILaunchService, LaunchService>();
         services.AddSingleton<IPlayerService, PlayerService>();

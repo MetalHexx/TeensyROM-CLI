@@ -30,6 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TeensyRom.Cli\TeensyRom.Cli.csproj" />
   </ItemGroup>
 

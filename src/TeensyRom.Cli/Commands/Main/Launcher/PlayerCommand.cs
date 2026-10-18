@@ -47,19 +47,19 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 switch (choice)
                 {
                     case "Next":
-                        _player.PlayNext();
+                        _player.PlayNext().GetAwaiter().GetResult();
                         break;
 
                     case "Previous":
-                        _player.PlayPrevious();
+                        _player.PlayPrevious().GetAwaiter().GetResult();
                         break;
 
                     case "Resume":
-                        _player.TogglePlay();
+                        _player.TogglePlay().GetAwaiter().GetResult();
                         break;
 
                     case "Stop/Pause":
-                        _player.TogglePlay();
+                        _player.TogglePlay().GetAwaiter().GetResult();
                         break;
 
                     case "Favorite":
@@ -256,7 +256,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                     RadHelper.WriteError(ex.Message);
                     return;
                 }
-                _player.PlayNext();
+                _player.PlayNext().GetAwaiter().GetResult();
             }
         }
 

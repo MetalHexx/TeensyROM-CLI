@@ -1,9 +1,11 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
+using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
 using TeensyRom.Cli.Common;
+using TeensyRom.Cli.Logging;
 using TeensyRom.Cli.Settings;
 
 namespace TeensyRom.Cli.Commands.Main
@@ -42,7 +44,7 @@ namespace TeensyRom.Cli.Commands.Main
     }
 
 
-    internal class IndexCommand(IStorageService storage, IPlayerService player, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<IndexSettings>
+    internal class IndexCommand(IStorageService storage, IPlayerService player, ISettingsService settingsService, IDeviceLogStream deviceLog) : AsyncCommand<IndexSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, IndexSettings settings)
         {
@@ -73,9 +75,7 @@ namespace TeensyRom.Cli.Commands.Main
             RadHelper.WriteLine($"Caching files for {storageType}...");
             AnsiConsole.WriteLine();
 
-            var loggingEnabled = logService.Enabled;
-
-            logService.Enabled = true;
+            var progressLog = await FollowIndexingAsync();
 
             try
             {
@@ -83,7 +83,7 @@ namespace TeensyRom.Cli.Commands.Main
             }
             finally
             {
-                logService.Enabled = loggingEnabled;
+                if (progressLog is not null) await progressLog.DisposeAsync();
             }
             AnsiConsole.WriteLine("Setting globalSettings.HasIndexed to true");
             globalSettings.HasIndexed = true;
@@ -92,6 +92,30 @@ namespace TeensyRom.Cli.Commands.Main
             AnsiConsole.WriteLine("Completed SaveSettings");
 
             return 0;
+        }
+
+        /// <summary>
+        /// tr-web does the indexing and logs its progress to its own log stream. Shows just those lines, whether or not
+        /// debug logs are on. Returns null, after saying so, when the stream can't be followed: indexing still runs.
+        /// </summary>
+        private async Task<IAsyncDisposable?> FollowIndexingAsync()
+        {
+            try
+            {
+                return await deviceLog.FollowAsync(WriteIndexingLine);
+            }
+            catch (TeensyApiException ex)
+            {
+                RadHelper.WriteError($"Indexing will run without showing its progress. {ex.Message}");
+                return null;
+            }
+        }
+
+        private static void WriteIndexingLine(string line)
+        {
+            if (!line.Contains("Indexing", StringComparison.Ordinal)) return;
+
+            AnsiConsole.MarkupLine($"[{LogConstants.ExternalColor}]{line.EscapeBrackets()}[/]");
         }
     }
 }
