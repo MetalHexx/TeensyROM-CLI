@@ -66,6 +66,8 @@ public sealed class SharedApiFixture : IAsyncLifetime
             RedirectStandardError = true,
             UseShellExecute = false
         };
+        // Under `dotnet test`, the reusable MSBuild nodes left by the script's build keep it from returning until they idle out.
+        start.Environment["MSBUILDDISABLENODEREUSE"] = "1";
         start.ArgumentList.Add("-NoProfile");
         start.ArgumentList.Add("-File");
         start.ArgumentList.Add(script);

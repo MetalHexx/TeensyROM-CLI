@@ -77,16 +77,6 @@ public class Program
                 args = [];
                 continue;
             }
-            catch (TeensyStateException ex)
-            {
-                RadHelper.WriteError(ex.Message);
-                continue;
-            }
-            catch (TeensyBusyException ex)
-            {
-                RadHelper.WriteError(ex.Message);
-                continue;
-            }
             catch (Exception ex)
             {
                 AnsiConsole.WriteException(ex, ExceptionFormats.Default);

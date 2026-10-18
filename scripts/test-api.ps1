@@ -205,7 +205,8 @@ function Build-Api([string]$Repo, [string]$ApiProject) {
     Write-Host 'test-api: building tr-web (Debug)...'
     Push-Location $Repo
     try {
-        & dotnet build $ApiProject -c Debug --nologo -v:minimal *> $BuildLog
+        # -nodeReuse:false: under `dotnet test` the idle MSBuild nodes a reusable build leaves behind keep this script from returning.
+        & dotnet build $ApiProject -c Debug --nologo -v:minimal -nodeReuse:false *> $BuildLog
         $exitCode = $LASTEXITCODE
     }
     finally { Pop-Location }
