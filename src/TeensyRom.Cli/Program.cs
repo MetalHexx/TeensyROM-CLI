@@ -1,156 +1,32 @@
-﻿using MediatR;
-using Microsoft.Extensions.DependencyInjection;
-using Spectre.Console;
+﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using TeensyRom.Cli.Commands.Main;
-using TeensyRom.Cli.Commands.Main.Asid;
-using TeensyRom.Cli.Commands.Main.Launcher;
+using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Fonts;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core;
 using TeensyRom.Core.Assets;
 using TeensyRom.Core.Common;
 using TeensyRom.Core.Games;
-using TeensyRom.Core.Logging;
 using TeensyRom.Core.Music;
-using TeensyRom.Core.Music.Sid;
-using TeensyRom.Core.Progress;
 using TeensyRom.Core.Serial;
-using TeensyRom.Core.Serial.State;
-using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Services;
-using AssemblyExtensions = TeensyRom.Core.Common.AssemblyExtensions;
 public class Program
 {
-    private static int Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         AnsiConsole.WriteLine();
         RadHelper.RenderLogo("TeensyROM", FontConstants.FontPath);
 
-        var services = new ServiceCollection();
-        var logService = new CliLoggingService();
-        var alertService = new CliAlertService();                
-        var settingsService = new SettingsService(logService);
-        var serial = new ObservableSerialPort(logService, alertService, settingsService);
-        var serialState = new SerialStateContext(serial);
-        var gameService = new GameMetadataService(logService);
-        var sidService = new SidMetadataService(settingsService);        
-
-        var settings = settingsService.GetSettings();
-        logService.Enabled = settings.EnableDebugLogs;
+        var host = CliHost.Create();
+        var app = CliHost.CreateApp(new TypeRegistrar(host.Services));
 
         //UnpackAssets();
 
-        services.AddSingleton<IObservableSerialPort>(serial);
-        services.AddSingleton<ISerialStateContext>(serialState);
-        services.AddSingleton<ILoggingService>(logService);
-        services.AddSingleton<ICliLoggingService>(logService);
-        services.AddSingleton<IAlertService>(alertService);
-        services.AddSingleton<ISettingsService>(settingsService);
-        services.AddSingleton<IGameMetadataService>(gameService);
-        services.AddSingleton<ISidMetadataService>(sidService);
-        services.AddSingleton<ICachedStorageService, CachedStorageService>();
-        services.AddSingleton<IPlayerService, PlayerService>();
-        services.AddSingleton<ITypeResolver, TypeResolver>();
-        services.AddSingleton<IProgressTimer, ProgressTimer>();
-        services.AddSingleton<ILaunchHistory, LaunchHistory>();
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CoreAssemblyMarker>());
-        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
-        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(SerialBehavior<,>));
-
-        var registrar = new TypeRegistrar(services);
-        
-        var app = new CommandApp(registrar);
-
-        app.Configure(config =>
+        if (!IsHelpOrVersion(args) && !await host.Startup.RunAsync())
         {
-            config.PropagateExceptions();
-            config.SetInterceptor(new CommandInterceptor(serialState));
-
-            config.PropagateExceptions();
-
-            config.SetApplicationName("TeensyROM.Cli".GetOsFriendlyPath());
-            config.SetApplicationVersion($"Version: {AssemblyExtensions.GetVersion(Assembly.GetExecutingAssembly())}\r\nOS: {RuntimeInformation.OSDescription}\r\nArchitecture: { RuntimeInformation.OSArchitecture }");
-
-            config.AddBranch<LaunchSettings>("launch", launch =>
-            {
-                launch.SetDefaultCommand<LaunchCommand>();
-                config.AddExample(LaunchSettings.Example);
-                launch.SetDescription(LaunchSettings.Description);
-                launch.AddExample(LaunchSettings.Example);
-
-                config.AddExample(RandomSettings.Example);
-                launch.AddCommand<RandomCommand>("random")
-                      .WithAlias("r")
-                      .WithDescription(RandomSettings.Description)
-                      .WithExample(RandomSettings.Example);
-
-                config.AddExample(NavigateSettings.Example);
-                launch.AddCommand<NavigateCommand>("nav")
-                      .WithAlias("n")
-                      .WithDescription(NavigateSettings.Description)
-                      .WithExample(NavigateSettings.Example);
-
-                config.AddExample(SearchSettings.Example);
-                launch.AddCommand<SearchCommand>("search")
-                      .WithAlias("s")
-                      .WithDescription(SearchSettings.Description)
-                      .WithExample(SearchSettings.Example);
-
-                config.AddExample(FileLaunchSettings.Example);
-                launch.AddCommand<FileLaunchCommand>("file")
-                      .WithAlias("s")
-                      .WithDescription(FileLaunchSettings.Description)
-                      .WithExample(FileLaunchSettings.Example);
-
-                launch.AddCommand<PlayerCommand>("player")
-                      .IsHidden();
-            });
-
-            config.AddExample(IndexSettings.Example);
-            config.AddCommand<IndexCommand>("index")
-                  .WithAlias("i")
-                  .WithDescription(IndexSettings.Description)
-                  .WithExample(IndexSettings.Example);
-
-            config.AddExample(PortListSettings.Example);
-            config.AddCommand<PortListCommand>("ports")
-                  .WithAlias("p")
-                  .WithDescription(PortListSettings.Description)
-                  .WithExample(PortListSettings.Example);
-
-            config.AddExample(GeneratePresetsSettings.Example);
-            config.AddCommand<GeneratePresetsCommand>("chipsynth")
-                  .WithAlias("cs")
-                  .WithDescription(GeneratePresetsSettings.Description)
-                  .WithExample(GeneratePresetsSettings.Example);
-
-            config.AddCommand<SettingsCommand>("settings")
-                  .IsHidden();
-
-            config.AddExample(CreditsSettings.Example);
-            config.AddCommand<CreditsCommand>("credits")
-                  .WithAlias("c")
-                  .WithDescription(CreditsSettings.Description)
-                  .WithExample(CreditsSettings.Example);
-
-            var help = config.Settings.HelpProviderStyles;
-            help!.Arguments!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
-            help!.Description!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
-            help!.Usage!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
-            help!.Options!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
-            help!.Examples!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
-            help!.Commands!.Header = new Style(foreground: RadHelper.Theme.Secondary.Color);
-            config.Settings.HelpProviderStyles = help;
-
-        });
-
-        //logService.Logs.Subscribe(log => AnsiConsole.Markup($"{log}\r\n\r\n"));
+            return 1;
+        }
 
         var resultCode = 0;
 
@@ -158,7 +34,7 @@ public class Program
         {
             try
             {
-                if (args.Contains("-h") || args.Contains("--help") || args.Contains("-v") || args.Contains("--version"))
+                if (IsHelpOrVersion(args))
                 {
                     app.Run(args);
                     return -99;
@@ -182,8 +58,8 @@ public class Program
                 if (menuChoice == "Leave") return 0;
 
                 args = menuChoice switch
-                {   
-                    "Launch" => ["launch"],    
+                {
+                    "Launch" => ["launch"],
                     "Index Files" => ["index"],
                     "Settings" => ["settings"],
                     "List Ports" => ["ports"],
@@ -200,6 +76,12 @@ public class Program
                 RadHelper.WriteError(ex.Message);
                 AnsiConsole.WriteLine();
                 args = ["-h"];
+            }
+            catch (TeensyApiException ex)
+            {
+                RadHelper.WriteError(ex.Message);
+                args = [];
+                continue;
             }
             catch (TeensyStateException ex)
             {
@@ -220,6 +102,9 @@ public class Program
             if (resultCode == -1) return resultCode;
         }
     }
+
+    private static bool IsHelpOrVersion(string[] args) =>
+        args.Contains("-h") || args.Contains("--help") || args.Contains("-v") || args.Contains("--version");
 
     private static void UnpackAssets()
     {
