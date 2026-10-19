@@ -13,7 +13,7 @@ namespace TeensyRom.Cli.Settings
 
     /// <summary>
     /// The CLI's own preferences, persisted to <c>Settings.json</c>. Members a file carries that this
-    /// class no longer has are ignored on load and dropped on the next save.
+    /// class doesn't define are ignored on load and dropped on the next save.
     /// </summary>
     public record TeensySettings
     {

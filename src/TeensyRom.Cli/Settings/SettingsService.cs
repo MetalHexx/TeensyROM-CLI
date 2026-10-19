@@ -51,8 +51,8 @@ namespace TeensyRom.Cli.Settings
         }
 
         /// <summary>
-        /// Parses a settings file's content. Members the file carries that <see cref="TeensySettings"/> no longer
-        /// has (for example a 1.x file's COM port or banned lists) are ignored.
+        /// Parses a settings file's content. Members the file carries that <see cref="TeensySettings"/> doesn't
+        /// define (for example a COM port or banned lists) are ignored.
         /// </summary>
         public static TeensySettings? Deserialize(string json) =>
             JsonConvert.DeserializeObject<TeensySettings>(json, new JsonSerializerSettings

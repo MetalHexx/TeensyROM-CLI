@@ -8,7 +8,7 @@ namespace TeensyRom.Cli.Tests;
 
 public class SettingsServiceTests
 {
-    private const string OneDotXSettings = """
+    private const string SettingsWithUndefinedMembers = """
         {
           "StorageType": 1,
           "AlwaysPromptStorage": false,
@@ -34,9 +34,9 @@ public class SettingsServiceTests
         """;
 
     [Fact]
-    public void Deserialize_OfA1xSettingsFile_KeepsThePreferencesTheCliStillOwns()
+    public void Deserialize_FileWithUndefinedMembers_KeepsThePreferencesTheCliOwns()
     {
-        var settings = SettingsService.Deserialize(OneDotXSettings);
+        var settings = SettingsService.Deserialize(SettingsWithUndefinedMembers);
 
         settings.Should().NotBeNull();
         settings!.StorageType.Should().Be(TeensyStorageType.USB);
@@ -50,9 +50,9 @@ public class SettingsServiceTests
     }
 
     [Fact]
-    public void Deserialize_OfA1xSettingsFile_DropsTheFieldsTheCliNoLongerHasOnTheNextSave()
+    public void Deserialize_FileWithUndefinedMembers_DropsThemOnTheNextSave()
     {
-        var settings = SettingsService.Deserialize(OneDotXSettings);
+        var settings = SettingsService.Deserialize(SettingsWithUndefinedMembers);
 
         var saved = JsonConvert.SerializeObject(settings, Formatting.Indented);
 

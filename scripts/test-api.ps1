@@ -21,10 +21,10 @@
 
     Which tr-web: -WebRepo, else $env:TEENSYROM_WEB_DIR, else the sibling "teensyrom-web" folder next
     to this repo's root (the rad-orc workspace layout), else C:\dev\src\TeensyROM-Web. The tests must
-    run against the tr-web that carries the port-10213 change; the script fails fast if the chosen
-    checkout's appsettings.json does not listen on 10213.
+    run against a tr-web that listens on port 10213; the script fails fast if the chosen
+    checkout's appsettings.json does not.
 
-    An agent that changes tr-web code must run "restart" before further tests. The bench plan uses
+    An agent that changes tr-web code must run "restart" before further tests. Bench runs use
     this same script; it passes -WithFrontend to also serve the production Angular build from wwwroot
     (runs tr-web's src/scripts/copy-frontend.ps1, so tr-web needs "pnpm install" done first).
 
@@ -95,7 +95,7 @@ function Resolve-BuildableWebRepo {
     if (-not (Test-Path -LiteralPath $settingsPath)) { Fail "$repo is not a tr-web checkout (missing $settingsPath)" }
     $url = (Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json).Kestrel.Endpoints.Http.Url
     if (-not $url -or -not $url.EndsWith(":$Port")) {
-        Fail "$repo listens on $url, not $Port - point -WebRepo or TEENSYROM_WEB_DIR at the tr-web checkout with the port change"
+        Fail "$repo listens on $url, not $Port - point -WebRepo or TEENSYROM_WEB_DIR at a tr-web checkout that listens on $Port"
     }
     $repo
 }
