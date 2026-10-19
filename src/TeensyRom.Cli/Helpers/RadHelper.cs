@@ -1,9 +1,8 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 using Spectre.Console;
-using TeensyRom.Cli.Common;
-using TeensyRom.Cli.Storage.Entities;
-using SpectreProgress = Spectre.Console.Progress;
+using TeensyRom.Core.Common;
+using TeensyRom.Core.Storage.Entities;
 
 namespace TeensyRom.Cli.Helpers
 {
@@ -175,7 +174,7 @@ namespace TeensyRom.Cli.Helpers
             AnsiConsole.MarkupLine(message.AddHighlights().EscapeBrackets());
         }
 
-        public static SpectreProgress AddTheme(this SpectreProgress progress)
+        public static Progress AddTheme(this Progress progress)
         {
             var theme = Theme;
             return progress.Columns(

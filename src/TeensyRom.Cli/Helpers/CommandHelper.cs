@@ -1,9 +1,9 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
-using TeensyRom.Cli.Services;
-using TeensyRom.Cli.Player;
-using TeensyRom.Cli.Settings;
-using TeensyRom.Cli.Storage.Entities;
+using TeensyRom.Core.Player;
+using TeensyRom.Core.Settings;
+using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Helpers
 {
@@ -132,11 +132,18 @@ namespace TeensyRom.Cli.Helpers
             return value;
         }
 
-        /// <summary>
-        /// False when the launch that was just attempted failed. The player has already said why, so the caller
-        /// goes back to its menu instead of opening an empty player.
-        /// </summary>
-        public static bool IsPlaying(this IPlayerService player) => player.GetState().PlayState is PlayState.Playing;
+        public static ILaunchableItem? GetRandomFilePath(this ICachedStorageService storage, StorageScope scope, string directory, TeensyFileType[] filters)
+        {
+            var launchItem = storage.GetRandomFile(scope, directory, filters);
+
+            if (launchItem is null)
+            {
+                RadHelper.WriteError("No file found.");
+                AnsiConsole.WriteLine(RadHelper.ClearHack);
+                return null;
+            }
+            return launchItem;
+        }
 
         public static bool ValidateSettings(this CommandSettings settings)
         {

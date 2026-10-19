@@ -3,12 +3,13 @@ using Spectre.Console.Cli;
 using System.ComponentModel;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Cli.Common;
-using TeensyRom.Cli.Settings;
+using TeensyRom.Core.Common;
+using TeensyRom.Core.Settings;
+using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class FileLaunchSettings : LaunchSettings, IClearableSettings
+    internal class FileLaunchSettings : LaunchSettings, IClearableSettings, IRequiresConnection
     {
         [Description("Storage device of file to launch. (sd or usb)")]
         [CommandOption("-s|--storage")]
@@ -18,8 +19,8 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         [CommandOption("-p|--path")]
         public string FilePath { get; set; } = string.Empty;
 
-        public new static string Example => "launch file -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid";
-        public new static string Description => "Launch a specific file.";
+        public static string Example => "launch file -s sd -p /music/MUSICIANS/T/Tjelta_Geir/Artillery.sid";
+        public static string Description => "Launch a specific file.";
 
         public new void ClearSettings()
         {
@@ -41,7 +42,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         }
     }
 
-    internal class FileLaunchCommand(IPlayerService player, IStorageService storage, ISettingsService settingsService, ITypeResolver resolver) : AsyncCommand<FileLaunchSettings>
+    internal class FileLaunchCommand(IPlayerService player, ICachedStorageService storage, ISettingsService settingsService, ITypeResolver resolver) : AsyncCommand<FileLaunchSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, FileLaunchSettings settings)
         {
@@ -73,8 +74,6 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             player.SetDirectoryMode(settings.FilePath);
             player.SetStorage(storageType);
             await player.LaunchFromDirectory(settings.FilePath);
-
-            if (!player.IsPlaying()) return 0;
 
             var playerCommand = resolver.Resolve(typeof(PlayerCommand)) as PlayerCommand;
 

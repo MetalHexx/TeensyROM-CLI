@@ -1,29 +1,36 @@
-﻿using Spectre.Console.Cli;
+﻿using Spectre.Console;
+using Spectre.Console.Cli;
+using System.Reactive.Linq;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
+using TeensyRom.Core.Serial.State;
 
 namespace TeensyRom.Cli.Commands.Main
 {
     internal class PortListSettings : CommandSettings
     {
         public static string Example => "ports";
-        public static string Description => "List the TeensyROM devices tr-web knows.";
+        public static string Description => "List all available serial ports on the machine for troubleshooting.";
     }
 
-    internal class PortListCommand(IDeviceService devices, IPlayerService player) : AsyncCommand<PortListSettings>
+    internal class PortListCommand(ISerialStateContext serial, IPlayerService player) : AsyncCommand<PortListSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, PortListSettings settings)
         {
             player.StopStream();
 
-            RadHelper.WriteMenu("Port List", "Lists the TeensyROM devices tr-web knows, online and offline.", []);
+            RadHelper.WriteMenu("Port List", "Troubleshooting tool for listing all the available serial ports on the machine.", []);
 
-            var found = await devices.GetDevicesAsync();
+            var ports = await serial.Ports.FirstAsync();
 
-            RadHelper.WriteDynamicTable(
-                ["Device", "State", "Connection"],
-                found.Select(d => new[] { d.Name, d.State, d.Connection }));
+            RadHelper.WriteLine("Ports Found: ");
+            AnsiConsole.WriteLine();
 
+            foreach (var port in ports)
+            {
+                RadHelper.WriteLine(port);
+            }
+            RadHelper.WriteLine();
             return 0;
         }
     }

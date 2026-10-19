@@ -2,8 +2,8 @@
 using System.Reactive.Linq;
 using System.Text;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Cli.Common;
-using TeensyRom.Cli.Logging;
+using TeensyRom.Core.Common;
+using TeensyRom.Core.Logging;
 
 namespace TeensyRom.Cli.Services
 {

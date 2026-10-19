@@ -5,6 +5,9 @@ class TeensyromCli < Formula
   sha256 "a9d692ab8d4b5d63a61c2c0ca9f0984e0e0274c837471adf41ac6878ef389bd8"
   version "1.0.1"
 
+  deprecate! date: "2026-10-19", because: "has moved into teensyrom-web, which now includes the TeensyRom.Cli command (brew install metalhexx/teensyrom-web/teensyrom-web)"
+  conflicts_with "metalhexx/teensyrom-web/teensyrom-web", because: "both install a TeensyRom.Cli command"
+
   def install
     libexec.install Dir["*"]
 

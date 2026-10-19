@@ -2,16 +2,16 @@
 using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.Reactive.Linq;
-using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Cli.Common;
-using TeensyRom.Cli.Settings;
-using TeensyRom.Cli.Storage.Entities;
+using TeensyRom.Core.Common;
+using TeensyRom.Core.Settings;
+using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class NavigateSettings : LaunchSettings, IClearableSettings
+    internal class NavigateSettings : LaunchSettings, IClearableSettings, IRequiresConnection
     {
         [Description("Storage device of file to launch. (sd or usb)")]
         [CommandOption("-s|--storage")]
@@ -44,7 +44,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
         }
     }
 
-    internal class NavigateCommand(IStorageService storage, ITypeResolver resolver, IPlayerService player, ISettingsService settingsService) : AsyncCommand<NavigateSettings>
+    internal class NavigateCommand(ICachedStorageService storage, ITypeResolver resolver, IPlayerService player, ISettingsService settingsService) : AsyncCommand<NavigateSettings>
     {
         private string _lastDirectory = string.Empty;
 
@@ -74,28 +74,25 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             }
             if (string.IsNullOrWhiteSpace(_lastDirectory)) _lastDirectory = settings.StartingPath;
 
-            FileItem selectedFile;
+            var cacheItem = await storage.GetDirectory(_lastDirectory);
 
-            try
+            if (cacheItem is null || !cacheItem.Files.Any() && !cacheItem.Directories.Any())
             {
-                var listing = await storage.GetDirectory(_lastDirectory);
-
-                if (!listing.Files.Any() && !listing.Directories.Any())
-                {
-                    RadHelper.WriteError($"No directories or files found in {storageType.ToString()} at path {_lastDirectory}");
-                    AnsiConsole.WriteLine();
-                    return 0;
-                }
-
-                var directories = PrepareDirectories(listing.Directories);
-
-                List<StorageItem> storageItems = directories.Concat(listing.Files.Cast<StorageItem>()).ToList();
-
-                selectedFile = await TraverseStorage(storageItems, _lastDirectory);
+                RadHelper.WriteError($"No directories or files found in {storageType.ToString()} at path {_lastDirectory}");
+                AnsiConsole.WriteLine();
+                return 0;
             }
-            catch (TeensyApiException ex)
+
+            var directories = PrepareDirectories(cacheItem.Directories);
+
+            List<StorageItem> storageItems = directories.Concat(cacheItem.Files.Cast<StorageItem>()).ToList();
+
+            var selectedFile = await TraverseStorage(storageItems, _lastDirectory);
+
+
+            if (selectedFile is null)
             {
-                RadHelper.WriteError(ex.Message);
+                RadHelper.WriteError("Directory or files not found.");
                 AnsiConsole.WriteLine();
                 return 0;
             }
@@ -105,8 +102,6 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             player.SetStorage(storageType);
             await player.LaunchFromDirectory(selectedFile.Path);
 
-            if (!player.IsPlaying()) return 0;
-
             if (playerCommand is not null)
             {
                 playerCommand.Execute(context, new());
@@ -114,7 +109,7 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             return 0;
         }
 
-        public async Task<FileItem> TraverseStorage(List<StorageItem> items, string targetDirectory)
+        public async Task<FileItem?> TraverseStorage(List<StorageItem> items, string targetDirectory)
         {
             if (targetDirectory != "/")
             {
@@ -135,11 +130,17 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
             }
             var nextDirectory = selectedStorageItem.Path;
 
-            var listing = await storage.GetDirectory(nextDirectory);
+            var cacheItem = await storage.GetDirectory(nextDirectory);
 
-            List<DirectoryItem> directories = PrepareDirectories(listing.Directories);
+            if (cacheItem is null)
+            {
+                RadHelper.WriteError("Directory not found.");
+                AnsiConsole.WriteLine();
+                return null;
+            }
+            List<DirectoryItem> directories = PrepareDirectories(cacheItem.Directories);
 
-            List<StorageItem> storageItems = directories.Concat(listing.Files.Cast<StorageItem>()).ToList();
+            List<StorageItem> storageItems = directories.Concat(cacheItem.Files.Cast<StorageItem>()).ToList();
 
             return await TraverseStorage(storageItems, nextDirectory);
         }
