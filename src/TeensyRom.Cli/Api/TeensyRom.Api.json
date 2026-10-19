@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "TeensyRom.Api | v1.0.0-alpha.9",
-    "version": "1.0.0-alpha.9"
+    "title": "TeensyRom.Api | v1.0.0-alpha.8",
+    "version": "1.0.0-alpha.8"
   },
   "paths": {
     "/api/version": {

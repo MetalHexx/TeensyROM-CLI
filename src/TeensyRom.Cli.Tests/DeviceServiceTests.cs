@@ -33,8 +33,8 @@ public class DeviceServiceTests
     };
 
     [Theory]
-    [InlineData("1.0.0-alpha.9")]
-    [InlineData("1.0.0-alpha.9+abc123")]
+    [InlineData("1.0.0-alpha.8")]
+    [InlineData("1.0.0-alpha.8+abc123")]
     public async Task CheckVersion_WithThePinnedVersion_Matches(string running)
     {
         ApiReportsVersion(running);

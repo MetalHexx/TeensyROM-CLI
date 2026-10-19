@@ -24,7 +24,7 @@ public sealed class ConnectionStartupTests : IDisposable
     {
         _console.Profile.Width = 200;
         AnsiConsole.Console = _console;
-        _devices.CheckVersionAsync(Arg.Any<CancellationToken>()).Returns(new VersionCheck(VersionOutcome.Match, "1.0.0-alpha.9"));
+        _devices.CheckVersionAsync(Arg.Any<CancellationToken>()).Returns(new VersionCheck(VersionOutcome.Match, "1.0.0-alpha.8"));
         _sut = new ConnectionStartup(_devices);
     }
 

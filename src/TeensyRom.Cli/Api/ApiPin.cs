@@ -6,7 +6,7 @@ namespace TeensyRom.Cli.Api;
 internal static class ApiPin
 {
     /// <summary>The tr-web version the committed spec copy and generated client match.</summary>
-    public const string Version = "1.0.0-alpha.9";
+    public const string Version = "1.0.0-alpha.8";
 
     public const string BaseUrl = "http://localhost:10213";
 
