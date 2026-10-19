@@ -1,8 +1,7 @@
 ﻿using TeensyRom.Cli.Commands.Main.Launcher;
-using TeensyRom.Core.Commands.File.LaunchFile;
-using TeensyRom.Core.Player;
-using TeensyRom.Core.Settings;
-using TeensyRom.Core.Storage.Entities;
+using TeensyRom.Cli.Player;
+using TeensyRom.Cli.Settings;
+using TeensyRom.Cli.Storage.Entities;
 
 namespace TeensyRom.Cli.Services
 {
@@ -24,7 +23,7 @@ namespace TeensyRom.Cli.Services
         void SetSearchMode(string query);
         void SetDirectoryMode(string path);
         void SetRandomMode(string path);
-        void TogglePlay();
+        Task TogglePlay();
         void SetStorage(TeensyStorageType storageType);
     }
 }

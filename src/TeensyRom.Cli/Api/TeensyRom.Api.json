@@ -1,0 +1,3145 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "TeensyRom.Api | v1.0.0-alpha.8",
+    "version": "1.0.0-alpha.8"
+  },
+  "paths": {
+    "/api/version": {
+      "get": {
+        "tags": [
+          "Version"
+        ],
+        "summary": "Get Application Version",
+        "description": "Retrieves the current semantic version of the TeensyROM application.\n\nThe version follows semantic versioning format: **Major.Minor.Patch[-prerelease]**\n\n**Version Information:**\n- **Major**: Breaking changes or significant new features\n- **Minor**: Backward-compatible new features\n- **Patch**: Backward-compatible bug fixes\n- **Prerelease**: Optional prerelease identifier (e.g., alpha.1, beta.2)\n\nThis version is read from the assembly metadata and matches the version specified in the TeensyRom.Api.csproj file.",
+        "operationId": "GetVersion",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetVersionResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transfers/{jobId}/files": {
+      "post": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Upload Transfer File",
+        "description": "Streams a single file's raw body (application/octet-stream) into a transfer job.\n\n- One file per request; the body is streamed straight to disk, never buffered.\n- Blocks until the capacity gate has a free slot instead of failing - a slow device shows up as a slower response, never as an error.\n- Rejected immediately (400) when the job cannot accept files, and before any file is staged when the relative path is unusable.",
+        "operationId": "UploadTransferFile",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadFileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transfers/{jobId}/seal": {
+      "post": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Seal Transfer Job",
+        "description": "Marks a transfer job as sealed - no further files will be accepted.\n\n- Idempotent when the job is already sealed.\n- Rejected with a clear message when the job cannot reach Sealed from its current state.\n- A job sealed with an empty queue reaches Completed immediately - no upload required.",
+        "operationId": "SealTransferJob",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SealJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transfers/{jobId}": {
+      "get": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Get Transfer Job",
+        "description": "Gets the current snapshot of a transfer job - the same shape the transfer hub pushes over SignalR, so a client can poll this endpoint instead of subscribing.",
+        "operationId": "GetTransferJob",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/transfers/active": {
+      "get": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Get Active Transfer Job",
+        "description": "Gets the device's currently active transfer job.\n\n- Returns 200 with a null job when the device has no transfer in progress - an idle device is a normal answer, not a 404.",
+        "operationId": "GetActiveTransferJob",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetActiveJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/storage/{storageType}/transfers": {
+      "post": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Create Transfer Job",
+        "description": "Starts a new file transfer job for a device's storage.\n\n- Acquires an exclusive lease on the device for the lifetime of the job - a device can only have one active transfer at a time.\n- Issues no device traffic - the device reset happens on the first uploaded file.",
+        "operationId": "CreateTransferJob",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storageType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeensyStorageType"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateJobBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transfers/{jobId}/cancel": {
+      "post": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Cancel Transfer Job",
+        "description": "Cancels a transfer job.\n\n- Returns the job already cancelled: its device, staged files, and expansion workspace are all released before this responds, so the device can immediately take a new job. Files already handed to the device are discarded rather than sent.\n- Idempotent: cancelling an already-cancelled job returns success, as does cancelling any other terminal job, without changing anything.",
+        "operationId": "CancelTransferJob",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings": {
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Save User Settings",
+        "description": "Saves all user settings for the TeensyROM application to persistent storage.\n\n**Settings Categories:**\n- **Connection Settings**: Device connectivity preferences (Serial/TCP)\n  - Serial: Port name (empty for auto-detect) and baud rate (typically 115200)\n  - TCP: Host address, port (1-65535), and timeout values (milliseconds)\n- **Player Settings**: Playback behavior and startup preferences\n  - Repeat mode, play timer, mute settings, startup filter and launch options\n- **File Transfer Settings**: Auto-copy and directory watching configuration\n  - Watch directory location, auto-transfer path, and sync flags\n- **Search Settings**: Search weights, stop words, and content exclusions\n  - Search weights must be >= 0 with at least one > 0\n  - Stop words, banned directories, and banned files lists\n- **App Settings**: Application lifecycle state\n  - First-time setup flag\n\n**Validation:**\n- All nested settings objects are required\n- Baud rate must be positive (typically 9600, 19200, 38400, 57600, or 115200)\n- TCP port must be between 1 and 65535\n- Timeout values must be positive integers (milliseconds)\n- Watch directory must be empty or a valid absolute path\n- Search weights must be non-negative with at least one > 0\n\nSettings are persisted to Settings.json and immediately available in memory.",
+        "operationId": "SaveSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveSettingsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Get User Settings",
+        "description": "Retrieves all current user settings for the TeensyROM application.\n\n**Settings Categories:**\n- **Connection Settings**: Device connectivity preferences (Serial/TCP)\n- **Player Settings**: Playback behavior and startup preferences\n- **File Transfer Settings**: Auto-copy and directory watching configuration\n- **Search Settings**: Search weights, stop words, and content exclusions\n- **App Settings**: Application lifecycle state\n\nSettings are loaded from the Settings.json file and cached in memory. This endpoint always returns the current in-memory settings state.",
+        "operationId": "GetSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSettingsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/reset": {
+      "put": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Reset Device",
+        "description": "Resets a TeensyROM device.\n\n- Works the same as clicking the cartridge reset button.",
+        "operationId": "ResetDevice",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/name": {
+      "put": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Rename Device",
+        "description": "Sets the saved name of a known TeensyROM device.\n\n- Works whether the device is available or offline; no device is contacted.\n- Not queued behind a running discovery: the rename is applied and saved immediately.",
+        "operationId": "RenameDevice",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameDeviceBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenameDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/reconnect": {
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Reconnect Device",
+        "description": "Reconnects a known but currently offline TeensyROM device.\n\n- Tries the unit's saved addresses, preferred transport first; a miss runs one search for missing units.\n- An already available device returns immediately with no device contact.\n- Not rate limited: the manager runs reconnects one at a time on its own.",
+        "operationId": "ReconnectDevice",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconnectDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/ping": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Ping Device",
+        "description": "Pings a TeensyROM device to check if it is responsive.\n\n- Works the same as clicking the cartridge reset button.",
+        "operationId": "PingDevice",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PingDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/logs": {
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Start Logging Hub",
+        "description": "Starts the logging service and returns a success message.",
+        "operationId": "StartLogs",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartLogsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Stop Logging Channel",
+        "description": "Stops the logging service and returns a success message.",
+        "operationId": "StopLogs",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StopLogsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}": {
+      "delete": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Forget Device",
+        "description": "Removes a known, offline TeensyROM device from memory, the saved connection file and its saved settings.\n\n- Only an offline device can be forgotten; an available device is left untouched.",
+        "operationId": "ForgetDevice",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgetDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Find Devices",
+        "description": "Returns all available and connected TeensyROM devices, followed by every known offline unit.\n\n- By default (fullScan=false), returns the devices already listed by the manager - no device is contacted.\n- Set fullScan=true to run a full discovery sweep: every COM port and the local subnet are scanned, and every currently connected device is momentarily disconnected while the sweep runs.\n- Offline units are listed after the online ones, with deviceState ConnectionLost.",
+        "operationId": "FindDevices",
+        "parameters": [
+          {
+            "name": "FullScan",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindDevicesResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/toggle-music": {
+      "post": {
+        "tags": [
+          "Player"
+        ],
+        "summary": "Toggle Music Playback",
+        "description": "Toggles the play/pause state of the currently playing music on the TeensyRom device.",
+        "operationId": "ToggleMusic",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToggleMusicResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/storage/{storageType}/random-launch": {
+      "post": {
+        "tags": [
+          "Player"
+        ],
+        "summary": "Launch Random File",
+        "description": "Launches a random file given a device, storage, filter and starting directory location.\n\n- Starting Directory: Starting directory to look for a random file.\n- Scope: `Storage` - Selects a random file anywhere on the specified storage device.\n- Scope: `DirDeep` - Selects a random file from the starting directory or any of its subdirectories.\n- Scope: `DirShallow` - Selects a random file from the starting directory only (subdirectories are not included).\n- Filter: `All` - Any file type will be randomly selected.\n- Filter: `Games` - Only game-related files will be selected (e.g., .prg, .crt, .d64, etc). Includes demos and non-games.\n- Filter: `Music` - Only music or song files will be selected (e.g., .sid, .mus, .mp3, etc).\n- Filter: `Images` - Only image files will be selected (e.g., .koa, .png, etc). Also includes text files (may be improved in a future release)",
+        "operationId": "LaunchRandom",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storageType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeensyStorageType"
+            }
+          },
+          {
+            "name": "FilterType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/NullableOfTeensyFilterType"
+            }
+          },
+          {
+            "name": "Scope",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "Storage",
+                "DirDeep",
+                "DirShallow",
+                null
+              ]
+            }
+          },
+          {
+            "name": "StartingDirectory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchRandomResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/storage/{storageType}/launch": {
+      "post": {
+        "tags": [
+          "Player"
+        ],
+        "summary": "Launch File",
+        "description": "Launches a file given a valid path to a file stored on the TeensyRom.",
+        "operationId": "LaunchFile",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storageType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeensyStorageType"
+            }
+          },
+          {
+            "name": "FilePath",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchFileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/search": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Search Files",
+        "description": "Searches for files across all available storage devices (SD and USB) based on search text and filter criteria.\n\n- Searches through file names, titles, creators, and descriptions.\n- Returns metadata for all matching files from all available storages.\n- Supports file type filtering (All, Games, Music, Images, Hex).\n- Supports pagination with Skip and Take parameters.\n- Excludes favorites and playlist directories from search results.\n- Uses weighted search algorithm to rank results by relevance.\n- Default page size is 50, maximum is 200.",
+        "operationId": "Search",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SearchText",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "FilterType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/NullableOfTeensyFilterType"
+            }
+          },
+          {
+            "name": "Skip",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Take",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/storage/{storageType}/index": {
+      "post": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Index",
+        "description": "Indexes the directory structure of a given TeensyROM device and storage type.\n\n- Providing a path will index starting at that directory and all subdirectories below it.\n- Providing no path will index the whole storage device.\n- Don't touch your commodore while indexing is in progress.",
+        "operationId": "Index",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storageType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeensyStorageType"
+            }
+          },
+          {
+            "name": "StartingPath",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files/index/all": {
+      "post": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Index All",
+        "description": "Indexes all storage for all connected TeensyROM devices.\n\n- This will recursively index all storage devices.\n- Multiple devices will be indexed in parallel, one device type at a time.\n- This could take a few minutes if you have a lot of data.\n- Don't touch your commodores while indexing is in progress.",
+        "operationId": "IndexAll",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexAllResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/storage/{storageType}/files/content": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Get File Content",
+        "description": "Returns a file's raw bytes (application/octet-stream) from a device's storage.\n\n- Byte-identical to the file on the cartridge.\n- Refused with 413 above 10 MB.\n- The path must be a Unix-style file path with no '..' segment.",
+        "operationId": "GetFileContent",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storageType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeensyStorageType"
+            }
+          },
+          {
+            "name": "Path",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stream"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload Too Large",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/storage/{storageType}/directories": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Get Directory",
+        "description": "Gets a directory for given storage device.\n\n- Returns metadata for all files in the directory.\n- This is not recursive and will only include the files for the requested directory.\n- Make another request to get subdirectory content.",
+        "operationId": "GetDirectory",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storageType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeensyStorageType"
+            }
+          },
+          {
+            "name": "Path",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDirectoryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/storage/{storageType}/favorite": {
+      "post": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Save Favorite",
+        "description": "Saves a file as a favorite, creating a copy in the appropriate favorites directory.",
+        "operationId": "SaveFavorite",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storageType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeensyStorageType"
+            }
+          },
+          {
+            "name": "FilePath",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveFavoriteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Remove Favorite",
+        "description": "Removes a file from favorites, deleting the favorite copy and updating the original file's favorite status.",
+        "operationId": "RemoveFavorite",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storageType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeensyStorageType"
+            }
+          },
+          {
+            "name": "FilePath",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveFavoriteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audio/devices": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "List Audio Input Devices",
+        "description": "Enumerates all available audio input devices on the host system.\n\n**Use Case:**\nCall this endpoint when configuring audio streaming settings to present the user with a list of audio devices to choose from.\n\n**Device Information:**\n- **Index**: Device identifier used to select the device for capture\n- **Name**: Human-readable device name for display in UI\n- **MaxInputChannels**: Number of audio channels the device supports\n- **DefaultSampleRate**: The device's preferred sample rate\n\nReturns an empty list if no audio input devices are available.",
+        "operationId": "ListAudioDevices",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListDevicesResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AppSettingsDto": {
+        "required": [
+          "firstTimeSetup"
+        ],
+        "type": "object",
+        "properties": {
+          "firstTimeSetup": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AudioDeviceDto": {
+        "required": [
+          "index",
+          "name",
+          "maxInputChannels",
+          "defaultSampleRate"
+        ],
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "maxInputChannels": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "defaultSampleRate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AudioSettingsDto": {
+        "required": [
+          "enableAudioStream",
+          "audioDeviceIndex",
+          "audioDeviceName",
+          "captureChannelCount",
+          "sampleRate",
+          "channels",
+          "useOpusEncoding"
+        ],
+        "type": "object",
+        "properties": {
+          "enableAudioStream": {
+            "type": "boolean"
+          },
+          "audioDeviceIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "audioDeviceName": {
+            "type": "string"
+          },
+          "captureChannelCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sampleRate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChannelConfigDto"
+            }
+          },
+          "useOpusEncoding": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CancelJobResponse": {
+        "required": [
+          "job"
+        ],
+        "type": "object",
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/TransferJobDto"
+          }
+        }
+      },
+      "CartDto": {
+        "required": [
+          "deviceId",
+          "isConnected",
+          "deviceState",
+          "comPort",
+          "connectionType",
+          "ipAddress",
+          "tcpPort",
+          "name",
+          "fwVersion",
+          "isCompatible",
+          "hardwareVariant",
+          "isMinimalFirmware",
+          "buildTimestamp",
+          "machine",
+          "videoStandard",
+          "sdStorage",
+          "usbStorage"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "isConnected": {
+            "type": "boolean"
+          },
+          "deviceState": {
+            "$ref": "#/components/schemas/DeviceState"
+          },
+          "comPort": {
+            "type": "string"
+          },
+          "connectionType": {
+            "$ref": "#/components/schemas/ConnectionType"
+          },
+          "ipAddress": {
+            "type": "string"
+          },
+          "tcpPort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "fwVersion": {
+            "type": "string"
+          },
+          "isCompatible": {
+            "type": "boolean"
+          },
+          "hardwareVariant": {
+            "$ref": "#/components/schemas/HardwareVariant"
+          },
+          "isMinimalFirmware": {
+            "type": "boolean"
+          },
+          "buildTimestamp": {
+            "type": "string"
+          },
+          "cpuMhz": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "temperatureC": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "machine": {
+            "$ref": "#/components/schemas/MachineType"
+          },
+          "videoStandard": {
+            "$ref": "#/components/schemas/VideoStandard"
+          },
+          "todClockHz": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sdStorage": {
+            "$ref": "#/components/schemas/CartStorageDto"
+          },
+          "usbStorage": {
+            "$ref": "#/components/schemas/CartStorageDto"
+          }
+        }
+      },
+      "CartStorageDto": {
+        "required": [
+          "deviceId",
+          "type",
+          "available",
+          "indexExists"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TeensyStorageType"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "indexExists": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ChannelConfigDto": {
+        "required": [
+          "sourceChannel",
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceChannel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CompetitionDto": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "place": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
+      "ConnectionType": {
+        "enum": [
+          "Serial",
+          "Tcp"
+        ]
+      },
+      "CreateJobBody": {
+        "type": "object",
+        "properties": {
+          "destinationDirectory": {
+            "type": "string"
+          },
+          "expectedArchiveCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CreateJobResponse": {
+        "required": [
+          "jobId",
+          "job"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "job": {
+            "$ref": "#/components/schemas/TransferJobDto"
+          }
+        }
+      },
+      "DeviceSettingsDto": {
+        "required": [
+          "deviceId",
+          "videoSettings",
+          "audioSettings",
+          "indexingStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "videoSettings": {
+            "$ref": "#/components/schemas/VideoSettingsDto"
+          },
+          "audioSettings": {
+            "$ref": "#/components/schemas/AudioSettingsDto"
+          },
+          "indexingStatus": {
+            "$ref": "#/components/schemas/IndexingStatusDto"
+          }
+        }
+      },
+      "DeviceState": {
+        "enum": [
+          "Connected",
+          "Connectable",
+          "ConnectionLost",
+          "Busy",
+          "Unknown"
+        ]
+      },
+      "DirectoryItemDto": {
+        "required": [
+          "name",
+          "path"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        }
+      },
+      "FileItemDto": {
+        "required": [
+          "name",
+          "path",
+          "size",
+          "storageType",
+          "isFavorite",
+          "isCompatible",
+          "title",
+          "creator",
+          "releaseInfo",
+          "description",
+          "shareUrl",
+          "metadataSource",
+          "meta1",
+          "meta2",
+          "links",
+          "tags",
+          "youTubeVideos",
+          "competitions",
+          "ratingCount",
+          "metadataSourcePath",
+          "parentPath",
+          "playLength",
+          "subtuneLengths",
+          "startSubtuneNum",
+          "images",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "storageType": {
+            "$ref": "#/components/schemas/TeensyStorageType"
+          },
+          "isFavorite": {
+            "type": "boolean"
+          },
+          "isCompatible": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "creator": {
+            "type": "string"
+          },
+          "releaseInfo": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "shareUrl": {
+            "type": "string"
+          },
+          "metadataSource": {
+            "type": "string"
+          },
+          "meta1": {
+            "type": "string"
+          },
+          "meta2": {
+            "type": "string"
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileLinkDto"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileTagDto"
+            }
+          },
+          "youTubeVideos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/YouTubeVideoDto"
+            }
+          },
+          "competitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompetitionDto"
+            }
+          },
+          "avgRating": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ratingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "metadataSourcePath": {
+            "type": "string"
+          },
+          "parentPath": {
+            "type": "string"
+          },
+          "playLength": {
+            "pattern": "^-?(\\d+\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$",
+            "type": "string"
+          },
+          "subtuneLengths": {
+            "type": "array",
+            "items": {
+              "pattern": "^-?(\\d+\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$",
+              "type": "string"
+            }
+          },
+          "startSubtuneNum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ViewableItemImageDto"
+            }
+          },
+          "type": {
+            "$ref": "#/components/schemas/FileItemType"
+          }
+        }
+      },
+      "FileItemType": {
+        "enum": [
+          "Unknown",
+          "Song",
+          "Game",
+          "Image",
+          "Hex"
+        ]
+      },
+      "FileLinkDto": {
+        "required": [
+          "name",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "FileTagDto": {
+        "required": [
+          "name",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "FileTransferSettingsDto": {
+        "required": [
+          "watchDirectoryLocation",
+          "autoTransferPath",
+          "autoFileCopyEnabled",
+          "autoLaunchOnCopyEnabled",
+          "navToDirOnLaunch",
+          "syncFilesEnabled"
+        ],
+        "type": "object",
+        "properties": {
+          "watchDirectoryLocation": {
+            "type": "string"
+          },
+          "autoTransferPath": {
+            "type": "string"
+          },
+          "autoFileCopyEnabled": {
+            "type": "boolean"
+          },
+          "autoLaunchOnCopyEnabled": {
+            "type": "boolean"
+          },
+          "navToDirOnLaunch": {
+            "type": "boolean"
+          },
+          "syncFilesEnabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FindDevicesResponse": {
+        "required": [
+          "devices",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "devices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CartDto"
+            }
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ForgetDeviceResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "GetActiveJobResponse": {
+        "type": "object",
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/TransferJobDto2"
+          }
+        }
+      },
+      "GetDirectoryResponse": {
+        "required": [
+          "storageItem",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "storageItem": {
+            "$ref": "#/components/schemas/StorageCacheDto"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "GetJobResponse": {
+        "required": [
+          "job"
+        ],
+        "type": "object",
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/TransferJobDto"
+          }
+        }
+      },
+      "GetSettingsResponse": {
+        "required": [
+          "knownDevices",
+          "playerSettings",
+          "fileTransferSettings",
+          "searchSettings",
+          "appSettings"
+        ],
+        "type": "object",
+        "properties": {
+          "knownDevices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeviceSettingsDto"
+            }
+          },
+          "playerSettings": {
+            "$ref": "#/components/schemas/PlayerSettingsDto"
+          },
+          "fileTransferSettings": {
+            "$ref": "#/components/schemas/FileTransferSettingsDto"
+          },
+          "searchSettings": {
+            "$ref": "#/components/schemas/SearchSettingsDto"
+          },
+          "appSettings": {
+            "$ref": "#/components/schemas/AppSettingsDto"
+          }
+        }
+      },
+      "GetVersionResponse": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "HardwareVariant": {
+        "enum": [
+          "Unknown",
+          "TeensyRom",
+          "TeensyRomPlus"
+        ]
+      },
+      "HttpValidationProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "IndexAllResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "IndexingStatusDto": {
+        "type": "object",
+        "properties": {
+          "sdLastIndexed": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "usbLastIndexed": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "IndexResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "LaunchFileResponse": {
+        "required": [
+          "message",
+          "launchedFile",
+          "isCompatible"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "launchedFile": {
+            "$ref": "#/components/schemas/FileItemDto"
+          },
+          "isCompatible": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LaunchRandomResponse": {
+        "required": [
+          "launchedFile",
+          "message",
+          "isCompatible"
+        ],
+        "type": "object",
+        "properties": {
+          "launchedFile": {
+            "$ref": "#/components/schemas/FileItemDto"
+          },
+          "message": {
+            "type": "string"
+          },
+          "isCompatible": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ListDevicesResponse": {
+        "required": [
+          "devices"
+        ],
+        "type": "object",
+        "properties": {
+          "devices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AudioDeviceDto"
+            }
+          }
+        }
+      },
+      "MachineType": {
+        "enum": [
+          "Unknown",
+          "C64",
+          "C128"
+        ]
+      },
+      "NullableOfTeensyFilterType": {
+        "enum": [
+          "All",
+          "Games",
+          "Music",
+          "Hex",
+          "Images",
+          null
+        ]
+      },
+      "PingDeviceResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PlayerSettingsDto": {
+        "required": [
+          "repeatModeOnStartup",
+          "playTimerEnabled",
+          "muteFastForward",
+          "muteRandomSeek",
+          "startupFilter",
+          "startupLaunchEnabled",
+          "startupLaunchRandom"
+        ],
+        "type": "object",
+        "properties": {
+          "repeatModeOnStartup": {
+            "type": "boolean"
+          },
+          "playTimerEnabled": {
+            "type": "boolean"
+          },
+          "muteFastForward": {
+            "type": "boolean"
+          },
+          "muteRandomSeek": {
+            "type": "boolean"
+          },
+          "startupFilter": {
+            "$ref": "#/components/schemas/TeensyFilterType"
+          },
+          "startupLaunchEnabled": {
+            "type": "boolean"
+          },
+          "startupLaunchRandom": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ReconnectDeviceResponse": {
+        "required": [
+          "device",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "device": {
+            "$ref": "#/components/schemas/CartDto"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "RemoveFavoriteResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "RenameDeviceBody": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "RenameDeviceResponse": {
+        "required": [
+          "device",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "device": {
+            "$ref": "#/components/schemas/CartDto"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ResetDeviceResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SaveFavoriteResponse": {
+        "required": [
+          "message",
+          "favoriteFile",
+          "favoritePath"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "favoriteFile": {
+            "$ref": "#/components/schemas/FileItemDto"
+          },
+          "favoritePath": {
+            "type": "string"
+          }
+        }
+      },
+      "SaveSettingsRequest": {
+        "required": [
+          "knownDevices",
+          "playerSettings",
+          "fileTransferSettings",
+          "searchSettings",
+          "appSettings"
+        ],
+        "type": "object",
+        "properties": {
+          "knownDevices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeviceSettingsDto"
+            }
+          },
+          "playerSettings": {
+            "$ref": "#/components/schemas/PlayerSettingsDto"
+          },
+          "fileTransferSettings": {
+            "$ref": "#/components/schemas/FileTransferSettingsDto"
+          },
+          "searchSettings": {
+            "$ref": "#/components/schemas/SearchSettingsDto"
+          },
+          "appSettings": {
+            "$ref": "#/components/schemas/AppSettingsDto"
+          }
+        }
+      },
+      "SaveSettingsResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SealJobResponse": {
+        "required": [
+          "job"
+        ],
+        "type": "object",
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/TransferJobDto"
+          }
+        }
+      },
+      "SearchResponse": {
+        "required": [
+          "files",
+          "searchText",
+          "totalCount",
+          "count",
+          "skip",
+          "take",
+          "hasMore",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileItemDto"
+            }
+          },
+          "searchText": {
+            "type": "string"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skip": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "take": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SearchSettingsDto": {
+        "required": [
+          "searchWeights",
+          "searchStopWords",
+          "bannedDirectories",
+          "bannedFiles"
+        ],
+        "type": "object",
+        "properties": {
+          "searchWeights": {
+            "$ref": "#/components/schemas/SearchWeightsDto"
+          },
+          "searchStopWords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bannedDirectories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bannedFiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SearchWeightsDto": {
+        "required": [
+          "title",
+          "fileName",
+          "filePath",
+          "creator",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "number",
+            "format": "double"
+          },
+          "fileName": {
+            "type": "number",
+            "format": "double"
+          },
+          "filePath": {
+            "type": "number",
+            "format": "double"
+          },
+          "creator": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "StartLogsResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "StopLogsResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "StorageCacheDto": {
+        "required": [
+          "directories",
+          "files",
+          "path"
+        ],
+        "type": "object",
+        "properties": {
+          "directories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DirectoryItemDto"
+            }
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileItemDto"
+            }
+          },
+          "path": {
+            "type": "string"
+          }
+        }
+      },
+      "Stream": {
+        "type": "string",
+        "format": "binary"
+      },
+      "TeensyFilterType": {
+        "enum": [
+          "All",
+          "Games",
+          "Music",
+          "Hex",
+          "Images"
+        ]
+      },
+      "TeensyStorageType": {
+        "enum": [
+          "SD",
+          "USB"
+        ]
+      },
+      "ToggleMusicResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TransferFileCompleted": {
+        "required": [
+          "jobId",
+          "relativePath",
+          "targetPath",
+          "success",
+          "error",
+          "sizeBytes"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "relativePath": {
+            "type": "string"
+          },
+          "targetPath": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "TransferJobDto": {
+        "required": [
+          "jobId",
+          "deviceId",
+          "storageType",
+          "destinationDirectory",
+          "state",
+          "filesReceived",
+          "filesSent",
+          "filesFailed",
+          "bytesSent",
+          "startedUtc",
+          "lastActivityUtc",
+          "failures",
+          "recentCompletions",
+          "bytesPerSecond",
+          "filesPerSecond",
+          "expansionBytesWritten",
+          "expansionBytesDeclared"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "storageType": {
+            "$ref": "#/components/schemas/TeensyStorageType"
+          },
+          "destinationDirectory": {
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TransferJobState"
+          },
+          "filesReceived": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "filesSent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "filesFailed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bytesSent": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalFiles": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "currentFile": {
+            "type": "string",
+            "nullable": true
+          },
+          "startedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastActivityUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "failures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferFileCompleted"
+            }
+          },
+          "recentCompletions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferFileCompleted"
+            }
+          },
+          "bytesPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "filesPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "expandingArchive": {
+            "type": "string",
+            "nullable": true
+          },
+          "expansionBytesWritten": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expansionBytesDeclared": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expandedFileCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
+      "TransferJobDto2": {
+        "required": [
+          "jobId",
+          "deviceId",
+          "storageType",
+          "destinationDirectory",
+          "state",
+          "filesReceived",
+          "filesSent",
+          "filesFailed",
+          "bytesSent",
+          "startedUtc",
+          "lastActivityUtc",
+          "failures",
+          "recentCompletions",
+          "bytesPerSecond",
+          "filesPerSecond",
+          "expansionBytesWritten",
+          "expansionBytesDeclared"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "storageType": {
+            "$ref": "#/components/schemas/TeensyStorageType"
+          },
+          "destinationDirectory": {
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TransferJobState"
+          },
+          "filesReceived": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "filesSent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "filesFailed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bytesSent": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalFiles": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "currentFile": {
+            "type": "string",
+            "nullable": true
+          },
+          "startedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastActivityUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "failures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferFileCompleted"
+            }
+          },
+          "recentCompletions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferFileCompleted"
+            }
+          },
+          "bytesPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "filesPerSecond": {
+            "type": "number",
+            "format": "double"
+          },
+          "expandingArchive": {
+            "type": "string",
+            "nullable": true
+          },
+          "expansionBytesWritten": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expansionBytesDeclared": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expandedFileCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "nullable": true
+      },
+      "TransferJobState": {
+        "enum": [
+          "Created",
+          "Receiving",
+          "Sealed",
+          "Completed",
+          "Cancelled",
+          "Abandoned",
+          "Aborted"
+        ]
+      },
+      "UploadFileResponse": {
+        "required": [
+          "relativePath",
+          "sizeBytes",
+          "queued"
+        ],
+        "type": "object",
+        "properties": {
+          "relativePath": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "queued": {
+            "type": "boolean"
+          }
+        }
+      },
+      "VideoSettingsDto": {
+        "required": [
+          "enableVideo",
+          "videoDeviceId"
+        ],
+        "type": "object",
+        "properties": {
+          "enableVideo": {
+            "type": "boolean"
+          },
+          "videoDeviceId": {
+            "type": "string"
+          }
+        }
+      },
+      "VideoStandard": {
+        "enum": [
+          "Unknown",
+          "NTSC",
+          "PAL"
+        ]
+      },
+      "ViewableItemImageDto": {
+        "required": [
+          "fileName",
+          "path",
+          "baseAssetPath",
+          "source"
+        ],
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "baseAssetPath": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      },
+      "YouTubeVideoDto": {
+        "required": [
+          "videoId",
+          "url",
+          "channel",
+          "subtune"
+        ],
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string"
+          },
+          "subtune": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Version"
+    },
+    {
+      "name": "Transfers"
+    },
+    {
+      "name": "Settings"
+    },
+    {
+      "name": "Devices"
+    },
+    {
+      "name": "Player"
+    },
+    {
+      "name": "Files"
+    },
+    {
+      "name": "Audio"
+    }
+  ]
+}

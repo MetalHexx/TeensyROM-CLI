@@ -1,11 +1,11 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Core.Settings;
+using TeensyRom.Cli.Settings;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class LaunchSettings : CommandSettings, IClearableSettings, IRequiresConnection
+    internal class LaunchSettings : CommandSettings, IClearableSettings
     {
         public void ClearSettings() { }
 

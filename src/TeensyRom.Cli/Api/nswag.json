@@ -1,0 +1,30 @@
+{
+  "runtime": "Default",
+  "documentGenerator": {
+    "fromDocument": {
+      "json": "",
+      "url": "TeensyRom.Api.json",
+      "output": null
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "clientBaseClass": null,
+      "configurationClass": null,
+      "generateClientClasses": true,
+      "generateClientInterfaces": true,
+      "injectHttpClient": true,
+      "disposeHttpClient": false,
+      "useBaseUrl": false,
+      "generateExceptionClasses": true,
+      "exceptionClass": "ApiException",
+      "operationGenerationMode": "SingleClientFromOperationId",
+      "generateOptionalParameters": true,
+      "generateNullableReferenceTypes": true,
+      "jsonLibrary": "SystemTextJson",
+      "className": "TeensyRomApiClient",
+      "namespace": "TeensyRom.Cli.Api.Generated",
+      "output": "Generated/TeensyRomApiClient.g.cs"
+    }
+  }
+}

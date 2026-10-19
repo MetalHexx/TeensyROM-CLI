@@ -1,17 +1,17 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
+using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Core.Common;
-using TeensyRom.Core.Player;
-using TeensyRom.Core.Storage.Entities;
-using TeensyRom.Core.Storage.Services;
+using TeensyRom.Cli.Common;
+using TeensyRom.Cli.Player;
+using TeensyRom.Cli.Storage.Entities;
 using TextCopy;
 
 namespace TeensyRom.Cli.Commands.Main.Launcher
 {
-    internal class PlayerSettings : LaunchSettings, IClearableSettings, IRequiresConnection
+    internal class PlayerSettings : LaunchSettings, IClearableSettings
     {
         public new void ClearSettings() { }
     }
@@ -19,10 +19,9 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
     internal class PlayerCommand : Command<PlayerSettings>
     {
         private readonly IPlayerService _player;
-        private readonly ICachedStorageService _storage;
-        private PlayState? _previousState;
+        private readonly IStorageService _storage;
 
-        public PlayerCommand(IPlayerService player, ICachedStorageService storage)
+        public PlayerCommand(IPlayerService player, IStorageService storage)
         {
             _player = player;
             _storage = storage;
@@ -47,19 +46,19 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 switch (choice)
                 {
                     case "Next":
-                        _player.PlayNext();
+                        _player.PlayNext().GetAwaiter().GetResult();
                         break;
 
                     case "Previous":
-                        _player.PlayPrevious();
+                        _player.PlayPrevious().GetAwaiter().GetResult();
                         break;
 
                     case "Resume":
-                        _player.TogglePlay();
+                        _player.TogglePlay().GetAwaiter().GetResult();
                         break;
 
                     case "Stop/Pause":
-                        _player.TogglePlay();
+                        _player.TogglePlay().GetAwaiter().GetResult();
                         break;
 
                     case "Favorite":
@@ -207,17 +206,24 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
                 if (!shouldRemove) return;
             }
 
-            if (needsToggle) _player.TogglePlay();
+            if (needsToggle) _player.TogglePlay().GetAwaiter().GetResult();
 
-            if (shouldRemove)
+            try
             {
-                _storage.RemoveFavorite(playerState.CurrentItem);
+                if (shouldRemove)
+                {
+                    _storage.RemoveFavorite(playerState.CurrentItem).GetAwaiter().GetResult();
+                }
+                else
+                {
+                    _storage.SaveFavorite(playerState.CurrentItem).GetAwaiter().GetResult();
+                }
             }
-            else 
+            catch (TeensyApiException ex)
             {
-                _storage.SaveFavorite(playerState.CurrentItem);
+                RadHelper.WriteError(ex.Message);
             }
-            if (needsToggle) _player.TogglePlay();
+            if (needsToggle) _player.TogglePlay().GetAwaiter().GetResult();
         }
 
         private void HandleBan(PlayerState playerState)
@@ -236,12 +242,20 @@ namespace TeensyRom.Cli.Commands.Main.Launcher
 
             if (!shouldBan) return;
 
-            if (needsToggle) _player.TogglePlay();
+            if (needsToggle) _player.TogglePlay().GetAwaiter().GetResult();
 
             if (shouldBan)
             {
-                _storage.BanFile(playerState.CurrentItem);
-                _player.PlayNext();
+                try
+                {
+                    _storage.BanFile(playerState.CurrentItem).GetAwaiter().GetResult();
+                }
+                catch (TeensyApiException ex)
+                {
+                    RadHelper.WriteError(ex.Message);
+                    return;
+                }
+                _player.PlayNext().GetAwaiter().GetResult();
             }
         }
 
