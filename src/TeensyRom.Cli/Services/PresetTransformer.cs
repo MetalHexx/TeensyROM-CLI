@@ -54,7 +54,7 @@ namespace TeensyRom.Cli.Services
         {
             return xmlDoc
                 .Descendants("Slot")
-                .FirstOrDefault(s => GetRequiredInt(s, "id") == 0);
+                .FirstOrDefault(s => (int)s.Attribute("id") == 0);
         }
 
         public void AddParam(XElement slot, int id, int value)
@@ -65,7 +65,7 @@ namespace TeensyRom.Cli.Services
 
         public void UpsertParam(XElement slot, int id, int value)
         {
-            var param = slot.Descendants("Param").FirstOrDefault(p => GetRequiredInt(p, "id") == id);
+            var param = slot.Descendants("Param").FirstOrDefault(p => (int)p.Attribute("id") == id);
 
             if (param is null)
             {
@@ -74,14 +74,6 @@ namespace TeensyRom.Cli.Services
                 return;
             }
             param.SetAttributeValue("value", value);
-        }
-
-        private static int GetRequiredInt(XElement element, string attributeName)
-        {
-            var attribute = element.Attribute(attributeName)
-                ?? throw new ArgumentNullException(attributeName, $"<{element.Name}> has no '{attributeName}' attribute.");
-
-            return (int)attribute;
         }
     }
 }

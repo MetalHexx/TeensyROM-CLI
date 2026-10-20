@@ -1,16 +1,18 @@
-﻿using Spectre.Console;
+﻿using MediatR;
+using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
-using TeensyRom.Cli.Api;
 using TeensyRom.Cli.Helpers;
 using TeensyRom.Cli.Services;
-using TeensyRom.Cli.Common;
-using TeensyRom.Cli.Logging;
-using TeensyRom.Cli.Settings;
+using TeensyRom.Core.Commands;
+using TeensyRom.Core.Common;
+using TeensyRom.Core.Serial.State;
+using TeensyRom.Core.Settings;
+using TeensyRom.Core.Storage.Services;
 
 namespace TeensyRom.Cli.Commands.Main
 {
-    internal class IndexSettings : CommandSettings, IClearableSettings
+    internal class IndexSettings : CommandSettings, IClearableSettings, IRequiresConnection
     {
         [Description("Storage files to index. (sd or usb)")]
         [CommandOption("-s|--storage")]
@@ -44,7 +46,7 @@ namespace TeensyRom.Cli.Commands.Main
     }
 
 
-    internal class IndexCommand(IStorageService storage, IPlayerService player, ISettingsService settingsService, IDeviceLogStream deviceLog) : AsyncCommand<IndexSettings>
+    internal class IndexCommand(ISerialStateContext serial, ICachedStorageService storage, IPlayerService player, IMediator mediator, ISettingsService settingsService, ICliLoggingService logService) : AsyncCommand<IndexSettings>
     {
         public override async Task<int> ExecuteAsync(CommandContext context, IndexSettings settings)
         {
@@ -72,19 +74,32 @@ namespace TeensyRom.Cli.Commands.Main
 
             if (!settings.ValidateSettings()) return -1;
 
+            RadHelper.WriteTitle("Resetting TR before caching.  Don't mess with your C64 until caching completed.");
+            AnsiConsole.WriteLine();
+
+            await mediator.Send(new ResetCommand());
+
             RadHelper.WriteLine($"Caching files for {storageType}...");
             AnsiConsole.WriteLine();
 
-            var progressLog = await FollowIndexingAsync();
+            var loggingEnabled = logService.Enabled;
+
+            logService.Enabled = true;
 
             try
             {
-                await storage.Index(settings.Path);
+                await storage.CacheAll(settings.Path);
             }
-            finally
+            catch (TeensyException ex)
             {
-                if (progressLog is not null) await progressLog.DisposeAsync();
+                RadHelper.WriteError(ex.Message);
+                AnsiConsole.WriteLine();
+                RadHelper.WriteLine("Problem Caching: Waiting 10 seconds for TeensyROM to reset");
+                AnsiConsole.WriteLine();
+                await Task.Delay(10000);
+                await storage.CacheAll(settings.Path);
             }
+            logService.Enabled = loggingEnabled;
             AnsiConsole.WriteLine("Setting globalSettings.HasIndexed to true");
             globalSettings.HasIndexed = true;
             AnsiConsole.WriteLine("Calling SaveSettings");
@@ -92,30 +107,6 @@ namespace TeensyRom.Cli.Commands.Main
             AnsiConsole.WriteLine("Completed SaveSettings");
 
             return 0;
-        }
-
-        /// <summary>
-        /// tr-web does the indexing and logs its progress to its own log stream. Shows just those lines, whether or not
-        /// debug logs are on. Returns null, after saying so, when the stream can't be followed: indexing still runs.
-        /// </summary>
-        private async Task<IAsyncDisposable?> FollowIndexingAsync()
-        {
-            try
-            {
-                return await deviceLog.FollowAsync(WriteIndexingLine);
-            }
-            catch (TeensyApiException ex)
-            {
-                RadHelper.WriteError($"Indexing will run without showing its progress. {ex.Message}");
-                return null;
-            }
-        }
-
-        private static void WriteIndexingLine(string line)
-        {
-            if (!line.Contains("Indexing", StringComparison.Ordinal)) return;
-
-            AnsiConsole.MarkupLine($"[{LogConstants.ExternalColor}]{line.EscapeBrackets()}[/]");
         }
     }
 }

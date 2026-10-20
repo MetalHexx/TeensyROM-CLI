@@ -1,6 +1,6 @@
 ﻿using Spectre.Console;
 using TeensyRom.Cli.Helpers;
-using TeensyRom.Cli.Logging;
+using TeensyRom.Core.Logging;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TeensyRom.Cli.Services

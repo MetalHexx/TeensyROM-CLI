@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TeensyRom.Cli.Common;
+using TeensyRom.Core.Common;
 
 namespace TeensyRom.Cli.Helpers
 {

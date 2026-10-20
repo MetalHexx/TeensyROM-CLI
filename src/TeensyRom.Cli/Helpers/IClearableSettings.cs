@@ -10,4 +10,6 @@ namespace TeensyRom.Cli.Helpers
     {
         void ClearSettings();
     }
+
+    internal interface IRequiresConnection { }
 }
