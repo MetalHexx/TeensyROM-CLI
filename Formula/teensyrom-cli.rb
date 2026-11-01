@@ -6,7 +6,7 @@ class TeensyromCli < Formula
   version "1.0.1"
 
   deprecate! date: "2026-10-19", because: "has moved into TeensyROM Suite (brew tap MetalHexx/TeensyROM-Suite https://github.com/MetalHexx/TeensyROM-Suite && brew install metalhexx/teensyrom-suite/teensyrom-suite)"
-  conflicts_with "metalhexx/teensyrom-suite/teensyrom-suite", "metalhexx/teensyrom-web/teensyrom-suite", because: "both install a TeensyRom.Cli command"
+  conflicts_with "metalhexx/teensyrom-suite/teensyrom-suite", "metalhexx/teensyrom-web/teensyrom-suite", because: "both provide the trom command line"
 
   def install
     libexec.install Dir["*"]
