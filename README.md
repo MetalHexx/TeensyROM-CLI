@@ -1,3 +1,6 @@
+> [!WARNING]
+> **TeensyROM-CLI is end of life and no longer maintained.** Its terminal client now lives in [TeensyROM Suite](https://github.com/MetalHexx/TeensyROM-Suite) as **Trom Terminal** (the `trom` command).
+
 # TeensyROM Command Line Interface
 A cross-platform CLI Tool for TeensyROM Emulator, Fast Loader, MIDI and Internet cartridge for Commodore 64/128.
 
